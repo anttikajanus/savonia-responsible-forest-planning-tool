@@ -40,7 +40,7 @@ jobs:
           Expand-Archive -LiteralPath $archive.FullName -DestinationPath $env:SAVONIA_TEST_PLUGIN_ROOT
           python -m unittest discover -s qgis_plugin/tests -v
       - name: Upload installable ZIP
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: qgis-plugin-build
           path: qgis_plugin/dist/*.zip

@@ -20,6 +20,8 @@ tests and packages pull requests targeting `main` and pushes to `main` on
 Windows with Python 3.12. It runs tooling and pure plugin tests, including
 Finnish/English help and disposable packaging checks, then tests the extracted
 installation ZIP. The build ZIP is retained as a workflow artifact.
+Checkout, Python setup and artifact upload use Node 24 actions; artifact upload
+uses `actions/upload-artifact@v7` with its default ZIP archive behavior.
 PyQGIS integration and interactive desktop acceptance remain separate checks.
 
 After a successful main build, a serialized release job prepares the next
