@@ -1,0 +1,27 @@
+# Generated QGIS plugin archives
+/qgis_plugin/dist/
+
+# Downloaded provider references; keep setup instructions and source URLs
+/docs/references/*
+!/docs/references/README.md
+!/docs/references/manifest.json
+
+# Local specifications and ticket management
+/.scratch/
+
+# Local research notes
+/docs/research/
+
+# Python bytecode and test cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local Python environments
+.venv/
+venv/
+
+# Office lock files and common OS metadata
+~$*
+.DS_Store
+Thumbs.db

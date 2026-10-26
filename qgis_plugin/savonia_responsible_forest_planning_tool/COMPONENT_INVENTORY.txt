@@ -1,0 +1,46 @@
+Savonia - Responsible Forest Planning — distributed-component inventory
+Checked: 2026-10-26
+Scope: savonia_responsible_forest_planning_tool/ in the plugin ZIP.
+Version: see the installed metadata.txt.
+Origin: https://github.com/anttikajanus/savonia-responsible-forest-planning-tool
+
+DISTRIBUTED COMPONENTS
+
+1. Project software and documentation
+   Files: __init__.py, i18n.py, app_logging.py, data_attribution.py,
+          documentation.py; all .py files under adapters/, analysis/,
+          processing/, ui/; metadata.txt, docs/help/manual_fi.html,
+          docs/help/manual_en.html, COMPONENT_INVENTORY.txt, LICENSE,
+          and project-authored portions of THIRD_PARTY_NOTICES.
+   Origin/version: this repository; installed metadata.txt version.
+   Copyright (c) 2026 Antti Kajanus. Licence: MIT; complete text in LICENSE.
+   The XLSX writer uses Python's standard-library ZIP/XML modules.
+
+2. Creative Commons Attribution 4.0 International legal code
+   Files: licenses/CC-BY-4.0.txt and verbatim copy in THIRD_PARTY_NOTICES.
+   Origin: https://creativecommons.org/licenses/by/4.0/legalcode.txt
+   Version: 4.0; retrieved 2026-10-26. Creator: Creative Commons Corporation.
+   The legal-code text is dedicated to the public domain under CC0, as
+   stated in its original notice. External datasets retain CC BY 4.0 terms.
+   Included for offline access to those terms; original notice preserved.
+
+No bundled third-party code, libraries or assets were identified in the
+reviewed package. Preserve applicable original notices for future additions
+and update this inventory. Generated Python caches are excluded from the ZIP.
+
+HOST-PROVIDED DEPENDENCIES
+
+QGIS/PyQGIS, Qt/PyQt, Python and the standard library, and GDAL/OGR providers
+are supplied by the QGIS installation. Theme and standard icons also come
+from the host. Consult that installation's versions and licence notices.
+These dependencies are not bundled or relicensed by this project.
+
+EXTERNAL DATA AND SERVICES
+
+Metsäkeskus and Syke WFS data are retrieved at runtime. OpenStreetMap raster
+tiles provide display context. Source datasets and tiles are not bundled.
+THIRD_PARTY_NOTICES contains dataset/provider credits, licence and terms links,
+modification notices, and OpenStreetMap attribution guidance in Finnish and
+English. The manuals' data-sources sections provide further context.
+GeoPackage and XLSX run metadata carry analysis-data attribution with results;
+preserve it when sharing those outputs.

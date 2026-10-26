@@ -1,0 +1,246 @@
+"""Prepare run outputs and coordinate the independent output writers."""
+
+import datetime
+import logging
+import os
+import time
+
+from qgis.core import QgsProcessingException, QgsVariantUtils
+
+from ..classification import TIERS
+from ..domain import (
+    METRIC_FIELDS, STAND_SCHEMA_FIELD_CANDIDATES, mapped_metric_ids,
+    weighted_summary,
+)
+from ..grid_indicators import (
+    AGE_METRICS, AREA_METRICS, GRID_VOLUME_FIELDS, STAND_VOLUME_FIELDS,
+    summarize_indicator_rows,
+)
+from ...app_logging import LOGGER_NAME
+from ...data_attribution import data_attribution
+from ...adapters.excel_writer import write_workbook
+from ...adapters.result_precision import RESULT_DECIMALS
+from ...adapters.geopackage_writer import write_geopackage
+from ...adapters.serialization import json_default
+from ...i18n import tr
+from ...adapters.sources import OUT_OF_SCOPE_COVERAGE
+from .common import _check_cancelled, _feedback
+
+
+logger = logging.getLogger(LOGGER_NAME + ".analysis.publishing")
+
+
+def prepare_publication(inputs, retrieved, classified, run_id):
+    """Prepare coverage and run metadata before any output is written."""
+    language = inputs["language"]
+    output_folder = inputs["output_folder"]
+    try:
+        os.makedirs(output_folder, exist_ok=True)
+        if not os.access(output_folder, os.W_OK):
+            raise OSError("folder is not writable")
+    except OSError as exc:
+        raise QgsProcessingException(tr(language, "error_output_writable", path=exc))
+
+    coverage = [dict(row) for row in classified["coverage"]]
+    for row in OUT_OF_SCOPE_COVERAGE:
+        excluded = {**row, "scope": "sensitivity_criterion"}
+        if row["service_id"] == "peatlands":
+            excluded["message"] = tr(language, "peat_criterion_scope")
+        coverage.append(excluded)
+    source_metadata = inputs["source_metadata"]
+    stand_fields = source_metadata["forest_centre_stand"]["provider_fields"]
+    confirmed_stand_fields = sorted({
+        name for name in stand_fields
+        if name.lower() in STAND_SCHEMA_FIELD_CANDIDATES
+    })
+    retained_stand_metrics = {*STAND_VOLUME_FIELDS, "growth_percent", "basal_area_m2_ha"}
+    mapped_metrics = sorted(set(mapped_metric_ids(confirmed_stand_fields)) & retained_stand_metrics)
+    coverage.append({
+        "service_id": "forest_centre_stand_indicators",
+        "status": "AVAILABLE",
+        "mapped_metrics": mapped_metrics,
+        "unavailable_metrics": sorted(retained_stand_metrics - set(mapped_metrics)),
+        "schema_confirmed_fields": confirmed_stand_fields,
+        "mapping_status": "PARTIALLY_MAPPED",
+        "message": tr(language, "stand_indicators_mapping"),
+    })
+    stand_coverage = next((row for row in coverage if row["service_id"] == "forest_centre_stand"), {})
+    stand_coverage["stand_feature_count"] = len(
+        retrieved["source_features"]["forest_centre_stand"]
+    )
+    limitations = [
+        tr(language, "prototype_notice"),
+        tr(language, "limit_overlap"),
+        tr(language, "limit_mapping"),
+        tr(language, "limit_sensitivity"),
+        tr(language, "limit_scope"),
+        tr(language, "note_area_definitions"),
+        tr(language, "note_grid_weighting"),
+        tr(language, "note_volume_comparison"),
+        tr(language, "note_result_precision"),
+        tr(language, "note_reporting_domain"),
+        tr(language, "note_age_rounding"),
+        tr(language, "note_partial_values"),
+        tr(language, "note_source_dates"),
+        tr(language, "note_deferred_metrics"),
+    ]
+    grid_fields = {
+        name.lower(): name for name in source_metadata["forest_centre_gridcell"]["provider_fields"]
+    }
+    source_dates = {}
+    for canonical in ("treedatadate", "updatetime"):
+        actual = grid_fields.get(canonical)
+        observed = set()
+        for record in retrieved["source_features"].get("forest_centre_gridcell", ()):
+            attributes = {str(key).lower(): value for key, value in record.get("attributes", {}).items()}
+            value = attributes.get(canonical)
+            if not QgsVariantUtils.isNull(value):
+                observed.add(str(value) if isinstance(value, str) else json_default(value))
+        source_dates[canonical] = {"provider_field": actual, "observed_values": sorted(observed)}
+    run_metadata = [{
+        "project_name": tr(language, "project_name"),
+        "project_status": "personal_learning_prototype",
+        "prototype_notice": tr(language, "prototype_notice"),
+        "run_id": run_id,
+        "timestamp_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "language": language,
+        "analysis_crs": "EPSG:3067",
+        "aoi_crs": inputs["aoi_crs"],
+        "result_feature_count": len(classified["result_rows"]),
+        "skipped_stand_count": 0,
+        "sources": source_metadata,
+        "data_attribution": data_attribution(
+            inputs["service_ids"], tr(language, "data_attribution_changes"),
+        ),
+        "grid_source_dates": source_dates,
+        "metric_coverage": summarize_indicator_rows(classified["result_rows"])["indicator_coverage"],
+        "indicator_semantics": {
+            "result_field_rounding": {"decimals": RESULT_DECIMALS, "mode": "ROUND_HALF_UP", "stage": "after_aggregation"},
+            "reporting_domain": "classified_forest_polygons",
+            "area_method": "EPSG:3067 planar intersection m2 / 10000",
+            "area_arithmetic": {
+                "coordinate_frame": "translated_EPSG:3067",
+                "closure_bound": "max(1e-8 m2, 8 * coordinate_ulp_m * polygon_perimeter_m)",
+                "closure_diagnostic": "AREA_ROUNDOFF_ADJUSTMENT",
+            },
+            "grid_density": "sum(intersected_ha * value) / sum(metric_valid_ha)",
+            "stand_density": "sum(result_piece_ha * stand_value) / sum(metric_valid_ha)",
+            "stand_growth_percent": "100 * stand.volumegrowth / stand.volume; area-weighted mean of valid stand rates",
+            "age_bands": {"share_under_20": "AGE < 20", "share_20_80": "20 <= AGE <= 80", "share_over_80": "AGE > 80"},
+            "age_share": "100 * sum(matching_ha) / sum(valid_age_ha); final whole percent ROUND_HALF_UP",
+            "area_totals": "sum(matching_ha) only if all reporting area known; otherwise null with observed lower bound",
+            "grid_metrics": [*GRID_VOLUME_FIELDS, *AGE_METRICS, *AREA_METRICS],
+            "stand_metrics": sorted(retained_stand_metrics),
+            "stumpage_price_eur_m3": "OUT_OF_SCOPE",
+        },
+        "parameters": {
+            "aoi_layer": inputs["aoi_name"],
+            "selected_features_only": inputs["selected_only"],
+            "source_ids": list(inputs["service_ids"]),
+            "output_name": inputs["base_name"],
+        },
+        "limitations": limitations,
+    }]
+    return {
+        "coverage": coverage,
+        "limitations": limitations,
+        "run_metadata": run_metadata,
+    }
+
+
+def write_outputs(inputs, retrieved, classified, publication, feedback=None):
+    """Write the two formats as one attempt and remove partial outputs on failure."""
+    language = inputs["language"]
+    gpkg_path = inputs["gpkg_path"]
+    xlsx_path = inputs["xlsx_path"]
+    result_rows = classified["result_rows"]
+    coverage = publication["coverage"]
+    limitations = publication["limitations"]
+    run_metadata = publication["run_metadata"]
+    run_id = run_metadata[0]["run_id"]
+    current_step = "geopackage"
+
+    try:
+        _check_cancelled(feedback, language)
+        _feedback(feedback, "setProgress", 91)
+        _feedback(feedback, "setProgressText", tr(language, "progress_write_geopackage"))
+        _feedback(feedback, "pushInfo", tr(language, "progress_write_geopackage"))
+        step_started = time.perf_counter()
+        logger.info("run_id=%s stage=output_writing step=geopackage started", run_id)
+        write_geopackage(
+            gpkg_path, classified["output_layer"], retrieved["snapshots"], coverage,
+            run_metadata, inputs["transform_context"],
+        )
+        logger.info(
+            "run_id=%s stage=output_writing step=geopackage completed elapsed_seconds=%.3f",
+            run_id, time.perf_counter() - step_started,
+        )
+        _check_cancelled(feedback, language)
+        _feedback(feedback, "setProgress", 94)
+        current_step = "summaries"
+        _feedback(feedback, "setProgressText", tr(language, "progress_summarize"))
+        _feedback(feedback, "pushInfo", tr(language, "progress_summarize"))
+        step_started = time.perf_counter()
+        logger.info("run_id=%s stage=output_writing step=summaries started", run_id)
+        tier_rows = []
+        class_labels = {
+            "SENSITIVE": tr(language, "class_sensitive"),
+            "ECONOMIC": tr(language, "class_economic"),
+            "UNKNOWN": tr(language, "class_unknown"),
+        }
+        for tier, _label in TIERS:
+            for class_code in ("SENSITIVE", "ECONOMIC", "UNKNOWN"):
+                members = [row for row in result_rows if row["classes"][tier] == class_code]
+                aggregate_rows = [
+                    {"class": class_code, "area_ha": row["area_ha"],
+                     "indicator_coverage": row["indicator_coverage"]}
+                    for row in members
+                ]
+                summary = weighted_summary(aggregate_rows, class_code)
+                summary.update({
+                    "tier": tr(language, "tier_" + tier),
+                    "class": class_labels[class_code],
+                })
+                tier_rows.append(summary)
+        logger.info(
+            "run_id=%s stage=output_writing step=summaries completed summary_count=%d elapsed_seconds=%.3f",
+            run_id, len(tier_rows), time.perf_counter() - step_started,
+        )
+        _feedback(feedback, "setProgress", 96)
+        current_step = "workbook"
+        _feedback(feedback, "setProgressText", tr(language, "progress_write_workbook"))
+        _feedback(feedback, "pushInfo", tr(language, "progress_write_workbook"))
+        step_started = time.perf_counter()
+        logger.info("run_id=%s stage=output_writing step=workbook started", run_id)
+        write_workbook(xlsx_path, language, tier_rows, coverage, limitations, run_metadata)
+        logger.info(
+            "run_id=%s stage=output_writing step=workbook completed elapsed_seconds=%.3f",
+            run_id, time.perf_counter() - step_started,
+        )
+        _check_cancelled(feedback, language)
+    except Exception as exc:
+        logger.exception(
+            "run_id=%s stage=output_writing step=%s failed",
+            run_id, current_step,
+        )
+        # One file may already be complete when the other fails; remove both so
+        # neither can be mistaken for a complete run.
+        for path in (gpkg_path, xlsx_path):
+            try:
+                if os.path.exists(path):
+                    os.remove(path)
+            except OSError:
+                pass
+        if feedback is not None and feedback.isCanceled():
+            raise QgsProcessingException(tr(language, "error_cancelled"))
+        raise QgsProcessingException(tr(language, "error_write", detail=exc))
+
+    _feedback(feedback, "setProgress", 100)
+    return {
+        "result_layer": classified["output_layer"],
+        "gpkg_path": gpkg_path,
+        "xlsx_path": xlsx_path,
+        "coverage": coverage,
+        "run_metadata": run_metadata[0],
+        "language": language,
+    }

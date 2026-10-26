@@ -1,0 +1,28 @@
+[general]
+name=Savonia - Responsible Forest Planning
+name[fi]=Savonia - Vastuullinen metsäsuunnittelu
+qgisMinimumVersion=4.2.3
+qgisMaximumVersion=4.99
+description=Unfinished personal learning prototype for forest planning inputs; not backed or approved by Savonia.
+description[fi]=Keskeneräinen henkilökohtainen oppimisprototyyppi metsäsuunnittelun lähtötietoihin; ei Savonian tukema tai hyväksymä.
+version=1.0.0
+author=Antti Kajanus
+email=
+about=Unfinished personal learning prototype by Antti Kajanus, based on a real Savonia use case, limited understanding and personal assumptions. Neither this prototype nor its results are official, backed, endorsed or approved by Savonia in any form.
+    Builds classified forest polygons and indicator inputs. It does not calculate scenario impacts or make legal determinations.
+    Project: Savonia - Responsible Forest Planning. Author, developer and copyright holder: Antti Kajanus. Project licence: MIT; see the packaged LICENSE and THIRD_PARTY_NOTICES.
+    External runtime dependencies: QGIS 4.x, version 4.2.3 or newer, and its Python, Qt/PyQt and spatial providers. No separately installed Python packages or plugin dependencies are required. Online source retrieval requires the configured data services.
+    Documentation and source code are available in the GitHub repository. Report bugs and request enhancements through GitHub Issues.
+about[fi]=Antti Kajanuksen keskeneräinen henkilökohtainen oppimisprototyyppi, joka perustuu todelliseen Savonian käyttötapaukseen, rajalliseen ymmärrykseen ja omiin oletuksiin. Prototyyppi ja sen tulokset eivät ole Savonian virallisia, tukemia, suosittelemia tai millään tavoin hyväksymiä.
+    Luo luokiteltuja metsäpolygoneja ja indikaattorien lähtötietoja. Työkalu ei laske skenaarioiden vaikutuksia eikä tee oikeudellisia ratkaisuja.
+    Projekti: Savonia - Vastuullinen metsäsuunnittelu. Tekijä, kehittäjä ja tekijänoikeuden haltija: Antti Kajanus. Projektin lisenssi: MIT; katso paketin LICENSE ja THIRD_PARTY_NOTICES.
+    Ulkoiset ajonaikaiset riippuvuudet: QGIS 4.x, vähintään versio 4.2.3, sekä sen Python, Qt/PyQt ja paikkatietopalveluntarjoajat. Erillisiä Python-paketteja tai lisäosariippuvuuksia ei tarvita. Verkkolähteiden haku edellyttää määritettyjen aineistopalvelujen saatavuutta.
+    Ohjeet ja lähdekoodi ovat saatavilla GitHub-lähdekoodivarastossa. Ilmoita vioista ja esitä kehitysehdotukset GitHub Issues -palvelussa.
+homepage=https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/tree/main/docs/help
+repository=https://github.com/anttikajanus/savonia-responsible-forest-planning-tool
+tracker=https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/issues
+category=Vector
+icon=
+experimental=True
+deprecated=False
+hasProcessingProvider=yes

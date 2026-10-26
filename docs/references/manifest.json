@@ -1,0 +1,90 @@
+[
+  {
+    "path": "metsakeskus/stands/get-capabilities.xml",
+    "url": "https://avoin.metsakeskus.fi/rajapinnat/v2/stand/ows?service=WFS&version=2.0.0&request=GetCapabilities"
+  },
+  {
+    "path": "metsakeskus/stands/describe-feature-type.xsd",
+    "url": "https://avoin.metsakeskus.fi/rajapinnat/v2/stand/ows?service=WFS&version=2.0.0&request=DescribeFeatureType&typeNames=v2:stand"
+  },
+  {
+    "path": "metsakeskus/habitats/get-capabilities.xml",
+    "url": "https://avoin.metsakeskus.fi/rajapinnat/v2/habitat/ows?service=WFS&version=2.0.0&request=GetCapabilities"
+  },
+  {
+    "path": "metsakeskus/habitats/describe-feature-type.xsd",
+    "url": "https://avoin.metsakeskus.fi/rajapinnat/v2/habitat/ows?service=WFS&version=2.0.0&request=DescribeFeatureType&typeNames=v2:habitat"
+  },
+  {
+    "path": "metsakeskus/grid/get-capabilities.xml",
+    "url": "https://avoin.metsakeskus.fi/rajapinnat/v2/gridcell/ows?service=WFS&version=2.0.0&request=GetCapabilities"
+  },
+  {
+    "path": "metsakeskus/grid/describe-feature-type.xsd",
+    "url": "https://avoin.metsakeskus.fi/rajapinnat/v2/gridcell/ows?service=WFS&version=2.0.0&request=DescribeFeatureType&typeNames=v2:gridcell"
+  },
+  {
+    "path": "syke/protected-sites/get-capabilities.xml",
+    "url": "https://paikkatiedot.ymparisto.fi/geoserver/inspire_ps/wfs?service=WFS&version=2.0.0&request=GetCapabilities"
+  },
+  {
+    "path": "syke/protected-sites/state-owned-conservation-area.xsd",
+    "url": "https://paikkatiedot.ymparisto.fi/geoserver/inspire_ps/wfs?service=WFS&version=2.0.0&request=DescribeFeatureType&typeNames=inspire_ps:PS.ProtectedSitesValtionOmistamaLuonnonsuojelualue"
+  },
+  {
+    "path": "syke/protected-sites/private-land-conservation-area.xsd",
+    "url": "https://paikkatiedot.ymparisto.fi/geoserver/inspire_ps/wfs?service=WFS&version=2.0.0&request=DescribeFeatureType&typeNames=inspire_ps:PS.ProtectedSitesYksityistenMaillaOlevaLuonnonsuojelualue"
+  },
+  {
+    "path": "syke/protected-sites/wilderness-area.xsd",
+    "url": "https://paikkatiedot.ymparisto.fi/geoserver/inspire_ps/wfs?service=WFS&version=2.0.0&request=DescribeFeatureType&typeNames=inspire_ps:PS.ProtectedSitesEramaaAlue"
+  },
+  {
+    "path": "syke/conservation-programme-areas/get-capabilities.xml",
+    "url": "https://paikkatiedot.ymparisto.fi/geoserver/syke_luonnonsuojeluohjelma_alueet/wfs?service=WFS&version=2.0.0&request=GetCapabilities"
+  },
+  {
+    "path": "syke/conservation-programme-areas/describe-feature-type.xsd",
+    "url": "https://paikkatiedot.ymparisto.fi/geoserver/syke_luonnonsuojeluohjelma_alueet/wfs?service=WFS&version=2.0.0&request=DescribeFeatureType&typeNames=syke_luonnonsuojeluohjelma_alueet:Luonnonsuojeluohjelmaalueet"
+  },
+  {
+    "path": "syke/groundwater/get-capabilities.xml",
+    "url": "https://paikkatiedot.ymparisto.fi/geoserver/syke_vhspohjavesi/wfs?service=WFS&version=2.0.0&request=GetCapabilities"
+  },
+  {
+    "path": "syke/groundwater/describe-feature-type.xsd",
+    "url": "https://paikkatiedot.ymparisto.fi/geoserver/syke_vhspohjavesi/wfs?service=WFS&version=2.0.0&request=DescribeFeatureType&typeNames=syke_vhspohjavesi:VHS2022_Pohjavesi"
+  },
+  {
+    "path": "metsakeskus/stands/tietotuotekuvaus-metsavarakuviot.pdf",
+    "url": "https://www.metsakeskus.fi/sites/default/files/document/tietotuotekuvaus-metsavarakuviot.pdf"
+  },
+  {
+    "path": "metsakeskus/grid/tietotuotekuvaus-hila-aineisto.pdf",
+    "url": "https://www.metsakeskus.fi/sites/default/files/document/tietotuotekuvaus-hila-aineisto.pdf"
+  },
+  {
+    "path": "metsakeskus/grid/hila-koodisto-ja-tietokantakuvaus.xlsx",
+    "url": "https://www.metsakeskus.fi/sites/default/files/document/hila-koodisto-ja-tietokantakuvaus.xlsx"
+  },
+  {
+    "path": "metsakeskus/tiedosto-tietomallikaavio-mv_ey_2-1-3-metsakeskuksen-tietomallin-uudistus.xlsx",
+    "url": "https://www.metsakeskus.fi/sites/default/files/document/tiedosto-tietomallikaavio-mv_ey_2-1-3-metsakeskuksen-tietomallin-uudistus.xlsx"
+  },
+  {
+    "path": "metsakeskus/tiedosto-geopackage-sisaltoohjeet-tietomalli-2-0.pdf",
+    "url": "https://www.metsakeskus.fi/sites/default/files/document/tiedosto-geopackage-sisaltoohjeet-tietomalli-2-0.pdf"
+  },
+  {
+    "path": "syke/protected-sites/luonnonsuojelu-ja-eramaa-alueet.pdf",
+    "url": "https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Luonnonsuojelujaeramaaalueet.pdf"
+  },
+  {
+    "path": "syke/conservation-programme-areas/luonnonsuojeluohjelma-alueet.pdf",
+    "url": "https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/LuonnonsuojeluOhjelmaAlueet.pdf"
+  },
+  {
+    "path": "syke/groundwater/pohjavesialueet.pdf",
+    "url": "https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Pohjavesialueet.pdf"
+  }
+]

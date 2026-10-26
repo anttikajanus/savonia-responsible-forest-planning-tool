@@ -1,0 +1,235 @@
+# QGIS plugin development and debugging
+
+**Savonia - Responsible Forest Planning is Antti Kajanus's unfinished personal
+learning prototype, based on limited understanding and personal assumptions.
+Neither it nor its results are backed, endorsed, finalized, or approved by
+Savonia in any form.** Implementation and test completion here describe this
+prototype only; see the [project context](../../README.md).
+
+This guide owns setup, reload, debugger, test and packaging instructions for the Savonia - Responsible Forest Planning plugin. Run commands from the repository root unless stated otherwise. The plugin targets **QGIS 4.2.3 and newer 4.x releases**, as declared in [metadata.txt](../../qgis_plugin/savonia_responsible_forest_planning_tool/metadata.txt) (`4.2.3` minimum, `4.99` maximum). QGIS 4.2.3 is the verification baseline. Run the suites and packaged load/Processing/unload checks on each newer release before recording it as verified; the metadata range permits installation without establishing future runtime compatibility.
+
+## Local provider references
+
+Populate `docs/references/` once before investigating service contracts:
+
+```powershell
+& 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' scripts/download_references.py
+```
+
+Any Python 3.10+ installation works; the script uses only the standard library.
+Agents can then read capabilities, eight layer schemas and provider PDF/XLSX
+documentation locally. The cache is ignored by Git. Its versioned manifest,
+refresh/filter options, optional `SYKE_USER_ID`, provenance and failure behavior
+are documented in [reference instructions](../references/README.md).
+Maintain this manifest alongside the [source registry contract](data-sources.md)
+when endpoints or required layers change. The downloader deliberately does not
+import the plugin or require QGIS to read development reference material.
+
+Run its deterministic HTTP-fixture checks separately from plugin tests:
+
+```powershell
+& 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' -m unittest discover -s scripts/tests -v
+```
+
+The downloader checks file formats; representative feature values and provider
+completeness require separate checks. Local retrieval details remain in ignored
+`retrievals.json`.
+
+## Recommended setup: a dedicated development profile
+
+A separate QGIS profile keeps the development plugin and its settings away from your normal QGIS setup.
+
+Keep the complete checkout, including repository `docs/help/`, available at its
+original location. The source-linked plugin resolves its manuals there. Use the
+junction or `QGIS_PLUGINPATH` setup below for development; copying only
+`savonia_responsible_forest_planning_tool` into a profile omits those manuals.
+For an installed copy, follow the [current-version ZIP instructions](../../qgis_plugin/README.md#runtime-and-installation).
+
+1. In QGIS, open **Settings > User Profiles > New Profile...** and create a profile such as `Savonia development`.
+2. Switch to that profile and open **Settings > User Profiles > Open Active Profile Folder**. Keep this folder open; it is the profile QGIS is currently reading.
+3. Under the profile folder, create `python\plugins` if it does not already exist.
+4. In PowerShell, create a directory junction from that profile's plugins directory to the plugin source in this checkout. Set `$profilePlugins` to the `python\plugins` folder you just opened:
+
+   ```powershell
+   $pluginSource = (Resolve-Path ".\qgis_plugin\savonia_responsible_forest_planning_tool").Path
+   $profilePlugins = "C:\path\to\the\active\profile\python\plugins"
+   $pluginLink = Join-Path $profilePlugins "savonia_responsible_forest_planning_tool"
+   New-Item -ItemType Junction -Path $pluginLink -Target $pluginSource
+   ```
+
+   Run this from the repository root. Create the junction only when `$pluginLink` does not already exist. The junction lets QGIS import the files directly from the checkout, so edits do not need to be copied into the profile.
+
+Alternatively, set `QGIS_PLUGINPATH` to the directory containing `savonia_responsible_forest_planning_tool` before starting QGIS. QGIS must inherit that environment variable when it launches. A junction in the active development profile is usually easier to verify and keep in place.
+
+## Load the plugin and reload edits
+
+1. Start QGIS with the development profile.
+2. Open **Plugins > Manage and Install Plugins...**. Find **Savonia - Responsible Forest Planning** under **Installed** and enable it.
+3. In the same Plugin Manager, install **Plugin Reloader** once. It is a separate helper plugin.
+4. Edit and save files in `qgis_plugin\savonia_responsible_forest_planning_tool`.
+5. Use Plugin Reloader's reload action for **Savonia - Responsible Forest Planning**. The plugin remains installed; you do not need to uninstall and reinstall it after code edits.
+
+If the plugin does not appear, confirm that QGIS is using the development profile, that the junction points to the package folder (the folder containing `metadata.txt` and `__init__.py`), and that there is only one copy of this package on QGIS's plugin search paths.
+
+Reloading executes the plugin lifecycle again, but it cannot guarantee that every process-wide Python or Qt reference has been discarded. The plugin's `unload()` should undo plugin-owned setup: remove menu and toolbar actions, unregister its Processing provider, stop owned timers, and disconnect signal handlers. If a reload fails or behavior remains stale after cleanup, restart QGIS to start with a clean Python process.
+
+## Debug failures in QGIS
+
+1. Open **View > Panels > Log Messages** and select the plugin's tab. Check the first error and traceback from the failed load or run.
+2. Open **Plugins > Python Console** to inspect the live QGIS Python session. For example, `qgis.utils.plugins` shows the plugin instances QGIS currently has loaded. Use the console to inspect state and reproduce a narrow failure; the console shares the running QGIS process and its PyQGIS environment.
+3. For breakpoints, configure the IDE to use the Python, PyQGIS, Qt and PyQt runtime bundled with the QGIS release being tested. The commands below use the QGIS 4.2.3 baseline. A regular system Python interpreter usually does not have the QGIS runtime available.
+4. After changing code, reload with Plugin Reloader and repeat the same steps. If errors only appear on the second load, check `unload()` and initialization for duplicate actions, signal connections, timers, or Processing registrations.
+
+Keep the error's traceback, the QGIS version, and the steps and inputs that reproduce it when recording a defect. Do not treat an empty result or missing online source as a successful run; check the plugin's reported source readiness and coverage as well.
+
+## Deterministic indicator and source regression checks
+
+The source-field and pure grid-indicator tests use Python's standard `unittest`. From the repository root,
+run the pure checks without QGIS using a configured Python interpreter:
+
+```powershell
+python -m unittest discover -s qgis_plugin/tests -v
+```
+
+For QGIS integration, use the declared runtime's configured Python launcher:
+
+```powershell
+& 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' -m unittest discover -s qgis_plugin/tests/qgis -v
+```
+
+The integration suite runs headlessly with generated polygon data and a tiny WFS
+fixture bound to a random loopback port. It calls the shared Processing algorithm
+with real WFS providers and checks GeoPackage/workbook results and failure messages
+in Finnish and English. It requires local loopback access but no online services.
+The fixture implements only the WFS operations needed by these tests. Each test
+uses fresh providers; initialization without a spatial request primes the fixture's
+request-bbox-only provider before Processing retrieves its features.
+
+Grid setup checks use the same local WFS boundary and real QGIS 4.2.3 layer trees
+and rendering APIs. They cover the eighth required source, provider-backed fields
+and stable cell IDs, explicit `GRIDCELLS` Processing input, repeated setup and
+Finnish/English relabeling, preservation of unmanaged references, and bottom grid
+placement. Scale checks include visible 1:200/1:300 and hidden 1:300.001/1:500.
+QGIS excludes an exactly equal minimum scale; setup uses a `1e-6` denominator
+margin for inclusive 1:300. This is display only and is absent from worker inputs.
+
+Calculation/workflow acceptance covers exact boundary intersections (including
+0.5 m²), projected CRS transforms, cell duplicates/conflicts, stand overlaps
+(shared edges, 0.5 m² and exactly 1 m² accepted; greater than 1 m² rejected),
+AOI dissolution, empty/partial coverage, metric-specific sufficient statistics,
+integer half-up age rounding and null preservation. Compare reopened artifacts
+by semantic values with tolerances rather than GeoPackage bytes. Keep grid and
+stand volume denominators separate; never aggregate rounded age percentages.
+
+To check an extracted plugin ZIP, set `SAVONIA_TEST_PLUGIN_ROOT` to the directory
+containing the extracted `savonia_responsible_forest_planning_tool` folder and run
+the integration command in a new Python process. The test code remains outside
+the distributable plugin. GUI acceptance and live-source smoke checks remain
+separate from these deterministic checks.
+
+## Check packaging separately
+
+Wizard spacing acceptance (desktop check pending): in Finnish and English,
+open the wizard both docked and floating, then resize it taller and narrower.
+The heading, description, analysis-area choices and output folder should stay
+together at the top with normal spacing; extra height should appear below the
+output folder, with the action buttons at the bottom. Check each analysis-area
+mode and wrapped status text. The offscreen regression is
+`tests/qgis/test_wizard_layout.py`, included in the integration suite above.
+
+Wizard toolbar icon acceptance (desktop check pending): in Finnish and English,
+compare setup, redock, Help and About with QGIS's native panel toolbars, such as
+Identify Results. They use QGIS's dock toolbar icon size (`iface.iconSize(True)`)
+in both docked and floating mode. Change QGIS's toolbar icon size and reopen the
+plugin after a reload to verify the new size is used. Automated checks exercise
+16, 24 and 32 pixel dock icons and both dock modes. This is a presentation-only
+change; analysis inputs, outputs, CRS, units and error behavior are unaffected.
+
+The linked development checkout is for fast iteration. Use a ZIP install when checking the distributable package:
+
+- Run `./qgis_plugin/package.ps1` in Windows PowerShell from the repository root to build or refresh the ZIP using the version already in `metadata.txt`. This is the ordinary installation and development packaging command; it preserves the metadata version and replaces the ZIP for that version.
+- The script includes the source package and copies both repository manuals from `docs/help/` into the installed package's `docs/help/`, adjusting local resource links. Keep the full checkout when building.
+- **Release maintainers:** `./qgis_plugin/package.ps1 -BumpMinor` increments the minor version in `metadata.txt`, resets the patch to zero and writes a ZIP. Use the switch only when intentionally preparing a new version; it edits metadata before building, so an archive failure can leave the increment in place. Packaging errors stop the command and remove an incomplete ZIP.
+- In QGIS Plugin Manager, use **Install from ZIP** and select the generated file under `qgis_plugin\dist`. For a clean acceptance check, use a separate profile so a previously installed copy cannot be confused with the development source.
+
+For a release or final acceptance check in QGIS 4.2.3, verify that the ZIP loads, the main plugin toolbar opens the wizard, and setup works from both the wizard toolbar and plugin menu (including with the wizard closed). In Finnish and English, check that setup is first in the docked and floating wizard toolbar, separated from redock/Help/About, with a translated tooltip and accessible name. Verify that the Processing algorithm is available, the shared workflow reports failures clearly, and unloading/reloading does not duplicate actions or provider entries.
+
+### Result field organization checks
+
+The result form groups and table columns follow the
+[per-polygon field reference](calculations.md#per-polygon-fields). Regression
+checks verify field/value alignment, source-first Finnish/English labels,
+persisted GeoPackage form groups and area explanations, and the matching
+workbook/documentation order. These checks are part of the
+[integration suite](../../qgis_plugin/tests/qgis/test_result_field_organization.py).
+Build the ZIP with `./qgis_plugin/package.ps1`, extract it and run the suites
+against that copy using `SAVONIA_TEST_PLUGIN_ROOT` as described above.
+
+For desktop acceptance, install the ZIP in a separate profile, inspect
+table/form/Identify labels and nulls in both languages, reopen the GeoPackage,
+and inspect the workbook in Excel.
+
+### Grid-indicator manual GUI acceptance — pending
+
+These are required manual checks, **not completed GUI verification**. Automated
+headless lifecycle and scale tests do not establish that these interactions were
+visually checked. Record the tested build, locale and result for each check.
+
+- [ ] Install the current-version ZIP in a separate QGIS 4.2.3 profile; load,
+  open/reopen the wizard, check Processing registration, reload and unload.
+- [ ] In Finnish and English, run setup repeatedly and after a language change;
+  confirm exactly one grid at the bottom of References, unchanged relative order
+  of other references, and Results above References above Basemaps.
+- [ ] Inspect the grid at 1:200, 1:300 and 1:500; confirm the first two render
+  and the last does not. Run the same local fixture at near/far canvas scales
+  through wizard and Processing and compare calculations and captured snapshots.
+- [ ] Inspect both total-volume aliases/columns, deciduous volume,
+  integer age shares/coverage, partial metric denominators/lower bounds,
+  and source dates/reporting-area notes in the result and workbook in both languages.
+- [ ] Exercise cancellation and representative required-source/geometry failures;
+  verify actionable localized messages and no apparently complete partial outputs.
+
+## Help and credits verification
+
+Edit the canonical manuals in [English](../help/manual_en.html) and
+[Finnish](../help/manual_fi.html) under the repository's `docs/help/`.
+Source-linked development resolves these files directly. Both packaging modes
+read this directory and bundle the manuals under the plugin's `docs/help/`,
+adjusting relative legal-resource links to stay inside the installed package.
+Keep the repository layout when copying the packaging script to a test directory.
+
+The resource resolver is independent of QGIS and widgets. Run its standalone tests
+and the disposable-copy packaging checks with Python, then run the complete
+suites with the configured QGIS 4.2.3 launcher shown above. The packaging checks
+exercise both modes, including the version-incrementing path only in a temporary
+copy; they leave working metadata and generated source caches intact.
+
+For extracted-package verification, set `SAVONIA_TEST_PLUGIN_ROOT` to the directory
+containing the extracted package and run each suite in a new Python process. All
+plugin imports in the regression suites honor that root. The packaging-script
+tests still exercise the checkout's scripts and source package; the Processing
+help tests copy the selected package to a separate temporary ZIP installation.
+Keep these distinctions when reporting installed-package coverage.
+
+Check Finnish and English QGIS locales and English fallback for other QGIS
+languages. Check that the wizard follows QGIS's language, Help/About with the dock
+closed, QGIS language refresh, detached controls, Processing help, full offline
+legal texts, browser failures, and unload/reload cleanup. Automated offscreen
+widget checks supplement interactive desktop acceptance. Remaining acceptance
+checks are tracked in [open questions](open-questions.md#acceptance-and-distribution).
+
+For desktop language acceptance, set QGIS's application language to Finnish,
+restart as prompted, and check the wizard, global Help/About and Processing.
+The wizard title and controls should be localized, with no personal learning
+prototype banner or prototype suffix on working tool labels. Open About/info
+and verify the personal prototype notice remains there; also check Plugin
+Manager metadata and the repository documentation for that notice.
+Repeat with English and an unsupported language, which should use English.
+Confirm that QGIS's application language is the sole language setting for the
+plugin.
+
+## Related guidance
+
+- [QGIS implementation, testing, and localization guidance](../agents/qgis.md)
+- [Development, logging and bilingual help design](operations.md)
+- [Plugin installation and workflow](../../qgis_plugin/README.md)
