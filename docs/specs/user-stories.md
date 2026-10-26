@@ -100,6 +100,8 @@ Unless explicitly marked deferred, stories describe implemented prototype behavi
 | US-063 | As a QGIS administrator, I want clean plugin reload/unload and a complete installation package, so repeated use does not accumulate duplicate actions or omit local help. | [WF-01](workflow.md#wf-01-installation-and-runtime) |
 | US-064 | As a maintainer, I want building the current-version installation ZIP to preserve its version by default, so packaging for review is separate from an explicit version increment. | [WF-01](workflow.md#wf-01-installation-and-runtime) |
 | US-065 | As a maintainer or agent, I want one command to cache official source descriptions and provider documents locally, so I can inspect them offline without committing downloaded artifacts. | [WF-08](workflow.md#wf-08-local-development-reference-material) |
+| US-066 | As a QGIS user, I want an installable ZIP downloadable from GitHub Releases, so I can install the plugin without building it. | [WF-01](workflow.md#wf-01-installation-and-runtime) |
+| US-067 | As a maintainer, I want each push to main to test, build and publish the next minor release, so distribution is automatic and retains the major version. | [WF-01](workflow.md#wf-01-installation-and-runtime) |
 
 Technical design, module boundaries and verification belong in
 [architecture](../architecture/README.md).

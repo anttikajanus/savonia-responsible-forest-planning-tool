@@ -8,7 +8,12 @@ Scope and status follow the [specification index](README.md). These requirements
 - The installable ZIP includes both manuals, licence texts, notices and inventory, and supports plugin load, Processing registration and unload without duplicate actions or providers on reload.
 - Analysis uses online configured WFS services and writes results locally. Reading packaged help and notices works offline.
 - Building an installation ZIP preserves the current version by default;
-  incrementing the version is an explicit release action. Packaging commands and
+  pushing to `main` triggers a tested GitHub Release with a downloadable plugin
+  ZIP. Each new release increments the minor version, preserves the major and
+  resets the patch to zero. Retries reuse the release for that source commit.
+  Pull requests build/test without publishing. Failed builds or tests prevent
+  publication; a release becomes public only after its ZIP is attached.
+  Packaging commands and
   verification are documented in the [development guide](../architecture/development.md#check-packaging-separately).
 
 ## WF-02 Project setup

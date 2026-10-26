@@ -12,10 +12,12 @@ installation range is authoritative in
 QGIS 4.2.3 is the verification baseline. Analysis requires an internet connection
 to the configured WFS services.
 
-1. Keep the complete checkout, including `docs/help/`. From the repository root,
-   run `./qgis_plugin/package.ps1` in Windows PowerShell.
+1. Download `savonia_responsible_forest_planning_tool-<version>.zip` from
+   [GitHub Releases](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/releases).
+   Alternatively, keep the complete checkout, including `docs/help/`, and run
+   `./qgis_plugin/package.ps1` in Windows PowerShell from the repository root.
 2. In QGIS, open **Plugins > Manage and Install Plugins > Install from ZIP**
-   and select the ZIP printed under `qgis_plugin/dist/`.
+   and select the downloaded ZIP or the locally built ZIP under `qgis_plugin/dist/`.
 3. Enable **Savonia - Responsible Forest Planning** and open Help to check the manual.
 
 The build preserves the metadata version and replaces its existing ZIP.

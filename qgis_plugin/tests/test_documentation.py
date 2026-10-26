@@ -1,5 +1,6 @@
 """Packaged documentation is usable without importing QGIS or widgets."""
 
+from configparser import ConfigParser
 import os
 from pathlib import Path
 import sys
@@ -62,7 +63,11 @@ class DocumentationTests(unittest.TestCase):
         actual = metadata()
         self.assertEqual(actual["name"], "Savonia - Responsible Forest Planning")
         self.assertEqual(actual["name[fi]"], "Savonia - Vastuullinen metsäsuunnittelu")
-        self.assertEqual(actual["version"], "1.0.0")
+        package_root = Path(os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[1])))
+        expected = ConfigParser(interpolation=None)
+        expected.read(package_root / "savonia_responsible_forest_planning_tool" / "metadata.txt", encoding="utf-8")
+        self.assertRegex(actual["version"], r"^\d+\.\d+\.\d+$")
+        self.assertEqual(actual["version"], expected["general"]["version"])
         self.assertEqual(actual["author"], "Antti Kajanus")
         self.assertEqual(actual["experimental"], "True")
         self.assertIn("personal learning prototype", actual["description"])

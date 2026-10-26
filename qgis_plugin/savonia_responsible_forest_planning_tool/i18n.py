@@ -1,8 +1,5 @@
 """Small bilingual catalog for plugin-owned presentation strings."""
 
-from qgis.core import QgsApplication
-
-
 TEXT = {
     "en": {
         "project_name": "Savonia - Responsible Forest Planning",
@@ -487,6 +484,9 @@ def selected_language(locale=None):
     """Follow QGIS's application language, using English when unsupported."""
     if locale is None:
         try:
+            # Catalog lookup and explicit locales also work outside QGIS.
+            from qgis.core import QgsApplication
+
             locale = QgsApplication.locale()
         except Exception:
             locale = ""

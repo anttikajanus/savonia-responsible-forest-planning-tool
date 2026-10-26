@@ -1,0 +1,41 @@
+[tool.pylint.main]
+py-version = "3.10"
+recursive = true
+source-roots = ["qgis_plugin", "qgis_plugin/tests", "qgis_plugin/tests/qgis", "scripts", "scripts/tests"]
+init-hook = "import sys; sys.path[:0] = ['qgis_plugin', 'qgis_plugin/tests/qgis', 'scripts']"
+ignore = [".git", ".scratch", ".venv", "venv", "__pycache__", "dist"]
+# PyQGIS and Qt expose compiled APIs. Only load these known extensions.
+extension-pkg-allow-list = ["qgis", "PyQt6"]
+persistent = false
+
+[tool.pylint.messages_control]
+# Start with correctness checks; formatting and complexity need a separate cleanup.
+disable = ["all"]
+enable = [
+    "F", "E",
+    "anomalous-backslash-in-string",
+    "assert-on-string-literal",
+    "assert-on-tuple",
+    "bad-open-mode",
+    "bare-except",
+    "dangerous-default-value",
+    "duplicate-except",
+    "duplicate-key",
+    "duplicate-value",
+    "expression-not-assigned",
+    "f-string-without-interpolation",
+    "lost-exception",
+    "pointless-statement",
+    "unreachable",
+    "unknown-option-value",
+]
+
+[tool.pylint.typecheck]
+# This unittest mixin gets assertions and language from its concrete test classes.
+mixin-class-rgx = ".*[Mm]ixin|SourceFieldWorkflowChecks"
+# These class attributes are assigned dynamically in the HTTP fixture's setUp.
+generated-members = ['^cls\.(requests|responses)$']
+
+[tool.pylint.reports]
+reports = false
+score = false

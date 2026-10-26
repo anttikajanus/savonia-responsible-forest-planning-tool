@@ -1,0 +1,119 @@
+name: Build and release QGIS plugin
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  build:
+    name: Test and build installable ZIP
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Test build tooling
+        run: python -m unittest discover -s scripts/tests -v
+      - name: Test plugin and bilingual resources
+        run: python -m unittest discover -s qgis_plugin/tests -v
+      - name: Build plugin
+        run: ./qgis_plugin/package.ps1
+      - name: Test extracted plugin
+        run: |
+          $archive = Get-ChildItem qgis_plugin/dist/*.zip
+          if (@($archive).Count -ne 1) { throw 'Expected one plugin ZIP' }
+          $env:SAVONIA_TEST_PLUGIN_ROOT = Join-Path $env:RUNNER_TEMP 'installed-plugin'
+          Expand-Archive -LiteralPath $archive.FullName -DestinationPath $env:SAVONIA_TEST_PLUGIN_ROOT
+          python -m unittest discover -s qgis_plugin/tests -v
+      - name: Upload installable ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: qgis-plugin-build
+          path: qgis_plugin/dist/*.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish minor release
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    concurrency:
+      group: qgis-plugin-release
+      cancel-in-progress: false
+      queue: max
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Release the exact tested source, even if main has moved meanwhile.
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Prepare minor version or recover existing release
+        id: version
+        run: python scripts/prepare_release.py
+      - name: Build release ZIP
+        run: ./qgis_plugin/package.ps1
+      - name: Test extracted release
+        run: |
+          $archive = Get-ChildItem qgis_plugin/dist/*.zip
+          if (@($archive).Count -ne 1) { throw 'Expected one release ZIP' }
+          $env:SAVONIA_TEST_PLUGIN_ROOT = Join-Path $env:RUNNER_TEMP 'release-plugin'
+          Expand-Archive -LiteralPath $archive.FullName -DestinationPath $env:SAVONIA_TEST_PLUGIN_ROOT
+          python -m unittest discover -s qgis_plugin/tests -v
+      - name: Tag versioned release commit
+        if: steps.version.outputs.existing != 'true'
+        env:
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add qgis_plugin/savonia_responsible_forest_planning_tool/metadata.txt
+          git commit -m "Release $env:RELEASE_TAG"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not commit release metadata' }
+          git tag $env:RELEASE_TAG
+          if ($LASTEXITCODE -ne 0) { throw 'Could not create release tag' }
+          git push origin "refs/tags/$env:RELEASE_TAG"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not push release tag' }
+      - name: Publish downloadable release
+        env:
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $archive = Join-Path 'qgis_plugin/dist' "savonia_responsible_forest_planning_tool-$env:RELEASE_VERSION.zip"
+          $release = gh release view $env:RELEASE_TAG --json isDraft 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            if (-not ($release | ConvertFrom-Json).isDraft) {
+              Write-Output "Release $env:RELEASE_TAG is already published."
+              exit 0
+            }
+          } else {
+            gh release create $env:RELEASE_TAG --verify-tag --draft --generate-notes --title "Savonia - Responsible Forest Planning $env:RELEASE_VERSION"
+            if ($LASTEXITCODE -ne 0) { throw 'Could not create draft release' }
+          }
+          gh release upload $env:RELEASE_TAG $archive --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'Could not attach plugin ZIP' }
+          gh release edit $env:RELEASE_TAG --draft=false
+          if ($LASTEXITCODE -ne 0) { throw 'Could not publish release' }

@@ -8,6 +8,37 @@ prototype only; see the [project context](../../README.md).
 
 This guide owns setup, reload, debugger, test and packaging instructions for the Savonia - Responsible Forest Planning plugin. Run commands from the repository root unless stated otherwise. The plugin targets **QGIS 4.2.3 and newer 4.x releases**, as declared in [metadata.txt](../../qgis_plugin/savonia_responsible_forest_planning_tool/metadata.txt) (`4.2.3` minimum, `4.99` maximum). QGIS 4.2.3 is the verification baseline. Run the suites and packaged load/Processing/unload checks on each newer release before recording it as verified; the metadata range permits installation without establishing future runtime compatibility.
 
+## Python linting
+
+[Pylint configuration](../../pyproject.toml) covers the plugin, regression tests
+and development scripts. Install the pinned
+[development dependencies](../../requirements-dev.txt) into the QGIS Python
+environment's user site, then run from the repository root:
+
+```powershell
+& 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' -m pip install --user -r requirements-dev.txt
+& 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' -m pylint qgis_plugin scripts
+```
+
+Use the configured QGIS launcher rather than a plain Python installation so
+PyQGIS and Qt imports resolve. Pylint may inspect the known `qgis` and `PyQt6`
+compiled extensions, as described in its
+[extension guidance](https://pylint.pycqa.org/en/latest/user_guide/messages/error/no-member.html).
+Missing imports and member errors remain enabled. The configuration adds the
+plugin and test-fixture import roots and accounts for the existing unittest
+mixin and dynamically assigned HTTP fixture attributes.
+
+The initial policy enables fatal/error diagnostics and selected correctness
+warnings, including mutable defaults, duplicate keys, bare exception handlers
+and unreachable code. Formatting, naming, complexity and the remaining warning
+checks are outside this initial policy. Any enabled diagnostic fails the command;
+no numeric score threshold or successful-exit override is used. Recursive
+discovery covers tests without `__init__.py`; generated archives, bytecode,
+virtual environments and local scratch work are excluded. To lint one file,
+replace `qgis_plugin scripts` with its path. Editor integrations must use the
+same QGIS runtime and repository working directory. Development dependencies
+remain outside the plugin package.
+
 ## Local provider references
 
 Populate `docs/references/` once before investigating service contracts:
@@ -25,10 +56,11 @@ Maintain this manifest alongside the [source registry contract](data-sources.md)
 when endpoints or required layers change. The downloader deliberately does not
 import the plugin or require QGIS to read development reference material.
 
-Run its deterministic HTTP-fixture checks separately from plugin tests:
+Run tooling checks separately from plugin tests with Python 3.10+ and Git
+available on PATH. They cover HTTP fixtures and release-version Git fixtures:
 
 ```powershell
-& 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' -m unittest discover -s scripts/tests -v
+python -m unittest discover -s scripts/tests -v
 ```
 
 The downloader checks file formats; representative feature values and provider
@@ -188,6 +220,31 @@ visually checked. Record the tested build, locale and result for each check.
   and source dates/reporting-area notes in the result and workbook in both languages.
 - [ ] Exercise cancellation and representative required-source/geometry failures;
   verify actionable localized messages and no apparently complete partial outputs.
+
+## Automatic GitHub builds and releases
+
+The [build and release workflow](../../.github/workflows/build-and-release.yml)
+runs after each push to main and for pull requests targeting main. Main builds
+publish the next minor release after tests pass; pull requests expose only an
+installation ZIP artifact. The [distribution contract](distribution.md#github-builds-and-releases)
+owns version selection, release tags, permissions, queuing and recovery.
+
+Download `savonia_responsible_forest_planning_tool-<version>.zip` from
+[Releases](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/releases)
+and install it through QGIS Plugin Manager. The release tag includes its updated
+metadata and can be rebuilt with `./qgis_plugin/package.ps1` without another bump.
+
+For recovery, open **Actions → Build and release QGIS plugin**, select the failed
+main run and choose **Re-run failed jobs**. To start a build explicitly, choose
+**Run workflow** with branch `main`. A rerun reuses that source's existing release
+tag/version, completes an unfinished draft, or leaves a published release intact.
+If the job cannot push tags or publish, check that repository/organization policy
+permits the release job's `contents: write` token and its release tags.
+
+Hosted CI runs the tooling and pure suites plus packaging/extracted-ZIP checks;
+it does not install QGIS. Continue running the QGIS 4.2.3 integration suite and
+Finnish/English desktop acceptance locally as documented here. Successful CI
+does not establish those additional checks.
 
 ## Help and credits verification
 

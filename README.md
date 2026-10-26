@@ -85,7 +85,13 @@ uses Windows PowerShell; analysis needs an internet connection to the configured
 Metsäkeskus and SYKE WFS services. The interface and new outputs use Finnish when
 QGIS uses Finnish, and English otherwise.
 
-1. Download or clone the **complete repository**, including `docs/help/`.
+Download the plugin ZIP from
+[GitHub Releases](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/releases)
+and continue with step 2 below. Each successful push to `main` publishes the next
+minor version (for example, `1.0.0` → `1.1.0` → `1.2.0`). The first hosted release
+will become available after the workflow is pushed and completes successfully.
+
+1. To build locally, download or clone the **complete repository**, including `docs/help/`.
    With Git installed, run these commands in Windows PowerShell:
 
    ```powershell

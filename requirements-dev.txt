@@ -1,0 +1,2 @@
+# Development tools only; never included in the QGIS plugin ZIP.
+pylint==4.0.10

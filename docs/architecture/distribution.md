@@ -13,6 +13,47 @@ The [packaging script](../../qgis_plugin/package.ps1) builds the current metadat
 
 The [component inventory](../../qgis_plugin/savonia_responsible_forest_planning_tool/COMPONENT_INVENTORY.txt) is a concise offline record of shipped project material and the original CC legal text, separating them from host dependencies and runtime data. Keep it as the package-content reference used by About, the manuals and package checks. Use the installed `metadata.txt` for the project version and `THIRD_PARTY_NOTICES` for detailed bilingual source credits and terms; do not duplicate those details or list unused components. Preserve applicable original notices for every future distributed component and update the inventory. Project MIT terms do not relabel host or data terms.
 
+## GitHub builds and releases
+
+The [GitHub Actions workflow](../../.github/workflows/build-and-release.yml)
+tests and packages pull requests targeting `main` and pushes to `main` on
+Windows with Python 3.12. It runs tooling and pure plugin tests, including
+Finnish/English help and disposable packaging checks, then tests the extracted
+installation ZIP. The build ZIP is retained as a workflow artifact.
+PyQGIS integration and interactive desktop acceptance remain separate checks.
+
+After a successful main build, a serialized release job prepares the next
+minor version with [prepare_release.py](../../scripts/prepare_release.py).
+It uses the highest semantic-version tag in the metadata's major, with source
+metadata as a version floor, and resets patch to zero. With metadata `1.0.0`
+and no previous tags, releases start at `1.1.0`, then `1.2.0`.
+Other majors and prerelease tags do not participate. Pending release jobs use
+GitHub's [concurrency queue](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency)
+(`queue: max`) instead of replacing one another; the exact tested source commit
+is checked out.
+
+The release job writes that version into metadata, builds and tests the extracted
+ZIP, then commits metadata on a detached release commit whose sole parent is the
+triggering source commit. It pushes only the matching `vMAJOR.MINOR.0` tag.
+The main branch retains its development version; installing the release ZIP or
+building its tag uses the release version. The tag, ZIP filename and installed
+metadata agree. This permits branch protection without automated pushes to main.
+
+The built-in `GITHUB_TOKEN` has `contents: write` only in the release job.
+Repository policy must permit that permission, creating release tags and
+publishing releases. No additional token secret is needed. A draft is created
+with generated notes, the ZIP is uploaded, and only then is the release published.
+Build, test, Git or API failures stop the job; tags are never force-pushed.
+Retrying the same source recognizes its release commit and restores its version;
+an existing draft can recover its asset upload, and an already published release
+is left intact. Manual dispatch on main supports recovery or the first build.
+
+Download the named plugin ZIP under
+[GitHub Releases](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/releases),
+then use QGIS **Install from ZIP**. GitHub's automatically generated source
+archives omit the bundled installation layout and are intended for source use.
+Hosted execution remains pending in the [verification register](open-questions.md#acceptance-and-distribution).
+
 ## Host software
 
 [Open-source acknowledgements](../../OPEN_SOURCE_ACKNOWLEDGEMENTS.md) maintains the component table and primary upstream references. The host components use the following terms:

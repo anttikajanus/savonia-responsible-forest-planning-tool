@@ -24,6 +24,7 @@ No reviewed repository evidence establishes Savonia acceptance of the prototype'
 
 ## Acceptance and distribution
 
+- Automatic GitHub releases (26 October 2026): the build/release workflow is implemented; its first hosted execution, token/tag policy and downloadable asset still require verification after pushing it to main. Local tooling/package checks, upload-recovery simulation and QGIS 4.2.3 suites against source and the extracted release ZIP passed; they do not establish hosted publication or interactive acceptance. See the [release contract](distribution.md#github-builds-and-releases).
 - Interactive desktop/browser/network-disconnected acceptance remains pending: bilingual wizard docked/floating behavior, language refresh/fallback, Help/About with the dock closed, local manual links, notices, cancellation, output inspection and reload/unload. Headless/offscreen checks do not close those items. The [development guide](development.md#help-and-credits-verification) provides the required checks.
 - Arrange explicit map-visible OpenStreetMap attribution for the basemap and shared maps/screenshots; the reviewed setup and About credits do not establish that display. Separately review tile-client usage-policy behavior if preparing distribution.
 - A full ownership and host/transitive licence-compatibility audit remains outstanding. Recheck inventory and dataset-specific terms when adding copied material, runtime bundles, custom data or a public distribution destination. [Distribution boundaries](distribution.md).
