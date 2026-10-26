@@ -68,8 +68,9 @@ Neither successful requests, feature counts nor mapped overlap alone establish c
 ## IO-06 Map review and run retention
 
 - After wizard success, retain each run beneath Results without removing configured sources or earlier runs.
-- Include the full classified layer, eighteen filtered project views (six tiers × three classes), and hidden-by-default clipped snapshots loaded from that run's GeoPackage. Filtered views reference the same result dataset rather than creating extra outputs.
-- The full layer's tier selector controls a categorized renderer: sensitive red/orange, economic green, unknown grey. Tier and category labels follow the QGIS language.
+- Include eighteen filtered project views (six tiers × three classes) and hidden-by-default clipped snapshots loaded from that run's GeoPackage. Filtered views reference the same result dataset rather than creating extra outputs. Initially only the All out tier group is visible; users switch tiers through layer-tree group visibility.
+- Use sensitive red/orange, economic green and unknown grey for the class views. Tier and category labels follow the QGIS language. The complete classified dataset is available in the GeoPackage and can be added separately.
+- The separate full-layer presentation and tier selector requested by US-005 are not implemented. Keep that gap explicit in the [verification and deferred-work register](../architecture/open-questions.md#scope-and-source-alternatives); it is separate from interactive acceptance of the existing filtered views.
 - Keep Results above References above Basemaps after setup and publication. Changing map scale or toggling source rendering must not change analysis values.
 
 Acceptance covers reopened bilingual GeoPackage/workbook artifacts, field order/value alignment, independent metric coverage, partial/zero/null behavior, rounding after aggregation, persisted forms and repeated-run retention. Outstanding visual desktop checks remain in [open questions](../architecture/open-questions.md).

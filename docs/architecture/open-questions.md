@@ -20,6 +20,8 @@ Evidence locations and primary sources are in [data sources](data-sources.md) an
 
 Local GeoPackage/raster adapters, open-mire/whole-AOI reporting, potential protection screening, urban-forest/MY interpretation, peat sensitivity and water buffers remain deferred. Candidate sources and unanswered thresholds/denominators are recorded in [deferred sources](deferred-sources.md).
 
+Manual review on 26 October 2026 found that US-005's separate full result layer and tier selector are not implemented. The wizard currently adds eighteen filtered tier/class views and hidden source snapshots, initially displaying All out; users switch tier groups in the layer tree. The complete result dataset can be added from the GeoPackage. [IO-06](../specs/indicators-and-outputs.md#io-06-map-review-and-run-retention) and the bilingual manuals describe that current behavior. Implementing a dedicated selector remains follow-up work, rather than completed behavior awaiting only visual acceptance.
+
 No reviewed repository evidence establishes Savonia acceptance of the prototype's tier rules, interpretations or deliverables. Tender requirements and implementation choices have different authority. [Project context](../project-context.md).
 
 ## Acceptance and distribution

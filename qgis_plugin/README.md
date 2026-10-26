@@ -4,28 +4,50 @@ The QGIS plugin prepares classified forest polygons and indicator inputs for a
 separate value-table model. It is Antti Kajanus's unfinished personal learning
 prototype, not backed or approved by Savonia. See [project context](../docs/project-context.md).
 
-## Runtime and installation
+## Plugin installation
+
+Install the packaged release ZIP directly in QGIS. QGIS supplies the runtime
+dependencies; no separate Python packages or helper plugins are required.
+
+### Requirements
 
 The experimental plugin targets **QGIS 4.2.3 and newer 4.x releases**; the
 installation range is authoritative in
 [metadata.txt](savonia_responsible_forest_planning_tool/metadata.txt).
-QGIS 4.2.3 is the verification baseline. Analysis requires an internet connection
-to the configured WFS services.
+QGIS 4.2.3 is the verification baseline; newer releases require their own runtime
+checks. Analysis requires an internet connection to the configured Metsäkeskus
+and SYKE WFS services. The packaged manuals work offline.
+
+### Install in QGIS
 
 1. Download `savonia_responsible_forest_planning_tool-<version>.zip` from
+   the release's **Assets** on
    [GitHub Releases](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/releases).
-   Alternatively, keep the complete checkout, including `docs/help/`, and run
-   `./qgis_plugin/package.ps1` in Windows PowerShell from the repository root.
+   Choose the named plugin ZIP; GitHub's **Source code (zip)** and
+   **Source code (tar.gz)** downloads are repository archives for development.
+   Keep the plugin ZIP compressed for the next step.
 2. In QGIS, open **Plugins > Manage and Install Plugins > Install from ZIP**
-   and select the downloaded ZIP or the locally built ZIP under `qgis_plugin/dist/`.
-3. Enable **Savonia - Responsible Forest Planning** and open Help to check the manual.
+   and select the downloaded plugin ZIP, then click **Install Plugin**.
+3. Under **Installed** in Plugin Manager, check that
+   **Savonia - Responsible Forest Planning** is enabled
+   (**Savonia - Vastuullinen metsäsuunnittelu** in Finnish).
+4. Open the wizard from the plugin's QGIS toolbar button, then choose **Help**
+   to check that the installed manual opens. **About** shows the installed version.
 
-The build preserves the metadata version and replaces its existing ZIP.
-It includes both manuals, licences and notices. Copying only the source package
-folder omits the repository manuals. Release maintainers should use
-`package.ps1 -BumpMinor` for an intentional version increment. See the
-[development guide](../docs/architecture/development.md) for setup, reload,
-debugging, tests and packaging details.
+Continue with [First run](../README.md#first-run) to set up the source layers
+and run an analysis. The [Language](#language) section explains how QGIS selects
+Finnish or English.
+
+### Build a plugin ZIP from source
+
+If a release ZIP is unavailable or you need to package a checkout, follow
+[packaging instructions](../docs/architecture/development.md#check-packaging-separately).
+Keep the complete repository, including `docs/help/`, when building so both
+manuals are included. Install the resulting ZIP through the same QGIS steps above.
+
+For a development environment, follow the
+[development setup](../docs/architecture/development.md#recommended-setup-a-dedicated-development-profile),
+which also covers reload, debugging and tests.
 
 ## Requirements and SYKE setup
 

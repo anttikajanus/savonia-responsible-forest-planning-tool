@@ -75,7 +75,7 @@ Keep the complete checkout, including repository `docs/help/`, available at its
 original location. The source-linked plugin resolves its manuals there. Use the
 junction or `QGIS_PLUGINPATH` setup below for development; copying only
 `savonia_responsible_forest_planning_tool` into a profile omits those manuals.
-For an installed copy, follow the [current-version ZIP instructions](../../qgis_plugin/README.md#runtime-and-installation).
+For an installed copy, follow the [Plugin installation guide](../../qgis_plugin/README.md#plugin-installation).
 
 1. In QGIS, open **Settings > User Profiles > New Profile...** and create a profile such as `Savonia development`.
 2. Switch to that profile and open **Settings > User Profiles > Open Active Profile Folder**. Keep this folder open; it is the profile QGIS is currently reading.
@@ -90,16 +90,18 @@ For an installed copy, follow the [current-version ZIP instructions](../../qgis_
    ```
 
    Run this from the repository root. Create the junction only when `$pluginLink` does not already exist. The junction lets QGIS import the files directly from the checkout, so edits do not need to be copied into the profile.
+5. Close QGIS and reopen it with the `Savonia development` profile (or the development profile you created) so it discovers the linked plugin.
+6. Open **Plugins > Manage and Install Plugins...**. Find **Savonia - Responsible Forest Planning** under **Installed** and check its checkbox to enable it. The plugin is ready to use after this step; creating the junction alone does not activate it.
 
-Alternatively, set `QGIS_PLUGINPATH` to the directory containing `savonia_responsible_forest_planning_tool` before starting QGIS. QGIS must inherit that environment variable when it launches. A junction in the active development profile is usually easier to verify and keep in place.
+Alternatively, set `QGIS_PLUGINPATH` to the directory containing `savonia_responsible_forest_planning_tool` before starting QGIS. QGIS must inherit that environment variable when it launches. Then reopen QGIS and enable the plugin as described in steps 5–6. A junction in the active development profile is usually easier to verify and keep in place.
 
 ## Load the plugin and reload edits
 
-1. Start QGIS with the development profile.
-2. Open **Plugins > Manage and Install Plugins...**. Find **Savonia - Responsible Forest Planning** under **Installed** and enable it.
-3. In the same Plugin Manager, install **Plugin Reloader** once. It is a separate helper plugin.
-4. Edit and save files in `qgis_plugin\savonia_responsible_forest_planning_tool`.
-5. Use Plugin Reloader's reload action for **Savonia - Responsible Forest Planning**. The plugin remains installed; you do not need to uninstall and reinstall it after code edits.
+With the plugin enabled in the development profile:
+
+1. In **Plugins > Manage and Install Plugins...**, install **Plugin Reloader** once. It is a separate helper plugin.
+2. Edit and save files in `qgis_plugin\savonia_responsible_forest_planning_tool`.
+3. Use Plugin Reloader's reload action for **Savonia - Responsible Forest Planning**. The plugin remains installed; you do not need to uninstall and reinstall it after code edits.
 
 If the plugin does not appear, confirm that QGIS is using the development profile, that the junction points to the package folder (the folder containing `metadata.txt` and `__init__.py`), and that there is only one copy of this package on QGIS's plugin search paths.
 

@@ -39,8 +39,8 @@ class HelpContentTests(unittest.TestCase):
             self.help = root.parent / "docs" / "help"
 
     def test_both_manuals_have_equivalent_sections_and_valid_offline_links(self):
-        required = {"workflow", "installation", "setup", "sources", "area", "wizard", "processing",
-                    "outputs", "limitations", "troubleshooting", "credits", "data-sources"}
+        required = {"workflow", "setup", "sources", "area", "wizard", "processing",
+                    "outputs", "map-review", "limitations", "troubleshooting", "credits", "data-sources"}
         documents = {}
         for language in ("fi", "en"):
             path = self.help / f"manual_{language}.html"

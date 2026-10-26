@@ -14,7 +14,7 @@
 
 - Provide Help and About in QGIS **Help → Plugins**, usable before opening the wizard, and from the wizard in both docked and floating modes.
 - Help opens the selected-language packaged HTML manual in the system browser. The same manual resolver serves global and dock entry points. A clearly labelled online documentation link supplements the local manual.
-- Include complete Finnish and English manuals covering workflow, installation/runtime, setup, required sources/readiness, area modes, wizard, Processing, outputs/units, assumptions, missing evidence, limitations, troubleshooting, credits and data sources.
+- Write the Finnish and English manuals for users who have already installed the plugin. Cover project setup, required sources/readiness, area selection, wizard and Processing use, result review, units, missing evidence, interpretation limits, troubleshooting, support and data credits. Keep installation, release maintenance, development setup, internal schemas and detailed implementation contracts in their repository documentation owners rather than the user manuals.
 - Essential instructions, local links and complete applicable licence/notice texts work without internet access. Online source retrieval still requires connectivity.
 - Missing/unreadable resources or browser-launch failure produce a concise localized message with a corrective next step and diagnostics. Do not claim success or silently open another language. External website failure does not prevent opening local help or notices.
 
