@@ -17,15 +17,30 @@ The [component inventory](../../qgis_plugin/savonia_responsible_forest_planning_
 
 The [GitHub Actions workflow](../../.github/workflows/build-and-release.yml)
 tests and packages pull requests targeting `main` and pushes to `main` on
-Windows with Python 3.12. It runs tooling and pure plugin tests, including
-Finnish/English help and disposable packaging checks, then tests the extracted
-installation ZIP. The build ZIP is retained as a workflow artifact.
-Checkout, Python setup and artifact upload use Node 24 actions; artifact upload
-uses `actions/upload-artifact@v7` with its default ZIP archive behavior.
-PyQGIS integration and interactive desktop acceptance remain separate checks.
+Windows. The `Test and build installable ZIP` job uses Python 3.12 for tooling
+and pure plugin tests, including Finnish/English help and disposable packaging
+checks, then tests the extracted installation ZIP. The build ZIP is retained as
+a workflow artifact.
 
-After a successful main build, a serialized release job prepares the next
-minor version with [prepare_release.py](../../scripts/prepare_release.py).
+The dependent `Pylint and QGIS 4.2.3 integration` job installs the official
+`QGIS-OSGeo4W-4.2.3-2.msi`, checks its published SHA-256 before installation,
+and verifies the runtime version. It installs the pinned development
+requirements through QGIS's Python launcher, runs the existing Pylint policy
+over plugin/scripts/tests, and runs the offscreen QGIS integration suite against
+source and the downloaded build ZIP. Diagnostics and failed installation/test
+commands fail the job. Installer logs are retained on failure when available.
+The versioned installer and checksum are listed in the
+[official QGIS downloads](https://qgis.org/downloads-list/).
+
+Checkout, Python setup and artifact transfer use Node 24 actions; artifact
+upload uses `actions/upload-artifact@v7` with its default ZIP archive behavior
+and download uses `actions/download-artifact@v8`. Interactive desktop acceptance
+remains a separate check. Required merge status checks are repository settings;
+the [development guide](development.md#required-merge-checks) owns their setup
+and the distinction between the checked-in ruleset and active enforcement.
+
+After both main build and QGIS quality jobs succeed, a serialized release job
+prepares the next minor version with [prepare_release.py](../../scripts/prepare_release.py).
 It uses the highest semantic-version tag in the metadata's major, with source
 metadata as a version floor, and resets patch to zero. With metadata `1.0.0`
 and no previous tags, releases start at `1.1.0`, then `1.2.0`.

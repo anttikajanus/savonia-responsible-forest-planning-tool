@@ -47,6 +47,10 @@ replace `qgis_plugin scripts` with its path. Editor integrations must use the
 same QGIS runtime and repository working directory. Development dependencies
 remain outside the plugin package.
 
+CI uses this same policy and QGIS 4.2.3 launcher. Any enabled diagnostic fails
+the quality job and prevents its dependent release job from running. No extra
+warning/style rules are introduced by CI enforcement.
+
 ## Local provider references
 
 Populate `docs/references/service-metadata/` once before investigating service contracts:
@@ -281,10 +285,47 @@ tag/version, completes an unfinished draft, or leaves a published release intact
 If the job cannot push tags or publish, check that repository/organization policy
 permits the release job's `contents: write` token and its release tags.
 
-Hosted CI runs the tooling and pure suites plus packaging/extracted-ZIP checks;
-it does not install QGIS. Continue running the QGIS 4.2.3 integration suite and
-Finnish/English desktop acceptance locally as documented here. Successful CI
-does not establish those additional checks.
+Hosted CI has two check names: `Test and build installable ZIP` and
+`Pylint and QGIS 4.2.3 integration`. The first runs tooling and pure suites plus
+packaging/extracted-ZIP checks. The second installs the versioned QGIS 4.2.3
+Windows MSI after verifying the published SHA-256, checks the runtime version,
+installs `requirements-dev.txt` into QGIS Python's user site, and runs Pylint
+and the QGIS integration suite. Integration runs use `QT_QPA_PLATFORM=offscreen`
+against both source and the actual ZIP downloaded from the build job. Neither
+suite uses live analysis services. The quality job has read-only permissions;
+only the existing release job can publish. Both jobs must succeed before a
+main release starts. Failed installs retain `qgis-install.log` as a diagnostic
+artifact when the installer created it.
+
+Continue Finnish/English desktop acceptance locally as documented here.
+Offscreen CI does not establish interactive acceptance or compatibility with
+newer QGIS releases. The [verification register](open-questions.md#acceptance-and-distribution)
+records hosted execution and repository-setting checks separately.
+
+### Required merge checks
+
+Workflow jobs run on pull requests, but preventing a merge also requires active
+GitHub branch protection or a ruleset for `main`. Require both exact check names
+above and require the branch to be up to date before merging. Keep existing
+protection rules. GitHub documents
+[required status checks](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-status-checks-before-merging).
+
+The [main quality ruleset](../../.github/rulesets/main-quality.json) is an
+API-ready definition with those two checks and no bypass actors. A checked-in
+JSON file does not activate repository settings. After the updated workflow
+has run successfully, a repository administrator can create the additional
+ruleset from the repository root:
+
+```powershell
+gh api --method POST repos/anttikajanus/savonia-responsible-forest-planning-tool/rulesets --input .github/rulesets/main-quality.json
+```
+
+Create it once; inspect the existing repository rulesets before applying it
+again. If an equivalent ruleset already exists, update that rule through
+GitHub settings instead of creating a duplicate. This adds requirements without
+replacing existing protection. The [verification register](open-questions.md#acceptance-and-distribution)
+records activation and hosted enforcement separately from the checked-in
+workflow and ruleset.
 
 ## Help and credits verification
 

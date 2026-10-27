@@ -89,7 +89,10 @@ class ResultFieldOrganizationTests(unittest.TestCase):
 
     def test_workbook_summary_and_coverage_follow_documentation_order(self):
         reference = Path(__file__).resolve().parents[3] / "docs" / "architecture" / "output-schema.md"
-        section = reference.read_text(encoding="utf-8").split("## Per-polygon fields", 1)[1].split(
+        text = reference.read_text(encoding="utf-8")
+        anchor = '<a id="per-polygon-fields"></a>'
+        self.assertIn(anchor, text)
+        section = text.split(anchor, 1)[1].split(
             "## Metric coverage", 1)[0]
         documented = [line.split("`", 2)[1] for line in section.splitlines() if line.startswith("| `")]
         self.assertEqual(documented, ["area_ha", *EXPECTED_METRICS])

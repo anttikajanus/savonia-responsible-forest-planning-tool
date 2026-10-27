@@ -1,0 +1,24 @@
+{
+  "name": "Required build and QGIS quality checks",
+  "target": "branch",
+  "enforcement": "active",
+  "bypass_actors": [],
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/main"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "required_status_checks": [
+          {"context": "Test and build installable ZIP"},
+          {"context": "Pylint and QGIS 4.2.3 integration"}
+        ],
+        "strict_required_status_checks_policy": true
+      }
+    }
+  ]
+}
