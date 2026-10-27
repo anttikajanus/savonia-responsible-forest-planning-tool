@@ -2,6 +2,10 @@
 
 The reporting domain and tiers are defined in [classification](classification.md). This document owns required user-facing results. [Indicator calculations](../architecture/indicator-calculations.md) own formulas and sufficient statistics; [output schema](../architecture/output-schema.md) owns stored field IDs and layout; [indicator design](../architecture/indicators.md) owns evidence and accuracy limits.
 
+The [worked output examples](../examples/classified-forest-polygons.md) illustrate
+these rules using two supplied result features, including partial coverage,
+known zeros, unavailable growth and programme provenance.
+
 ## IO-01 Indicator catalogue
 
 Provide these indicators on result polygons and in separate tier/class workbook summaries, in this order:
@@ -69,6 +73,7 @@ Neither successful requests, feature counts nor mapped overlap alone establish c
 
 - After wizard success, retain each run beneath Results without removing configured sources or earlier runs.
 - Include eighteen filtered project views (six tiers × three classes) and hidden-by-default clipped snapshots loaded from that run's GeoPackage. Filtered views reference the same result dataset rather than creating extra outputs. Initially only the All out tier group is visible; users switch tiers through layer-tree group visibility.
+- Every view and snapshot must remain readable with the row count implied by its filter or captured source. Opening a later view or another run must not disrupt readers of an earlier view.
 - Use sensitive red/orange, economic green and unknown grey for the class views. Tier and category labels follow the QGIS language. The complete classified dataset is available in the GeoPackage and can be added separately.
 - US-005 is partially implemented; the [implementation-gap register](../architecture/open-questions.md#known-implementation-gaps) owns the outstanding tier-selector/full-layer presentation work, separately from acceptance of the existing views.
 - Keep Results above References above Basemaps after setup and publication. Changing map scale or toggling source rendering must not change analysis values.

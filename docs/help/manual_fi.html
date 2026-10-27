@@ -43,11 +43,13 @@ body{font-family:system-ui,sans-serif;line-height:1.6;max-width:72rem;margin:2re
 <p>Alueessa on oltava kelvollisia, ei-tyhjiä polygoneja, joille on määritetty oikea koordinaatisto. Päällekkäiset aluekohteet yhdistetään. Tulokset käyttävät <strong>EPSG:3067</strong>-koordinaatistoa ja hehtaareja. Virheellinen aluegeometria tai epäonnistunut koordinaattimuunnos pysäyttää ajon.</p>
 </section>
 <section id="wizard"><h2>Ohjatun toiminnon käyttö</h2>
+<p>Lisäosan poistaminen käytöstä pyytää käynnissä olevan analyysin peruutusta. Sen jälkeen valmistuva tehtävä ei lisää tuloksia projektiin.</p>
 <p>Valitse alueen lähde, tarkasta alueen ja valinnan tila, valitse kirjoituskelpoinen tuloskansio ja paina <strong>Suorita</strong>. Kansiovalinta muistetaan. Jokainen ajo luo uuden tulosnimen.</p>
 <p>Seuraa etenemistä QGIS:n tehtävienhallinnasta. <strong>Peruuta analyysi</strong> pyytää pysäytystä; odota peruutuksen valmistumista. <strong>Sulje</strong> piilottaa paneelin ja säilyttää valinnat. Pysäytä ajo erillisellä Peruuta analyysi -painikkeella. Irrotetun paneelin saa takaisin <strong>Telakoi paneeli oikealle</strong> -toiminnolla. Ohje ja Tietoja toimivat molemmissa tiloissa.</p>
 <p>Onnistuneen ajon jälkeen ohjattu toiminto lisää Tuloksiin ajon herkkyystaso- ja luokkanäkymät sekä lähdekopiot. Valmistumisviesti ilmoittaa GeoPackagen ja työkirjan polut. Katso näkymien käyttö kohdasta <a href="#map-review">Tulosten tarkastelu kartalla</a> ja tarkasta sekä kattavuus että luokitus ennen jatkokäyttöä.</p>
 </section>
 <section id="processing"><h2>Processing-työkalu</h2>
+<p>Kun käytät vain valittuja kohteita ja analyysialue on myös määritetty lähde, molemmat käyttötavat käyttävät valittujen geometrioiden ja ominaisuuksien paikallista kopiota. Ohjattu toiminto tallentaa kopion ajon alussa; myöhemmät kohdevalinnan muutokset eivät muuta kyseistä ajoa.</p>
 <p>Voit käyttää ohjatun toiminnon sijasta Processing-työkalua <code>savonia_forest_planning:prepare_forest_scenario_inputs</code>. Se käyttää samoja analyysisääntöjä ja tukee myös eräajoja ja malleja. Työkalun ohjelinkki avaa tämän osion.</p>
 <table><thead><tr><th scope="col">Syöte</th><th scope="col">Annettava tieto</th></tr></thead><tbody>
 <tr><td>Analyysialue (<code>AOI</code>)</td><td>Polygonitaso.</td></tr>

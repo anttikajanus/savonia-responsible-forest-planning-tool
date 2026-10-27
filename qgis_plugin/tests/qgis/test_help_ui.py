@@ -14,10 +14,9 @@ sys.path.insert(0, os.environ.get(
 ))
 
 from qgis.core import QgsApplication, QgsFeature, QgsGeometry, QgsProject, QgsVectorLayer
-from qgis.gui import QgsMapCanvas
-from qgis.PyQt.QtCore import QSize, QUrl
+from qgis.PyQt.QtCore import QUrl
 from qgis.PyQt.QtGui import QDesktopServices
-from qgis.PyQt.QtWidgets import QComboBox, QLabel, QMainWindow, QMenu
+from qgis.PyQt.QtWidgets import QComboBox, QLabel
 
 APP = QgsApplication.instance()
 if APP is None:
@@ -28,49 +27,7 @@ from savonia_responsible_forest_planning_tool.i18n import selected_language, tr
 from savonia_responsible_forest_planning_tool.ui.plugin import ResponsibleForestPlanningPlugin
 
 
-class Interface:
-    """Real Qt controls behind the small QGIS interface boundary used here."""
-
-    def __init__(self):
-        self.window = QMainWindow()
-        self.canvas = QgsMapCanvas(self.window)
-        self.help_menu = QMenu(self.window)
-        self.plugin_menu = QMenu(self.window)
-        self.messages = []
-
-    def mainWindow(self):
-        return self.window
-
-    def iconSize(self, dockedToolbar=False):
-        size = 16 if dockedToolbar else 24
-        return QSize(size, size)
-
-    def mapCanvas(self):
-        return self.canvas
-
-    def addToolBar(self, title):
-        return self.window.addToolBar(title)
-
-    def pluginHelpMenu(self):
-        return self.help_menu
-
-    def addPluginToMenu(self, title, action):
-        self.plugin_menu.addAction(action)
-
-    def removePluginMenu(self, title, action):
-        self.plugin_menu.removeAction(action)
-
-    def addDockWidget(self, area, dock):
-        self.window.addDockWidget(area, dock)
-
-    def removeDockWidget(self, dock):
-        self.window.removeDockWidget(dock)
-
-    def messageBar(self):
-        return self
-
-    def pushWarning(self, title, message):
-        self.messages.append((title, message))
+from ui_fixture import Interface
 
 
 class HelpUiTests(unittest.TestCase):

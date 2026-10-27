@@ -37,14 +37,15 @@ def _validate_output_destination(parameters, run_id, language):
         raise QgsProcessingException(tr(language, "error_output_exists"))
     return folder, output_name, gpkg_path, xlsx_path
 
-def _aoi_geometry(layer, selected_only, transform_context, language):
+def _aoi_geometry(layer, selected_only, transform_context, language, captured_features=None):
     if layer is None or not layer.isValid():
         raise QgsProcessingException(tr(language, "error_aoi_layer"))
     if layer.geometryType() != 2:
         raise QgsProcessingException(tr(language, "error_aoi_polygon"))
     if not layer.crs().isValid():
         raise QgsProcessingException(tr(language, "error_aoi_crs"))
-    features = list(layer.getSelectedFeatures() if selected_only else layer.getFeatures())
+    features = (captured_features if captured_features is not None else
+                list(layer.getSelectedFeatures() if selected_only else layer.getFeatures()))
     if not features:
         raise QgsProcessingException(tr(language, "error_aoi_empty"))
     transform = QgsCoordinateTransform(layer.crs(), TARGET_CRS, transform_context)
@@ -79,18 +80,27 @@ def validate_inputs(parameters, run_id):
     if transform_context is None:
         raise QgsProcessingException(tr(language, "error_transform_context"))
     aoi_layer = parameters.get("aoi_layer")
-    aoi = _aoi_geometry(aoi_layer, bool(parameters.get("selected_only")), transform_context, language)
+    selected_features = (list(aoi_layer.getSelectedFeatures())
+                         if parameters.get("selected_only") and aoi_layer is not None and aoi_layer.isValid()
+                         else None)
+    aoi = _aoi_geometry(aoi_layer, bool(parameters.get("selected_only")), transform_context, language,
+                        captured_features=selected_features)
     output_folder, base_name, gpkg_path, xlsx_path = _validate_output_destination(
         parameters, run_id, language
     )
     service_ids = tuple(SERVICE_DEFINITIONS)
     layers = {service_id: _source_layer(parameters, service_id) for service_id in service_ids}
     selected_source_feature_ids = {}
+    selected_source_feature_snapshots = dict(parameters.get("selected_source_feature_snapshots") or {})
     if parameters.get("selected_only"):
-        selected_ids = tuple(aoi_layer.selectedFeatureIds())
         for service_id, layer in layers.items():
             if layer is not None and (layer is aoi_layer or layer.id() == aoi_layer.id()):
-                selected_source_feature_ids[service_id] = selected_ids
+                # Provider FIDs/cache contents can change on a second WFS read.
+                # Use the same captured-feature policy as the wizard worker.
+                selected_source_feature_snapshots[service_id] = tuple(
+                    (feature.id(), bytes(feature.geometry().asWkb()), tuple(feature.attributes()))
+                    for feature in selected_features
+                )
     selected_source_feature_ids.update(
         parameters.get("selected_source_feature_ids") or {}
     )
@@ -136,5 +146,6 @@ def validate_inputs(parameters, run_id):
         "source_display_names": source_display_names,
         "selected_only": bool(parameters.get("selected_only")),
         "selected_source_feature_ids": selected_source_feature_ids,
+        "selected_source_feature_snapshots": selected_source_feature_snapshots,
     }
 

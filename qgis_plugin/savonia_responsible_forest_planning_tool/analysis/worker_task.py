@@ -80,6 +80,7 @@ def capture_worker_inputs(aoi, sources, selected_only, transform_context,
         },
         "sources": copied_sources,
         "selected_source_feature_snapshots": selected_source_feature_snapshots,
+        "selected_only": bool(selected_only),
         "transform_context": QgsCoordinateTransformContext(transform_context),
         "language": str(language),
         "output_folder": str(output_folder),
@@ -169,6 +170,9 @@ class ResponsibleForestPlanningAnalysisTask(QgsTask):
             aoi_layer = self._construct_aoi(
                 self._worker_inputs["aoi"], self._worker_inputs["language"],
             )
+            selected_only = self._worker_inputs.get("selected_only", False)
+            if selected_only:
+                aoi_layer.selectAll()
             sources = self._construct_sources(self._worker_inputs["sources"])
             feedback = _TaskFeedback(self)
             self.result = run_workflow({
@@ -177,7 +181,7 @@ class ResponsibleForestPlanningAnalysisTask(QgsTask):
                 "aoi_layer": aoi_layer,
                 # QGIS selections are main-thread state; use captured feature snapshots
                 # instead of querying the source layers from this worker.
-                "selected_only": False,
+                "selected_only": selected_only,
                 "selected_source_feature_snapshots": self._worker_inputs[
                     "selected_source_feature_snapshots"
                 ],
@@ -194,4 +198,9 @@ class ResponsibleForestPlanningAnalysisTask(QgsTask):
 
     def finished(self, successful):
         """QGIS invokes this on the main thread after run() returns."""
-        self._completion_callback(self, successful)
+        if self._completion_callback is not None:
+            self._completion_callback(self, successful)
+
+    def detach_completion_callback(self):
+        """Release the UI callback when its owning plugin is unloaded."""
+        self._completion_callback = None

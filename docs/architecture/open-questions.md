@@ -6,6 +6,33 @@ belong to [development](development.md), and current behavior belongs to
 [specs](../specs/README.md). Adopted choices are indexed in the
 [ADRs](README.md#architecture-decision-records).
 
+## Automated regression verification
+
+On 27 October 2026, plugin version 1.0.0 was verified on Windows with QGIS
+4.2.3 (Python 3.12.15). The expanded suite adds 21 test methods across the eight
+reviewed areas; parameterized cases cover both Finnish and English where
+presentation is involved. [Test seams and procedures](development.md#regression-seams).
+
+| Check | Outcome |
+| --- | --- |
+| Ordinary Python unit/resource/package suite | 36 passed against the checkout and the extracted ZIP, using Python without the QGIS launcher. |
+| QGIS integration/offscreen suite | 80 passed against the checkout and the rebuilt, extracted ZIP, including load/Processing/unload and local WFS 2.0 paging. |
+| Development tooling | 15 passed with Git on PATH. |
+| Pylint | Full `qgis_plugin scripts` check passed. |
+| Packaging and documentation | Current-version ZIP built; all 35 packaged Python files matched source; local documentation links/anchors and bilingual packaged manuals passed checks. |
+
+Regressions exposed and now cover selected-source snapshot loss and repeated
+provider reads, source-ID leakage across split pieces, Windows file handles
+preventing style-failure cleanup, active-task callbacks after unload, and
+GeoPackage readers disrupted by applying filters after opening class views.
+Views now open with filters in their initial provider URI; tests verify exact
+row counts and feature iteration rather than only layer validity.
+
+These checks use generated local fixtures and do not establish live-provider
+completeness, hosted QGIS CI, desktop/browser/Excel acceptance or compatibility
+with newer QGIS releases. The outstanding interactive and provider checks below
+remain open.
+
 ## Provider evidence
 
 | Item | Current limit and next evidence needed |

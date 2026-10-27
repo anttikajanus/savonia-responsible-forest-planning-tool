@@ -17,6 +17,11 @@ Both files live at `QgsApplication.qgisSettingsDirPath()/savonia_responsible_for
 
 Use the QGIS panel for support diagnostics, Processing feedback for progress/cancellation and recoverable messages, and short UI summaries for corrective action. Preserve a traceback and run/stage context for unexpected failures. Aggregate repeated feature problems and cap ID samples. Provenance needed for reproducibility belongs in run metadata rather than depending on rotated logs.
 
+The [logging contract tests](../../qgis_plugin/tests/qgis/test_logging_contract.py)
+verify handler ownership, rotation configuration, correlated aggregate events,
+traceback separation and log-directory/file-open failures in a temporary profile.
+They do not establish behavior for every possible filesystem failure.
+
 ## Development and verification
 
 Use [development](development.md) for profile/reload setup, runtime policy,

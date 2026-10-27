@@ -1,0 +1,31 @@
+fid: 60
+source_stand_id: 40962772
+class_all_out: ECONOMIC
+class_bau: ECONOMIC
+class_light: ECONOMIC
+class_balance: ECONOMIC
+class_protection: ECONOMIC
+class_superprotection: SENSITIVE
+area_ha: 2,23
+total_volume_m3_ha: 251
+sawtimber_volume_m3_ha: 81
+growth_percent: 2,45
+basal_area_m2_ha: 30,89
+grid_total_volume_m3_ha: 220
+pine_volume_m3_ha: 67
+spruce_volume_m3_ha: 42
+deciduous_volume_m3_ha: 112
+share_under_20: 0
+share_20_80: 88
+share_over_80: 12
+peatland_area_ha: 0,03
+natural_mire_area_ha: 0,00
+stumpage_price_eur_m3: NULL
+indicator_status: {"area_ha": "AVAILABLE", "basal_area_m2_ha": "AVAILABLE", "deciduous_volume_m3_ha": "PARTIAL", "grid_total_volume_m3_ha": "AVAILABLE", "growth_percent": "AVAILABLE", "natural_mire_area_ha": "AVAILABLE", "peatland_area_ha": "AVAILABLE", "pine_volume_m3_ha": "AVAILABLE", "sawtimber_volume_m3_ha": "AVAILABLE", "share_20_80": "AVAILABLE", "share_over_80": "AVAILABLE", "share_under_20": "AVAILABLE", "spruce_volume_m3_ha": "AVAILABLE", "stumpage_price_eur_m3": "OUT_OF_SCOPE", "total_volume_m3_ha": "AVAILABLE"}
+indicator_coverage: {"basal_area_m2_ha": {"source_id": "forest_centre_stand", "status": "AVAILABLE", "unknown_area_ha": 0.0, "valid_area_ha": 2.234380610422013, "weighted_sum": 69.020017055936}, "deciduous_volume_m3_ha": {"represented_volume_m3": 248.01148288538676, "source_id": "forest_centre_gridcell", "status": "PARTIAL", "unknown_area_ha": 0.012177090710306704, "valid_area_ha": 2.2222035197117065}, "grid_total_volume_m3_ha": {"represented_volume_m3": 491.40346946522925, "source_id": "forest_centre_gridcell", "status": "AVAILABLE", "unknown_area_ha": 0.0, "valid_area_ha": 2.2343806104220136}, "growth_percent": {"source_id": "forest_centre_stand", "status": "AVAILABLE", "unknown_area_ha": 0.0, "valid_area_ha": 2.234380610422013, "weighted_sum": 5.4701010127365075}, "natural_mire_area_ha": {"matching_area_ha": 0.0, "source_id": "forest_centre_gridcell", "status": "AVAILABLE", "unknown_area_ha": 0.0, "valid_area_ha": 2.2343806104220136}, "peatland_area_ha": {"matching_area_ha": 0.031198598274297544, "source_id": "forest_centre_gridcell", "status": "AVAILABLE", "unknown_area_ha": 0.0, "valid_area_ha": 2.2343806104220136}, "pine_volume_m3_ha": {"represented_volume_m3": 148.80097814869035, "source_id": "forest_centre_gridcell", "status": "AVAILABLE", "unknown_area_ha": 0.0, "valid_area_ha": 2.2343806104220136}, "sawtimber_volume_m3_ha": {"represented_volume_m3": 180.470921903786, "source_id": "forest_centre_stand", "status": "AVAILABLE", "unknown_area_ha": 0.0, "valid_area_ha": 2.234380610422013}, "share_20_80": {"coverage_percent": 100, "coverage_percent_exact": 100.00000000000003, "matching_area_ha": 1.970762612551331, "source_id": "forest_centre_gridcell", "status": "AVAILABLE", "unknown_area_ha": 0.0, "valid_area_ha": 2.2343806104220136}, "share_over_80": {"coverage_percent": 100, "coverage_percent_exact": 100.00000000000003, "matching_area_ha": 0.26361799787068285, "source_id": "forest_centre_gridcell", "status": "AVAILABLE", "unknown_area_ha": 0.0, "valid_area_ha": 2.2343806104220136}, "share_under_20": {"coverage_percent": 100, "coverage_percent_exact": 100.00000000000003, "matching_area_ha": 0.0, "source_id": "forest_centre_gridcell", "status": "AVAILABLE", "unknown_area_ha": 0.0, "valid_area_ha": 2.2343806104220136}, "spruce_volume_m3_ha": {"represented_volume_m3": 94.69161109870797, "source_id": "forest_centre_gridcell", "status": "AVAILABLE", "unknown_area_ha": 0.0, "valid_area_ha": 2.2343806104220136}, "stumpage_price_eur_m3": {"source_id": null, "status": "OUT_OF_SCOPE", "unknown_area_ha": 2.234380610422013, "valid_area_ha": 0.0}, "total_volume_m3_ha": {"represented_volume_m3": 561.2987531441139, "source_id": "forest_centre_stand", "status": "AVAILABLE", "unknown_area_ha": 0.0, "valid_area_ha": 2.234380610422013}}
+indicator_diagnostics: [{"area_ha": 0.012177090710307025, "field": "volumedeciduous", "reason_code": "MISSING_VALUE", "source_id": "741814728"}]
+tier_rule_ids: {"all_out": {"criteria": [], "source_ids": [], "unknown_sources": []}, "balance": {"criteria": [], "source_ids": [], "unknown_sources": []}, "bau": {"criteria": [], "source_ids": [], "unknown_sources": []}, "light": {"criteria": [], "source_ids": [], "unknown_sources": []}, "protection": {"criteria": [], "source_ids": [], "unknown_sources": []}, "superprotection": {"criteria": ["remaining_analyzed_forest"], "source_ids": [], "unknown_sources": []}}
+source_ids: {}
+section10_stand_promoted: epätosi
+programme_info: []
+programme_protected_overlap: NULL

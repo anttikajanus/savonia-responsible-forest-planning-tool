@@ -73,6 +73,18 @@ Specifically, [`capture_worker_inputs`](../../qgis_plugin/savonia_responsible_fo
 
 Processing feedback carries progress and cancellation; worker use does not create a second analysis implementation.
 
+The capture record also retains the selected-only flag. The worker selects its
+reconstructed AOI features when that flag is set, preserving run metadata while
+retrieval uses the captured source snapshots. Plugin unload cancels its active
+task and detaches the completion callback before disposing of the wizard; it
+does not wait on the GUI thread for a worker to finish.
+
+Result class views include their subset expression in the initial OGR provider
+URI. Applying `setSubsetString()` after opening a shared GeoPackage can disturb
+other readers in the baseline runtime. The wizard tests read exact row counts
+and iterate features from every class view and snapshot while retaining prior
+runs, rather than treating layer validity alone as successful map publication.
+
 ## Geometry, evidence and publication boundaries
 
 The AOI is dissolved and transformed to EPSG:3067. Returned polygons are transformed, repaired when possible, clipped, and retained as source snapshots with original attributes and identifiers. Classification uses stand pieces, while grid intersections provide independent indicator evidence. Use the [geometry contract](calculations.md#area-and-geometry), [functional tier rules](../specs/classification.md#cl-02-six-cumulative-tiers) and [output schema](output-schema.md) for details; [ADR-0004](adr/0004-stand-based-sensitivity-classification.md) records the rationale.
@@ -82,6 +94,10 @@ All eight required sources must pass validation. Request failures, missing requi
 One prepared publication record supplies a GeoPackage containing result polygons, source snapshots, coverage and metadata, and a workbook containing tier/class summaries, coverage and notes. Dedicated writers serialize each format; the publishing phase coordinates writes and removes partial outputs on failure. This is application cleanup rather than a filesystem transaction. [Publishing implementation](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/publishing.py).
 
 The GeoPackage writer uses QGIS to write spatial layers and nonspatial metadata tables. The workbook writer builds XLSX XML and ZIP parts using Python's standard library, so it does not require Excel or a separate spreadsheet package. Existing output names are rejected before writing. On a caught write failure or cancellation during publication, cleanup attempts to remove both files; deletion can fail, and a process crash is outside that cleanup guarantee. See [GeoPackage writer](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/geopackage_writer.py), [workbook writer](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/excel_writer.py), and [destination validation](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/validation.py).
+
+The writer releases the reopened presentation layer in a `finally` block before
+paired cleanup. Otherwise an exception traceback can retain its OGR file handle
+and prevent deletion on Windows after required style persistence fails.
 
 ## Data flow and policy boundaries
 

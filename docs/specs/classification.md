@@ -34,6 +34,12 @@ The [accepted input mapping](../architecture/source-layer-requirements.md#accept
 
 Acceptance examples: a 1 ha stand with a qualifying protected strip of 0.25 ha and no other trigger has 0.25 sensitive/0.75 economic ha in All out through Protection, and 1 sensitive ha in Superprotection. A qualifying Section 10 strip instead promotes the whole clipped parent stand in every tier containing Section 10. Verify threshold behavior below, at and above 1 m² and cumulative membership across all tiers.
 
+Overlapping protected records retain only the identifiers that match each piece.
+A piece touched by one record must not inherit another piece's identifiers when
+later overlays split their common parent. Section 10 identifiers remain
+stand-wide under its explicit promotion rule. Verify both source orders and
+conservation of the parent geometry and full-precision area.
+
 ## CL-04 Exclusions and interpretation
 
 SYKE forest-sensitive-water criteria, peat/mire sensitivity criteria, water-protection buffers, recreation areas, potential protected sites and MY plan areas are out of scope. Do not retrieve/process their geometries as classification evidence or make their absence an unknown-source failure. Ranta10 shoreline context is deferred; it is disabled and not requested or processed.

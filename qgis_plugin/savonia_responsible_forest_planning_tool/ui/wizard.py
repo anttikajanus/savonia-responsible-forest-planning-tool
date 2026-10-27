@@ -539,6 +539,14 @@ class ResponsibleForestPlanningWizard(QWidget):
         self.cancel_button.setEnabled(False)
         task.cancel()
 
+    def shutdown(self):
+        """Cancel owned analysis and detach callbacks before widgets are deleted."""
+        task = self._analysis_task
+        if task is not None:
+            task.detach_completion_callback()
+            task.cancel()
+            self._clear_analysis_state()
+
     def _clear_analysis_state(self):
         self._analysis_task = None
         self._analysis_cancel_requested = False
@@ -586,8 +594,11 @@ class ResponsibleForestPlanningWizard(QWidget):
         )
         for tier, _label in TIERS:
             for class_code, class_key in class_codes:
+                subset = '"class_{0}" = \'{1}\''.format(tier, class_code)
+                # Open with the filter already applied. Mutating a live OGR
+                # source can disrupt other readers of this same GeoPackage.
                 class_layer = QgsVectorLayer(
-                    result_uri,
+                    result_uri + "|subset=" + subset,
                     "{0} - {1}".format(
                         tr(self.language, "tier_" + tier),
                         tr(self.language, class_key),
@@ -596,9 +607,7 @@ class ResponsibleForestPlanningWizard(QWidget):
                 )
                 if not class_layer.isValid():
                     raise RuntimeError("GeoPackage class view could not be reopened.")
-                if not class_layer.setSubsetString(
-                    '"class_{0}" = \'{1}\''.format(tier, class_code)
-                ):
+                if class_layer.subsetString() != subset:
                     raise RuntimeError("Could not apply the class filter to a result view.")
                 class_layer.setRenderer(QgsSingleSymbolRenderer(self._class_symbol(class_code)))
                 class_layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "class_view", True)

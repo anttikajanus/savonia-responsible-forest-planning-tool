@@ -146,9 +146,30 @@ The integration suite runs headlessly with generated polygon data and a tiny WFS
 fixture bound to a random loopback port. It calls the shared Processing algorithm
 with real WFS providers and checks GeoPackage/workbook results and failure messages
 in Finnish and English. It requires local loopback access but no online services.
-The fixture implements only the WFS operations needed by these tests. Each test
-uses fresh providers; initialization without a spatial request primes the fixture's
-request-bbox-only provider before Processing retrieves its features.
+The fixture implements only the WFS operations needed by these tests. Existing
+small GML2 scenarios use WFS 1.0 as test transport; they do not establish support
+for legacy production services. Dedicated WFS 2.0/GML 3.2 scenarios construct
+layers through the production URI builder with fresh unprimed providers, verify
+paged retrieval and successful empty responses, and fail a later page. Analysis
+pages carry AOI bounds; QGIS may separately probe geometry with `COUNT=1` during
+provider construction. No live provider is required.
+
+### Regression seams
+
+| Contract | Tests and assertions |
+| --- | --- |
+| Pure tier policy, CL-02/03 | `tests/test_classification.py`: all 32 trigger combinations, exact matched rules/IDs, missing dependencies, positive-match precedence and uninterpretable records. |
+| Spatial classification, CL-01/03 | `tests/qgis/test_classification_geometry.py`: below/at/above 1 m², shared edges/points, protected strips, Section 10 parent promotion, neighboring stands, piece-local IDs in both source orders and conserved geometry. |
+| Selection/preflight/protocol, WF-03/04/06/07 | `tests/qgis/test_workflow_contracts.py`: captured source geometry/attributes despite later selection/service changes, equivalent worker/Processing values, selection metadata, invalid inputs and aggregate readiness errors before retrieval, untouched existing output bytes, WFS 2.0 paging and later-page failures. |
+| Paired publication, WF-07 | `tests/qgis/test_publication_failures.py`: later GeoPackage-layer and required-style failures, cancellation after workbook creation, paired cleanup, and original error preservation when deletion fails. Existing grid workflow checks cover cancellation after GeoPackage writing and workbook-write failure. |
+| Wizard, WF-01/05 and IO-06 | `tests/qgis/test_wizard_completion.py`: localized failure/cancellation recovery, reopening failure, exact readable counts and feature iteration for 18 filtered views plus eight snapshots, visibility, prior-run retention, and cancellation/detachment on unload. |
+| Logging, WF-07 | `tests/qgis/test_logging_contract.py`: owned handler reload/unload, root preservation, rotation settings, aggregate JSON events correlated by run ID, technical-only tracebacks, and directory/file-open failures. |
+
+`workflow_fixture.py` owns shared source records and Processing scenarios;
+`ui_fixture.py` supplies real Qt widgets behind a small QGIS interface adapter.
+These helper modules contain no discoverable tests. Inject failures at provider,
+writer, filesystem or UI seams; keep numerical expectations independent of
+implementation constants. Headless checks do not establish desktop acceptance.
 
 Grid setup checks use the same local WFS boundary and real QGIS 4.2.3 layer trees
 and rendering APIs. They cover the eighth required source, provider-backed fields

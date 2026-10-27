@@ -17,9 +17,10 @@ Start with the [technical architecture diagram and explanation](overview.md#syst
 | --- | --- |
 | Execution path, module ownership and threading | [Overview](overview.md) |
 | Provider fields, aliases, accepted input values and source identity | [Source-layer requirements](source-layer-requirements.md) |
-| Geometry operations, numerical tolerances and tier-to-field mapping | [Geometry and classification](calculations.md) |
+| Geometry operations, numerical tolerances and classification evaluation | [Geometry and classification](calculations.md) |
 | Intersection weights, metric statistics and aggregation examples | [Indicator calculations](indicator-calculations.md) |
-| Stored fields, field order, coverage JSON and output tables | [Output schema](output-schema.md) |
+| Stored fields, classification codes, field order, coverage JSON and output tables | [Output schema](output-schema.md) |
+| Worked polygon records, classification reasons and coverage interpretation | [Output examples](../examples/classified-forest-polygons.md) |
 
 ### Evidence and interpretation
 

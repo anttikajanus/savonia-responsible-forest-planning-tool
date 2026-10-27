@@ -1,11 +1,9 @@
 """End-to-end local WFS/Processing and wizard-owned input regressions."""
 
-from contextlib import contextmanager
 import json
 import os
 from pathlib import Path
 import sys
-import tempfile
 import time
 import unittest
 from unittest.mock import patch
@@ -16,8 +14,7 @@ sys.path.insert(0, os.environ.get(
 ))
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from qgis.core import (NULL, QgsApplication, QgsFeature, QgsGeometry, QgsProcessingContext,
-                       QgsProcessingException, QgsProcessingFeedback, QgsProject, QgsVectorLayer)
+from qgis.core import (NULL, QgsApplication, QgsProcessingException, QgsProcessingFeedback, QgsProject, QgsVectorLayer)
 from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtTest import QTest
 from qgis.gui import QgsMapCanvas
@@ -29,74 +26,11 @@ if APP is None:
 from savonia_responsible_forest_planning_tool.adapters.sources import SERVICE_DEFINITIONS
 from savonia_responsible_forest_planning_tool.analysis.worker_task import capture_worker_inputs, ResponsibleForestPlanningAnalysisTask
 from savonia_responsible_forest_planning_tool.i18n import tr
-from savonia_responsible_forest_planning_tool.processing.provider import ResponsibleForestPlanningInputsAlgorithm
-from test_source_field_workflow import fixture_sources
+from workflow_fixture import WorkflowFixtureMixin, coordinates, fixture_sources, source_record
 from test_grid_publication import workbook_rows
-from wfs_fixture import LocalWfs
 
 
-def coordinates(x, y, width, height):
-    return "{0},{1} {2},{1} {2},{3} {0},{3} {0},{1}".format(x, y, x + width, y + height)
-
-
-def source_record(attributes, x=350000, y=6900000, width=100, height=100):
-    return {"attributes": attributes, "coordinates": coordinates(x, y, width, height)}
-
-
-class GridWorkflowTest(unittest.TestCase):
-    def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
-        self.addCleanup(self.temp.cleanup)
-
-    @contextmanager
-    def scenario(self, grid, stands=None, aoi=None, prime=True):
-        schemas = fixture_sources()
-        records = {source: [] for source in schemas}
-        records["forest_centre_gridcell"] = grid
-        records["forest_centre_stand"] = stands if stands is not None else [source_record(schemas["forest_centre_stand"])]
-        with LocalWfs(schemas, records=records) as fixture:
-            definitions = {source: {**definition, "endpoint": fixture.endpoint}
-                           for source, definition in SERVICE_DEFINITIONS.items()}
-            with patch.dict(SERVICE_DEFINITIONS, definitions):
-                layers = {}
-                for source in definitions:
-                    typename = "fixture:" + source
-                    uri = "url='{0}' typename='{1}' version='1.0.0' restrictToRequestBBOX='1'".format(fixture.endpoint, typename)
-                    layer = QgsVectorLayer(uri, source, "WFS")
-                    self.assertTrue(layer.isValid(), layer.error().message())
-                    layer.setCustomProperty("savonia/endpoint", fixture.endpoint)
-                    layer.setCustomProperty("savonia/feature_type", typename)
-                    layer.setCustomProperty("savonia/schema_json", "obsolete saved schema")
-                    if prime:
-                        self.assertEqual(list(layer.getFeatures()), [])
-                    layers[source] = layer
-                aoi_layer = QgsVectorLayer("Polygon?crs=EPSG:3067", "AOI", "memory")
-                for text in aoi or [coordinates(350000, 6900000, 100, 100)]:
-                    feature = QgsFeature()
-                    feature.setGeometry(QgsGeometry.fromWkt("POLYGON ((" + text.replace(" ", ";").replace(",", " ").replace(";", ",") + "))"))
-                    self.assertTrue(aoi_layer.dataProvider().addFeatures([feature])[0])
-                aoi_layer.updateExtents()
-                yield fixture, layers, aoi_layer
-
-    def run_algorithm(self, layers, aoi, language, name, feedback=None):
-        algorithm = ResponsibleForestPlanningInputsAlgorithm()
-        algorithm.initAlgorithm()
-        parameters = {algorithm.AOI: aoi, algorithm.OUTPUT_FOLDER: self.temp.name,
-                      algorithm.OUTPUT_NAME: name, algorithm.SELECTED_ONLY: False}
-        for parameter, source in {
-            algorithm.STANDS: "forest_centre_stand", algorithm.GRIDCELLS: "forest_centre_gridcell",
-            algorithm.HABITATS: "forest_centre_habitat", algorithm.PROTECTED: "syke_protected_areas_state_owned",
-            algorithm.PROTECTED_PRIVATE: "syke_protected_areas_private_land",
-            algorithm.PROTECTED_WILDERNESS: "syke_protected_areas_wilderness",
-            algorithm.PROGRAMME: "syke_nature_conservation_programme_areas",
-            algorithm.GROUNDWATER: "syke_groundwater_areas",
-        }.items():
-            parameters[parameter] = layers[source]
-        context = QgsProcessingContext()
-        context.setProject(QgsProject.instance())
-        with patch("savonia_responsible_forest_planning_tool.processing.provider.selected_language", return_value=language):
-            return algorithm.processAlgorithm(parameters, context, feedback or QgsProcessingFeedback())
-
+class GridWorkflowTest(WorkflowFixtureMixin, unittest.TestCase):
     def test_boundary_grid_weights_and_localized_artifacts_in_both_languages(self):
         fields = fixture_sources()["forest_centre_gridcell"]
         grid = [source_record({**fields, "GRIDCELLID": "left", "VOLUME": 100,

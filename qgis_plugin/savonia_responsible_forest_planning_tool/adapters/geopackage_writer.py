@@ -44,17 +44,22 @@ def write_geopackage(path, result_layer, snapshots, coverage, run_metadata, tran
 def _save_result_presentation(path, result_layer):
     """Keep field aliases and numeric display settings when reopening the file."""
     saved = QgsVectorLayer(path + "|layername=classified_forest_polygons", "classified_forest_polygons", "ogr")
-    if not saved.isValid():
-        raise IOError("Could not reopen GeoPackage result layer to save field presentation")
-    style = QgsMapLayerStyle()
-    style.readFromLayer(result_layer)
-    style.writeToLayer(saved)
-    result, message = saved.saveStyleToDatabaseV2(
-        "classified_forest_polygons", "", True, "",
-        QgsMapLayer.Fields | QgsMapLayer.Forms,
-    )
-    if result != QgsMapLayer.SaveStyleResult.Success:
-        raise IOError("Could not save GeoPackage result field presentation: {0}".format(message))
+    try:
+        if not saved.isValid():
+            raise IOError("Could not reopen GeoPackage result layer to save field presentation")
+        style = QgsMapLayerStyle()
+        style.readFromLayer(result_layer)
+        style.writeToLayer(saved)
+        result, message = saved.saveStyleToDatabaseV2(
+            "classified_forest_polygons", "", True, "",
+            QgsMapLayer.Fields | QgsMapLayer.Forms,
+        )
+        if result != QgsMapLayer.SaveStyleResult.Success:
+            raise IOError("Could not save GeoPackage result field presentation: {0}".format(message))
+    finally:
+        # An exception traceback keeps this frame alive during paired cleanup.
+        # Release its OGR handle first so Windows can remove the partial file.
+        saved = None
 
 
 def _table_layer(name, rows):

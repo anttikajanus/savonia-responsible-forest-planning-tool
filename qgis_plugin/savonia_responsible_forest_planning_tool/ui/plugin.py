@@ -258,6 +258,8 @@ class ResponsibleForestPlanningPlugin:
             )
 
     def unload(self):
+        if self.wizard is not None:
+            self.wizard.shutdown()
         for action in (self.help_action, self.about_action):
             if action is not None:
                 self.iface.pluginHelpMenu().removeAction(action)

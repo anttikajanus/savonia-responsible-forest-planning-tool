@@ -75,7 +75,9 @@ def _split_stand(stand_geometry, criteria, language):
                 )
             for part, inside in split_parts:
                 new_matched = set(matched)
-                new_sources = dict(source_ids)
+                # Each branch owns its ID sets; adding a later overlapping
+                # record must not change the provenance of sibling pieces.
+                new_sources = {key: set(identifiers) for key, identifiers in source_ids.items()}
                 if inside:
                     new_matched.add(criterion["criterion"])
                     new_sources.setdefault(criterion["criterion"], set()).add(criterion["source_id"])

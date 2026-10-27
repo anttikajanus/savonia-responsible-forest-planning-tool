@@ -39,7 +39,7 @@ Scope and status follow the [specification index](README.md). These requirements
 ## WF-04 Analysis area and destination
 
 - Support drawing one polygon, choosing polygon features from a project layer, and using the current map extent. Capture the extent and its coordinate system when the run starts.
-- Layer selection has an explicit selected-features-only choice. Preserve input features and layers. When the AOI layer is also a configured source and selected-only mode applies, use the captured selected features for that source while retaining the same clipping and provenance behavior.
+- Layer selection has an explicit selected-features-only choice. Preserve input features and layers. When the AOI layer is also a configured source and selected-only mode applies, both entry points use one captured set of selected geometries and attributes for that source, retaining clipping and provenance. Later selection or remote-data changes do not alter the wizard's captured run; run metadata retains the selected-only choice.
 - Dissolve overlapping AOI features so overlapping boundary inputs are counted once. Validate the area, coordinate transformations, output basename and writable destination before expensive work or publication.
 - Use EPSG:3067 spatial outputs and planar hectares. The reporting domain is the analyzed forest within the AOI, as defined in [CL-01](classification.md#cl-01-reporting-domain-and-geometry).
 - The wizard remembers the output folder and generates a basename beginning `savonia_responsible_forest_inputs_`. Processing permits an explicit basename. Reject existing paired output names instead of overwriting user files.
@@ -48,6 +48,7 @@ Scope and status follow the [specification index](README.md). These requirements
 
 - Open a persistent nonmodal dock beside the map; it opens on the right, allows left/right docking and floating, and redocks to the right.
 - The current wizard has one analysis page: area mode and status, output folder and Run. Hiding/closing and reopening the dock preserves its current choices.
+- Hiding the dock leaves a run active. Unloading the plugin requests cancellation and detaches its completion callback before deleting the wizard; a late completion must not update deleted controls or add results to the project.
 - Keep map interaction available for drawing and selection. Setup, redock, Help and About work in docked and floating modes.
 - Run the same analysis behavior as Processing, report meaningful progress, provide cancellation and show both output paths on success. On success, add the run's results and snapshots to Results as specified in [IO-06](indicators-and-outputs.md#io-06-map-review-and-run-retention).
 - Show a concise localized error identifying the failed phase/source and a corrective next step where possible. Detailed diagnostics retain the run context.

@@ -3,7 +3,7 @@
 # Geometry and classification contracts
 
 This reference owns geometry mechanics, numerical tolerances and classification
-field mapping. Observable planning rules belong to
+evaluation. Observable planning rules belong to
 [CL-01–CL-04](../specs/classification.md); accepted inputs belong to
 [source-layer requirements](source-layer-requirements.md).
 
@@ -50,12 +50,10 @@ construction rather than treated as invalid partitions.
 
 ## Classification
 
-Each output polygon carries six language-neutral fields:
-`class_all_out`, `class_bau`, `class_light`, `class_balance`,
-`class_protection`, and `class_superprotection`. Values are `SENSITIVE`,
-`ECONOMIC`, or `UNKNOWN`. `UNKNOWN` means evidence required for a no-hit was
-unavailable; it is not a forest type or a numeric zero. Unrecognized returned
-classification values stop the run.
+The [output schema](output-schema.md#classification-fields-and-values) owns the
+six stored tier fields, class-code meanings and reason-code dictionary so that
+output recipients can interpret the GeoPackage from one reference. Unrecognized
+returned classification inputs stop the run.
 
 The cumulative criteria are evaluated independently for each output piece. A
 recognized positive match makes the tier `SENSITIVE`, even if another required
@@ -72,18 +70,15 @@ source or interpretation failure; it does not publish a partial-source run using
 these `UNKNOWN` rules. Missing numeric indicator evidence can still produce
 partial or unknown metrics in a successful run.
 
-The criterion membership is defined once in
-[CL-02](../specs/classification.md#cl-02-six-cumulative-tiers). Map those tiers to
-machine fields as follows:
+The criterion membership is defined in
+[CL-02](../specs/classification.md#cl-02-six-cumulative-tiers). The
+[tier-to-field table](output-schema.md#classification-fields-and-values) maps
+those tiers to machine fields. Required source groups for a no-hit decision are:
 
-| Tier | Calculated field | Required source groups |
-| --- | --- | --- |
-| All out | `class_all_out` | Protected + Habitat |
-| BAU | `class_bau` | Protected + Habitat |
-| Light | `class_light` | Protected + Habitat |
-| Balance | `class_balance` | Protected + Habitat + Programme + Groundwater |
-| Protection | `class_protection` | Protected + Habitat + Programme + Groundwater |
-| Superprotection | `class_superprotection` | Protected + Habitat + Programme + Groundwater |
+| Tiers | Required source groups |
+| --- | --- |
+| All out, BAU, Light | Protected + Habitat |
+| Balance, Protection, Superprotection | Protected + Habitat + Programme + Groundwater |
 
 Protected combines the three required protected-area products in the
 [source inventory](data-sources.md#required-sources). Habitat, Programme and
@@ -103,6 +98,11 @@ Section 10 stand promotion follows
 [CL-01](../specs/classification.md#cl-01-reporting-domain-and-geometry); it is a
 planning assumption, distinct from a legal determination. Provider definitions
 and their limits remain in [source evidence](data-sources.md#interpretation-and-geographic-limits).
+
+Each split branch owns independent source-ID sets. Adding a matching record to
+one branch cannot mutate the provenance of its siblings; normalized output IDs
+remain sorted and unique. Spatial regressions exercise overlapping protected
+records in both orders, alongside the stand-wide Section 10 exception.
 
 ## Previous calculation-reference sections
 

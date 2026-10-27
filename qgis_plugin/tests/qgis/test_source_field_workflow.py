@@ -38,23 +38,7 @@ from savonia_responsible_forest_planning_tool import classFactory
 from wfs_fixture import LocalWfs
 
 
-def fixture_sources():
-    return {
-        "forest_centre_stand": {
-            "standid": "stand-1", "VOLUME": 200.0, "SAWLOGVOLUME": 100.0,
-            "VolumeGrowth": 4.0, "MeanAge": 40.0, "BasalArea": 20.0, "ProportionPine": 30.0,
-        },
-        "forest_centre_habitat": {"HabitatId": "habitat-1", "HabitatType": "3"},
-        "syke_protected_areas_state_owned": {"kohdeid": "state-1", "OLOTILA": "Voimassa", "TYYPPILYHENNE": "VSA"},
-        "syke_protected_areas_private_land": {"kohdeid": "private-1", "Olotila": "Voimassa", "KohdeTyyppi": "YSA"},
-        "syke_protected_areas_wilderness": {"kohdeid": "wild-1", "olotila": "Voimassa", "kohdetyyppi": "EMA"},
-        "syke_nature_conservation_programme_areas": {"LsoAlueTunnus": "programme-1", "Luokka": "AMO", "Subtype": "original"},
-        "syke_groundwater_areas": {"tunnus": "groundwater-1", "alueluokka": "unfiltered"},
-        "forest_centre_gridcell": {"GRIDCELLID": "cell-1", "VOLUME": 250.0,
-            "VOLUMEPINE": 70.0, "VOLUMESPRUCE": 130.0, "VOLUMEDECIDUOUS": 50.0,
-            "AGE": 19.0, "SOILTYPE": 60, "DRAINAGESTATE": 6,
-            "TREEDATADATE": "2021-06-01", "UPDATETIME": "2026-10-01"},
-    }
+from workflow_fixture import fixture_sources
 
 
 class SourceFieldWorkflowChecks:

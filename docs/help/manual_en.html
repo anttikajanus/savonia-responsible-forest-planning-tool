@@ -43,11 +43,13 @@ body{font-family:system-ui,sans-serif;line-height:1.6;max-width:72rem;margin:2re
 <p>The area must contain valid, nonempty polygons with a correctly assigned coordinate system. Overlapping area features are combined. Results use <strong>EPSG:3067</strong> and hectares. Invalid area geometry or a failed coordinate transformation stops the run.</p>
 </section>
 <section id="wizard"><h2>Use the wizard</h2>
+<p>Unloading or disabling the plugin requests cancellation of its active analysis. Completion after unload does not add results to the project.</p>
 <p>Choose an area mode, check the area/selection status, choose a writable output folder and press <strong>Run</strong>. The folder choice is remembered. Each run generates a new output name.</p>
 <p>Follow progress in QGIS's task manager. <strong>Cancel analysis</strong> requests a stop; wait for cancellation to finish. <strong>Close</strong> hides the panel and preserves its choices. Use the separate Cancel analysis button to stop a run. A detached panel can be moved back with <strong>Redock panel to right</strong>. Help and About work in both modes.</p>
 <p>After success, the wizard adds the run's tier/class views and source snapshots beneath Results. The GeoPackage and workbook paths appear in the completion message. Follow <a href="#map-review">Map review</a> to inspect the views; check coverage and classification before using the results elsewhere.</p>
 </section>
 <section id="processing"><h2>Processing Toolbox</h2>
+<p>With selected-only mode and an AOI that is also a configured source, both entry points use a local copy of the selected geometries and attributes. The wizard captures that copy when the run starts; later changes to the selection do not change that run.</p>
 <p>As an alternative to the wizard, run <code>savonia_forest_planning:prepare_forest_scenario_inputs</code> in the Processing Toolbox. It uses the same analysis rules and also supports batch and model workflows. Its Help link opens this section.</p>
 <table><thead><tr><th scope="col">Input</th><th scope="col">What to supply</th></tr></thead><tbody>
 <tr><td>Analysis area (<code>AOI</code>)</td><td>A polygon layer.</td></tr>

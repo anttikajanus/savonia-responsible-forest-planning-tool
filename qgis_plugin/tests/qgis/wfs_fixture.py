@@ -1,4 +1,4 @@
-"""Tiny loopback WFS 1.0 fixture; no external network or source data.
+"""Tiny loopback WFS 1.0/2.0 fixture; no external network or source data.
 
 The server returns configured polygons regardless of request filters. The real
 workflow still transforms/clips them. Only the operations used by these tests are
@@ -12,11 +12,14 @@ from xml.sax.saxutils import escape
 
 
 class LocalWfs:
-    def __init__(self, sources, records=None):
+    def __init__(self, sources, records=None, version="1.0.0", page_size=0):
         self.sources = sources
         self.records = records
+        self.version = version
+        self.page_size = page_size
         self.requests = []
         self.feature_failures = set()
+        self.page_failures = set()
         self.service_exceptions = set()
         fixture = self
 
@@ -35,10 +38,11 @@ class LocalWfs:
                     if source not in fixture.sources:
                         self.send_error(400, "Unknown fixture source")
                         return
-                    if request == "getfeature" and source in fixture.feature_failures:
+                    if request == "getfeature" and (source in fixture.feature_failures or (
+                            source, int(query.get("startindex", 0))) in fixture.page_failures):
                         self.send_error(503, "Controlled fixture retrieval failure")
                         return
-                    body = fixture.schema(source) if request == "describefeaturetype" else fixture.features(source)
+                    body = fixture.schema(source) if request == "describefeaturetype" else fixture.features(source, query)
                 payload = body.encode("utf-8")
                 self.send_response(200)
                 self.send_header("Content-Type", "text/xml; charset=utf-8")
@@ -60,6 +64,27 @@ class LocalWfs:
         self.thread.join()
 
     def capabilities(self):
+        if self.version == "2.0.0":
+            operations = "".join(
+                '<ows:Operation name="{0}"><ows:DCP><ows:HTTP><ows:Get xlink:href="{1}"/>'
+                '</ows:HTTP></ows:DCP></ows:Operation>'.format(name, self.endpoint)
+                for name in ("GetCapabilities", "DescribeFeatureType", "GetFeature"))
+            types = "".join(
+                '<wfs:FeatureType><wfs:Name>fixture:{0}</wfs:Name><wfs:Title>{0}</wfs:Title>'
+                '<wfs:DefaultCRS>urn:ogc:def:crs:EPSG::3067</wfs:DefaultCRS>'
+                '<ows:WGS84BoundingBox><ows:LowerCorner>20 60</ows:LowerCorner>'
+                '<ows:UpperCorner>30 70</ows:UpperCorner></ows:WGS84BoundingBox></wfs:FeatureType>'.format(source)
+                for source in self.sources)
+            return (
+                '<wfs:WFS_Capabilities version="2.0.0" xmlns:wfs="http://www.opengis.net/wfs/2.0" '
+                'xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" '
+                'xmlns:fixture="urn:responsible-forest-planning:fixture"><ows:ServiceIdentification><ows:Title>Local WFS 2</ows:Title>'
+                '<ows:ServiceType>WFS</ows:ServiceType><ows:ServiceTypeVersion>2.0.0</ows:ServiceTypeVersion>'
+                '</ows:ServiceIdentification><ows:OperationsMetadata>{0}'
+                '<ows:Constraint name="ImplementsResultPaging"><ows:NoValues/><ows:DefaultValue>TRUE</ows:DefaultValue></ows:Constraint>'
+                '<ows:Constraint name="CountDefault"><ows:NoValues/><ows:DefaultValue>{1}</ows:DefaultValue></ows:Constraint>'
+                '</ows:OperationsMetadata><wfs:FeatureTypeList>{2}</wfs:FeatureTypeList></wfs:WFS_Capabilities>'
+            ).format(operations, self.page_size or 1000, types)
         operations = "".join(
             '<{0}>{1}<DCPType><HTTP><Get onlineResource="{2}"/></HTTP></DCPType></{0}>'.format(
                 name, extra, self.endpoint
@@ -87,7 +112,7 @@ class LocalWfs:
                 name, "double" if isinstance(value, (float, int)) else "string"
             ) for name, value in self.sources[source].items()
         )
-        return (
+        schema = (
             '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" '
             'xmlns:gml="http://www.opengis.net/gml" xmlns:fixture="urn:responsible-forest-planning:fixture" '
             'targetNamespace="urn:responsible-forest-planning:fixture" elementFormDefault="qualified">'
@@ -97,8 +122,13 @@ class LocalWfs:
             '<xsd:element name="{0}" type="fixture:{0}Type" substitutionGroup="gml:_Feature"/>'
             '</xsd:schema>'
         ).format(source, fields)
+        if self.version == "2.0.0":
+            schema = schema.replace('http://www.opengis.net/gml"', 'http://www.opengis.net/gml/3.2"')
+            schema = schema.replace('gml:_Feature', 'gml:AbstractFeature')
+        return schema
 
-    def features(self, source):
+    def features(self, source, query=None):
+        query = query or {}
         if source in self.service_exceptions:
             # Managed production sources use WFS 2.0.0 / OWS exceptions. The
             # fixture transport is WFS 1.0 for tiny GML2 geometries, but exercises
@@ -111,6 +141,27 @@ class LocalWfs:
             "attributes": self.sources[source],
             "coordinates": "350000,6900000 350100,6900000 350100,6900100 350000,6900100 350000,6900000",
         }]
+        if self.version == "2.0.0":
+            total = len(records)
+            start = int(query.get("startindex", 0))
+            count = min(int(query.get("count", self.page_size or 1000)), self.page_size or 1000)
+            records = records[start:start + count] if query.get("resulttype", "").lower() != "hits" else []
+            members = []
+            for index, record in enumerate(records, start + 1):
+                fields = "".join('<fixture:{0}>{1}</fixture:{0}>'.format(name, escape(str(value)))
+                                 for name, value in record["attributes"].items() if value is not None)
+                members.append((
+                    '<wfs:member><fixture:{0} gml:id="{0}.{1}"><fixture:geometry>'
+                    '<gml:Polygon srsName="urn:ogc:def:crs:EPSG::3067"><gml:exterior><gml:LinearRing>'
+                    '<gml:posList srsDimension="2">{2}</gml:posList></gml:LinearRing></gml:exterior>'
+                    '</gml:Polygon></fixture:geometry>{3}</fixture:{0}></wfs:member>'
+                ).format(source, index, record["coordinates"].replace(",", " "), fields))
+            return (
+                '<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0" '
+                'xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:fixture="urn:responsible-forest-planning:fixture" '
+                'timeStamp="2026-10-27T00:00:00Z" numberMatched="{0}" numberReturned="{1}">'
+                '{2}</wfs:FeatureCollection>'
+            ).format(total, len(records), "".join(members))
         members = []
         for index, record in enumerate(records, 1):
             fields = "".join(
