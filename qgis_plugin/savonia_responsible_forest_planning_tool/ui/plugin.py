@@ -10,16 +10,16 @@ from qgis.core import QgsApplication, QgsProject, QgsSettings
 from ..app_logging import LOGGER_NAME, configure_logging, record_business_action, shutdown_logging
 from ..i18n import selected_language, tr
 from .. import documentation
-from ..processing import SavoniaProcessingProvider
+from ..processing import ResponsibleForestPlanningProcessingProvider
 from ..adapters.project_setup import setup_project
 from ..adapters.sources import SYKE_USER_ID_KEY, syke_user_id
-from .wizard import ForestPlanningWizard
+from .wizard import ResponsibleForestPlanningWizard
 
 
 logger = logging.getLogger(LOGGER_NAME + ".ui.plugin")
 
 
-class SavoniaForestPlanningPlugin:
+class ResponsibleForestPlanningPlugin:
     def __init__(self, iface, package_root=None):
         self.iface = iface
         self.package_root = package_root
@@ -29,7 +29,7 @@ class SavoniaForestPlanningPlugin:
         self.setup_action = None
         self.dock = None
         self.wizard = None
-        self.provider = None
+        self.processing_provider = None
         self.help_action = None
         self.about_action = None
         self.about_dialog = None
@@ -73,8 +73,8 @@ class SavoniaForestPlanningPlugin:
         self.iface.pluginHelpMenu().addAction(self.help_action)
         self.iface.pluginHelpMenu().addAction(self.about_action)
 
-        self.provider = SavoniaProcessingProvider()
-        QgsApplication.processingRegistry().addProvider(self.provider)
+        self.processing_provider = ResponsibleForestPlanningProcessingProvider()
+        QgsApplication.processingRegistry().addProvider(self.processing_provider)
         self._ensure_dock()
 
     def show_help(self, *_args, section="workflow"):
@@ -106,10 +106,10 @@ class SavoniaForestPlanningPlugin:
 
     def show_about(self, *_args):
         self._refresh_language()
-        from .about import AboutDialog
+        from .about import ResponsibleForestPlanningAboutDialog
         if self.about_dialog is None:
             try:
-                self.about_dialog = AboutDialog(self, self.iface.mainWindow())
+                self.about_dialog = ResponsibleForestPlanningAboutDialog(self, self.iface.mainWindow())
             except documentation.ResourceError as error:
                 self._documentation_error(error)
                 return
@@ -130,7 +130,7 @@ class SavoniaForestPlanningPlugin:
             | QDockWidget.DockWidgetFeature.DockWidgetMovable
             | QDockWidget.DockWidgetFeature.DockWidgetFloatable
         )
-        self.wizard = ForestPlanningWizard(self.iface, self.language)
+        self.wizard = ResponsibleForestPlanningWizard(self.iface, self.language)
         self.wizard.setup_requested.connect(self.setup_project_layers)
         self.wizard.help_requested.connect(self.show_help)
         self.wizard.about_requested.connect(self.show_about)
@@ -176,10 +176,10 @@ class SavoniaForestPlanningPlugin:
             self.dock.setWindowTitle(tr(self.language, "wizard_title"))
         if self.about_dialog is not None:
             self.about_dialog.set_language(self.language)
-        if self.provider is not None:
-            QgsApplication.processingRegistry().removeProvider(self.provider)
-            self.provider = SavoniaProcessingProvider()
-            QgsApplication.processingRegistry().addProvider(self.provider)
+        if self.processing_provider is not None:
+            QgsApplication.processingRegistry().removeProvider(self.processing_provider)
+            self.processing_provider = ResponsibleForestPlanningProcessingProvider()
+            QgsApplication.processingRegistry().addProvider(self.processing_provider)
 
     def setup_project_layers(self):
         self._refresh_language()
@@ -275,9 +275,9 @@ class SavoniaForestPlanningPlugin:
             self.iface.mainWindow().removeToolBar(self.toolbar)
             self.toolbar.deleteLater()
             self.toolbar = None
-        if self.provider is not None:
-            QgsApplication.processingRegistry().removeProvider(self.provider)
-            self.provider = None
+        if self.processing_provider is not None:
+            QgsApplication.processingRegistry().removeProvider(self.processing_provider)
+            self.processing_provider = None
         if self.dock is not None:
             self.dock.close()
             self.iface.removeDockWidget(self.dock)

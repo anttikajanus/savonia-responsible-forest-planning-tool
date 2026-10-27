@@ -22,7 +22,7 @@ if APP is None:
     APP.initQgis()
 
 from savonia_responsible_forest_planning_tool.i18n import selected_language, tr
-from savonia_responsible_forest_planning_tool.ui.plugin import SavoniaForestPlanningPlugin
+from savonia_responsible_forest_planning_tool.ui.plugin import ResponsibleForestPlanningPlugin
 
 
 class Interface:
@@ -92,7 +92,7 @@ class HelpUiTests(unittest.TestCase):
         self.launch = self.enterContext(patch.object(QDesktopServices, "openUrl", return_value=True))
         self.iface = Interface()
         self.addCleanup(self.iface.window.deleteLater)
-        self.plugin = SavoniaForestPlanningPlugin(self.iface, package_root=self.root)
+        self.plugin = ResponsibleForestPlanningPlugin(self.iface, package_root=self.root)
         self.addCleanup(self.plugin.unload)
         self.plugin.initGui()
 
@@ -183,7 +183,7 @@ class HelpUiTests(unittest.TestCase):
                             "help_menu", "about_menu"):
                     self.assertNotIn("protot", tr(language, key).lower())
                 self.assertIn(tr(language, "prototype_notice"), self.plugin.about_dialog.content.toPlainText())
-                self.assertEqual(self.plugin.provider.name(), tr(language, "toolbar_name"))
+                self.assertEqual(self.plugin.processing_provider.name(), tr(language, "toolbar_name"))
 
     def test_help_works_with_dock_closed_and_unload_removes_actions(self):
         self.plugin.initGui()

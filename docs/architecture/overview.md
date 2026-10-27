@@ -14,9 +14,16 @@ This is a Python plugin running inside QGIS Desktop. QGIS supplies Python, Qt/Py
 
 QGIS loads the plugin through [`classFactory(iface)`](../../qgis_plugin/savonia_responsible_forest_planning_tool/__init__.py). The [plugin lifecycle](../../qgis_plugin/savonia_responsible_forest_planning_tool/ui/plugin.py) registers the Processing provider, menus, dock and logging handlers, and removes its registrations/handlers on unload. Source setup discovers managed WFS products and adds configured layers to the current project through [project_setup.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/project_setup.py).
 
+Main application classes use the `ResponsibleForestPlanning` prefix followed by
+their role: `Plugin`, `Wizard`, `ProcessingProvider`, `InputsAlgorithm`,
+`AnalysisTask` and `AboutDialog`. The plugin owns its Processing provider through
+`self.processing_provider`. Supporting classes retain descriptive role names.
+Processing IDs, settings keys and Qt object names are stable independently of
+these Python class names.
+
 ## One execution path
 
-The wizard and Processing algorithm both call `run_workflow(parameters, feedback)`. The wizard reaches it through `ForestAnalysisTask`; it does not invoke the Processing algorithm. The orchestrator copies the caller's parameters, creates a run ID, records stage progress and outcomes, and passes explicit results between validation, retrieval, classification and publication. Processing supplies the toolbox/batch/modeler interface; the wizard supplies choices and presentation. See [ADR-0002](adr/0002-shared-processing-workflow.md) and the [workflow implementation](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow.py).
+The wizard and Processing algorithm both call `run_workflow(parameters, feedback)`. The wizard reaches it through `ResponsibleForestPlanningAnalysisTask`; it does not invoke the Processing algorithm. The orchestrator copies the caller's parameters, creates a run ID, records stage progress and outcomes, and passes explicit results between validation, retrieval, classification and publication. Processing supplies the toolbox/batch/modeler interface; the wizard supplies choices and presentation. See [ADR-0002](adr/0002-shared-processing-workflow.md) and the [workflow implementation](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow.py).
 
 ```mermaid
 flowchart TD
@@ -50,7 +57,7 @@ Split modules around coherent responsibilities and deliberate public interfaces.
 
 Packaged `metadata.txt` remains authoritative for the installation range. Use the selected QGIS release's bundled Python, Qt and PyQt for runtime checks, starting with the 4.2.3 baseline. The shared workflow is synchronous inside its execution context. The wizard captures worker-safe inputs and constructs worker-owned providers; project and widget changes belong at the UI boundary. A caller must not pass live GUI-owned layers or widgets into a worker. See [wizard implementation](../../qgis_plugin/savonia_responsible_forest_planning_tool/ui/wizard.py), [source retrieval](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/source_loading.py), and [QGIS task guidance](https://docs.qgis.org/4.2/en/docs/pyqgis_developer_cookbook/tasks.html).
 
-Specifically, [`capture_worker_inputs`](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/worker_task.py) copies AOI geometries as WKB, source provider descriptions, selected-source feature snapshots when applicable, and the coordinate transform context on the main thread. `ForestAnalysisTask.run()` rebuilds the AOI and source layers in the worker. When the task finishes, the wizard's main-thread callback reopens the saved GeoPackage and adds result views and clipped source snapshots to the project. Processing instead sets `NoThreading` because it receives live layer objects; it calls the same synchronous workflow with an explicit transform context from Processing.
+Specifically, [`capture_worker_inputs`](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/worker_task.py) copies AOI geometries as WKB, source provider descriptions, selected-source feature snapshots when applicable, and the coordinate transform context on the main thread. `ResponsibleForestPlanningAnalysisTask.run()` rebuilds the AOI and source layers in the worker. When the task finishes, the wizard's main-thread callback reopens the saved GeoPackage and adds result views and clipped source snapshots to the project. Processing instead sets `NoThreading` because it receives live layer objects; it calls the same synchronous workflow with an explicit transform context from Processing.
 
 Processing feedback carries progress and cancellation; worker use does not create a second analysis implementation.
 

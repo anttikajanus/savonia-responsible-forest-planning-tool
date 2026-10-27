@@ -18,7 +18,7 @@ from qgis.core import (
 from qgis.gui import QgsMapLayerComboBox, QgsMapTool, QgsRubberBand
 
 from ..analysis.classification import TIERS
-from ..analysis.worker_task import ForestAnalysisTask, capture_worker_inputs
+from ..analysis.worker_task import ResponsibleForestPlanningAnalysisTask, capture_worker_inputs
 from ..adapters.sources import SERVICE_DEFINITIONS
 from ..i18n import tr
 from ..adapters.project_setup import results_group
@@ -75,7 +75,7 @@ class PolygonDrawTool(QgsMapTool):
         super().deactivate()
 
 
-class ForestPlanningWizard(QWidget):
+class ResponsibleForestPlanningWizard(QWidget):
     setup_requested = pyqtSignal()
     help_requested = pyqtSignal()
     about_requested = pyqtSignal()
@@ -517,7 +517,7 @@ class ForestPlanningWizard(QWidget):
             )
             return
 
-        task = ForestAnalysisTask(
+        task = ResponsibleForestPlanningAnalysisTask(
             tr(self.language, "progress_task_description"),
             worker_inputs,
             self._analysis_task_finished,

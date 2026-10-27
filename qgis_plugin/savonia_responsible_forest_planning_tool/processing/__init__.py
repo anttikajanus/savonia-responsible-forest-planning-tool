@@ -1,5 +1,5 @@
 """QGIS Processing Toolbox integration."""
 
-from .provider import SavoniaProcessingProvider
+from .provider import ResponsibleForestPlanningProcessingProvider
 
-__all__ = ["SavoniaProcessingProvider"]
+__all__ = ["ResponsibleForestPlanningProcessingProvider"]

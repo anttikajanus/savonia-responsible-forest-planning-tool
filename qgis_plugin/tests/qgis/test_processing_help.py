@@ -66,7 +66,7 @@ class ProcessingHelpTests(unittest.TestCase):
                 self.qgis_locale.return_value = language
                 QgsSettings().setValue("savonia_responsible_forest_planning_tool/language",
                                        "en" if language == "fi" else "fi")
-                algorithm = self.provider.SavoniaInputsAlgorithm()
+                algorithm = self.provider.ResponsibleForestPlanningInputsAlgorithm()
                 url = algorithm.helpUrl()
                 parsed = QUrl(url)
                 self.assertTrue(parsed.isLocalFile())
@@ -82,7 +82,7 @@ class ProcessingHelpTests(unittest.TestCase):
                 (self.package_root / "docs" / "help" / f"manual_{language}.html").unlink()
                 with self.assertLogs("savonia_responsible_forest_planning_tool", level="ERROR") as logs, \
                         patch.object(QgsMessageLog, "logMessage") as notification:
-                    url = self.provider.SavoniaInputsAlgorithm().helpUrl()
+                    url = self.provider.ResponsibleForestPlanningInputsAlgorithm().helpUrl()
                 self.assertEqual(url, "")
                 self.assertIn(correction, notification.call_args.args[0])
                 self.assertEqual(notification.call_args.args[2], Qgis.MessageLevel.Warning)
@@ -95,7 +95,7 @@ class ProcessingHelpTests(unittest.TestCase):
         for language, limit in (("fi", "oikeudellisia"), ("en", "legal")):
             with self.subTest(language=language):
                 self.qgis_locale.return_value = language
-                help_text = self.provider.SavoniaInputsAlgorithm().shortHelpString()
+                help_text = self.provider.ResponsibleForestPlanningInputsAlgorithm().shortHelpString()
                 for parameter in ("AOI", "SELECTED_ONLY", "STANDS", "GRIDCELLS", "HABITATS", "PROTECTED",
                                   "PROTECTED_PRIVATE", "PROTECTED_WILDERNESS", "PROGRAMME", "GROUNDWATER",
                                   "OUTPUT_FOLDER", "OUTPUT_NAME", "RESULT", "EXCEL"):

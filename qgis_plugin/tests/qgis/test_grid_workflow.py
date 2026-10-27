@@ -24,9 +24,9 @@ if APP is None:
     APP.initQgis()
 
 from savonia_responsible_forest_planning_tool.adapters.sources import SERVICE_DEFINITIONS
-from savonia_responsible_forest_planning_tool.analysis.worker_task import capture_worker_inputs, ForestAnalysisTask
+from savonia_responsible_forest_planning_tool.analysis.worker_task import capture_worker_inputs, ResponsibleForestPlanningAnalysisTask
 from savonia_responsible_forest_planning_tool.i18n import tr
-from savonia_responsible_forest_planning_tool.processing.provider import SavoniaInputsAlgorithm
+from savonia_responsible_forest_planning_tool.processing.provider import ResponsibleForestPlanningInputsAlgorithm
 from test_source_field_workflow import fixture_sources
 from test_grid_publication import workbook_rows
 from wfs_fixture import LocalWfs
@@ -76,7 +76,7 @@ class GridWorkflowTest(unittest.TestCase):
                 yield fixture, layers, aoi_layer
 
     def run_algorithm(self, layers, aoi, language, name, feedback=None):
-        algorithm = SavoniaInputsAlgorithm()
+        algorithm = ResponsibleForestPlanningInputsAlgorithm()
         algorithm.initAlgorithm()
         parameters = {algorithm.AOI: aoi, algorithm.OUTPUT_FOLDER: self.temp.name,
                       algorithm.OUTPUT_NAME: name, algorithm.SELECTED_ONLY: False}
@@ -201,7 +201,7 @@ class GridWorkflowTest(unittest.TestCase):
                             assert_no_qobjects(child)
                 assert_no_qobjects(snapshot)
                 completed = []
-                task = ForestAnalysisTask("fixture", snapshot, lambda finished, success: completed.append(success))
+                task = ResponsibleForestPlanningAnalysisTask("fixture", snapshot, lambda finished, success: completed.append(success))
                 QgsApplication.taskManager().addTask(task)
                 deadline = time.monotonic() + 30
                 while not completed and time.monotonic() < deadline:
@@ -338,7 +338,7 @@ class GridWorkflowTest(unittest.TestCase):
             snapshot = capture_worker_inputs(aoi, layers, False, QgsProject.instance().transformContext(),
                                              "fi", self.temp.name, "worker-failed-request")
             completed = []
-            task = ForestAnalysisTask("fixture failure", snapshot, lambda finished, success: completed.append(success))
+            task = ResponsibleForestPlanningAnalysisTask("fixture failure", snapshot, lambda finished, success: completed.append(success))
             QgsApplication.taskManager().addTask(task)
             deadline = time.monotonic() + 30
             while not completed and time.monotonic() < deadline:

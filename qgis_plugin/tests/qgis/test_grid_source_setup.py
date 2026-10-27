@@ -24,7 +24,7 @@ from savonia_responsible_forest_planning_tool.adapters.sources import SERVICE_DE
 from savonia_responsible_forest_planning_tool.analysis.worker_task import capture_worker_inputs
 from savonia_responsible_forest_planning_tool.adapters.project_setup import setup_project
 from savonia_responsible_forest_planning_tool.i18n import tr
-from savonia_responsible_forest_planning_tool.processing.provider import SavoniaInputsAlgorithm
+from savonia_responsible_forest_planning_tool.processing.provider import ResponsibleForestPlanningInputsAlgorithm
 from wfs_fixture import LocalWfs
 
 
@@ -150,7 +150,7 @@ class GridSourceTest(unittest.TestCase):
     def test_processing_exposes_required_polygon_grid_parameter_in_both_languages(self):
         for language in ("en", "fi"):
             with patch.object(QgsApplication, "locale", return_value=language):
-                algorithm = SavoniaInputsAlgorithm()
+                algorithm = ResponsibleForestPlanningInputsAlgorithm()
                 algorithm.initAlgorithm()
                 parameter = algorithm.parameterDefinition("GRIDCELLS")
                 self.assertIsNotNone(parameter)

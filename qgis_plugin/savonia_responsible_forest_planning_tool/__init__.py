@@ -2,6 +2,6 @@
 
 
 def classFactory(iface):
-    from .ui.plugin import SavoniaForestPlanningPlugin
+    from .ui.plugin import ResponsibleForestPlanningPlugin
 
-    return SavoniaForestPlanningPlugin(iface)
+    return ResponsibleForestPlanningPlugin(iface)

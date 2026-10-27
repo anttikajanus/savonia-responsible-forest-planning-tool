@@ -16,7 +16,7 @@ from ..app_logging import LOGGER_NAME, PLUGIN_TAG
 from ..analysis.workflow import run_workflow
 
 
-class SavoniaInputsAlgorithm(QgsProcessingAlgorithm):
+class ResponsibleForestPlanningInputsAlgorithm(QgsProcessingAlgorithm):
     AOI = "AOI"
     SELECTED_ONLY = "SELECTED_ONLY"
     STANDS = "STANDS"
@@ -60,7 +60,7 @@ class SavoniaInputsAlgorithm(QgsProcessingAlgorithm):
             return ""
 
     def createInstance(self):
-        return SavoniaInputsAlgorithm()
+        return ResponsibleForestPlanningInputsAlgorithm()
 
     def flags(self):
         # Processing exposes live layer objects, so it must stay on the main thread.
@@ -143,7 +143,7 @@ class SavoniaInputsAlgorithm(QgsProcessingAlgorithm):
         }
 
 
-class SavoniaProcessingProvider(QgsProcessingProvider):
+class ResponsibleForestPlanningProcessingProvider(QgsProcessingProvider):
     def id(self):
         return "savonia_forest_planning"
 
@@ -154,4 +154,4 @@ class SavoniaProcessingProvider(QgsProcessingProvider):
         return self.name()
 
     def loadAlgorithms(self):
-        self.addAlgorithm(SavoniaInputsAlgorithm())
+        self.addAlgorithm(ResponsibleForestPlanningInputsAlgorithm())

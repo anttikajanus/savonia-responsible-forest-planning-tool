@@ -20,7 +20,7 @@ if APP is None:
     APP = QgsApplication([], False)
     APP.initQgis()
 
-from savonia_responsible_forest_planning_tool.ui.wizard import ForestPlanningWizard
+from savonia_responsible_forest_planning_tool.ui.wizard import ResponsibleForestPlanningWizard
 
 
 class WizardLayoutTest(unittest.TestCase):
@@ -31,7 +31,7 @@ class WizardLayoutTest(unittest.TestCase):
                     size = QSize(pixels, pixels)
                     iface = Mock()
                     iface.iconSize.return_value = size
-                    wizard = ForestPlanningWizard(iface, language)
+                    wizard = ResponsibleForestPlanningWizard(iface, language)
                     try:
                         self.assertEqual(wizard.toolbar.iconSize(), size)
                         iface.iconSize.assert_called_once_with(True)
@@ -51,7 +51,7 @@ class WizardLayoutTest(unittest.TestCase):
                 with self.subTest(language=language, width=width):
                     iface = Mock()
                     iface.iconSize.return_value = QSize(16, 16)
-                    wizard = ForestPlanningWizard(iface, language)
+                    wizard = ResponsibleForestPlanningWizard(iface, language)
                     try:
                         wizard.resize(width, 650)
                         wizard.show()

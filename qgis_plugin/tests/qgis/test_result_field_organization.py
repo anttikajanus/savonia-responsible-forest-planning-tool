@@ -85,9 +85,9 @@ class ResultFieldOrganizationTests(unittest.TestCase):
                 del reopened, layer
 
     def test_workbook_summary_and_coverage_follow_documentation_order(self):
-        reference = Path(__file__).resolve().parents[3] / "docs" / "architecture" / "calculations.md"
-        section = reference.read_text(encoding="utf-8").split("### Per-polygon fields", 1)[1].split(
-            "### Comparing indicators", 1)[0]
+        reference = Path(__file__).resolve().parents[3] / "docs" / "architecture" / "output-schema.md"
+        section = reference.read_text(encoding="utf-8").split("## Per-polygon fields", 1)[1].split(
+            "## Metric coverage", 1)[0]
         documented = [line.split("`", 2)[1] for line in section.splitlines() if line.startswith("| `")]
         self.assertEqual(documented, ["area_ha", *EXPECTED_METRICS])
         for language in ("fi", "en"):

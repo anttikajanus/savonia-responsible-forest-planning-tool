@@ -10,7 +10,7 @@ from .. import documentation
 from ..i18n import tr
 
 
-class AboutDialog(QDialog):
+class ResponsibleForestPlanningAboutDialog(QDialog):
     def __init__(self, plugin, parent=None):
         super().__init__(parent)
         self.plugin = plugin

@@ -109,7 +109,7 @@ class _TaskFeedback(QgsProcessingFeedback):
         logger.info("wizard_feedback %s", str(info).replace("\n", " "))
 
 
-class ForestAnalysisTask(QgsTask):
+class ResponsibleForestPlanningAnalysisTask(QgsTask):
     """Build QGIS layers in the worker, then call the shared workflow."""
 
     def __init__(self, description, worker_inputs, completion_callback):

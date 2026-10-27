@@ -30,7 +30,7 @@ if APP is None:
 from savonia_responsible_forest_planning_tool.adapters.source_layers import verify_source_layer
 from savonia_responsible_forest_planning_tool.adapters.sources import SERVICE_DEFINITIONS
 from savonia_responsible_forest_planning_tool.i18n import TEXT, source_readiness_message, tr
-from savonia_responsible_forest_planning_tool.processing.provider import SavoniaInputsAlgorithm
+from savonia_responsible_forest_planning_tool.processing.provider import ResponsibleForestPlanningInputsAlgorithm
 from savonia_responsible_forest_planning_tool import classFactory
 from wfs_fixture import LocalWfs
 
@@ -87,7 +87,7 @@ class SourceFieldWorkflowChecks:
         self.aoi.updateExtents()
 
     def run_algorithm(self, language, output_name):
-        algorithm = SavoniaInputsAlgorithm()
+        algorithm = ResponsibleForestPlanningInputsAlgorithm()
         algorithm.initAlgorithm()
         parameters = {
             algorithm.AOI: self.aoi, algorithm.SELECTED_ONLY: False,
