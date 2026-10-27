@@ -8,6 +8,14 @@ prototype only; see the [project context](../../README.md).
 
 This guide owns setup, reload, debugger, test and packaging instructions for the Savonia - Responsible Forest Planning plugin. Run commands from the repository root unless stated otherwise. The plugin targets **QGIS 4.2.3 and newer 4.x releases**, as declared in [metadata.txt](../../qgis_plugin/savonia_responsible_forest_planning_tool/metadata.txt) (`4.2.3` minimum, `4.99` maximum). QGIS 4.2.3 is the verification baseline. Run the suites and packaged load/Processing/unload checks on each newer release before recording it as verified; the metadata range permits installation without establishing future runtime compatibility.
 
+This guide owns repeatable development and verification procedures. Record the
+tested build/runtime, locale, date and outcome when executing them; current
+outstanding checks belong to the [verification register](open-questions.md).
+Automated headless/offscreen checks do not establish interactive acceptance.
+The maximum uses QGIS's major-version-plus-`.99` convention. QGIS documents [plugin metadata ranges](https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/plugins/plugins.html#metadata-txt)
+separately from [runtime testing](https://docs.qgis.org/4.2/en/docs/developers_guide/unittesting.html)
+and [Processing algorithm tests](https://docs.qgis.org/4.2/en/docs/developers_guide/processingtesting.html).
+
 ## Python linting
 
 [Pylint configuration](../../pyproject.toml) covers the plugin, regression tests
@@ -69,7 +77,10 @@ completeness require separate checks. Local retrieval details remain in ignored
 
 ## Recommended setup: a dedicated development profile
 
-A separate QGIS profile keeps the development plugin and its settings away from your normal QGIS setup.
+A separate QGIS profile keeps development settings away from normal work. See
+the QGIS [profile guidance](https://docs.qgis.org/testing/en/docs/user_manual/introduction/qgis_configuration.html#working-with-user-profiles),
+[plugin lifecycle](https://docs.qgis.org/4.2/en/docs/pyqgis_developer_cookbook/plugins/index.html)
+and [reload/debug guidance](https://docs.qgis.org/4.2/en/docs/pyqgis_developer_cookbook/plugins/ide_debugging.html).
 
 Keep the complete checkout, including repository `docs/help/`, available at its
 original location. The source-linked plugin resolves its manuals there. Use the
@@ -163,7 +174,7 @@ separate from these deterministic checks.
 
 ## Check packaging separately
 
-Wizard spacing acceptance (desktop check pending): in Finnish and English,
+Wizard spacing procedure: in Finnish and English,
 open the wizard both docked and floating, then resize it taller and narrower.
 The heading, description, analysis-area choices and output folder should stay
 together at the top with normal spacing; extra height should appear below the
@@ -171,7 +182,7 @@ output folder, with the action buttons at the bottom. Check each analysis-area
 mode and wrapped status text. The offscreen regression is
 `tests/qgis/test_wizard_layout.py`, included in the integration suite above.
 
-Wizard toolbar icon acceptance (desktop check pending): in Finnish and English,
+Wizard toolbar icon procedure: in Finnish and English,
 compare setup, redock, Help and About with QGIS's native panel toolbars, such as
 Identify Results. They use QGIS's dock toolbar icon size (`iface.iconSize(True)`)
 in both docked and floating mode. Change QGIS's toolbar icon size and reopen the
@@ -191,7 +202,7 @@ For a release or final acceptance check in QGIS 4.2.3, verify that the ZIP loads
 ### Result field organization checks
 
 The result form groups and table columns follow the
-[per-polygon field reference](calculations.md#per-polygon-fields). Regression
+[per-polygon field reference](output-schema.md#per-polygon-fields). Regression
 checks verify field/value alignment, source-first Finnish/English labels,
 persisted GeoPackage form groups and area explanations, and the matching
 workbook/documentation order. These checks are part of the
@@ -203,24 +214,26 @@ For desktop acceptance, install the ZIP in a separate profile, inspect
 table/form/Identify labels and nulls in both languages, reopen the GeoPackage,
 and inspect the workbook in Excel.
 
-### Grid-indicator manual GUI acceptance — pending
+<a id="grid-indicator-manual-gui-acceptance--pending"></a>
 
-These are required manual checks, **not completed GUI verification**. Automated
-headless lifecycle and scale tests do not establish that these interactions were
-visually checked. Record the tested build, locale and result for each check.
+### Grid-indicator manual GUI acceptance
 
-- [ ] Install the current-version ZIP in a separate QGIS 4.2.3 profile; load,
+Execute these steps in both languages and record the build, locale, date and
+result. [Current status](open-questions.md#interactive-acceptance) is maintained
+separately; this list is the reusable procedure.
+
+- Install the current-version ZIP in a separate QGIS 4.2.3 profile; load,
   open/reopen the wizard, check Processing registration, reload and unload.
-- [ ] In Finnish and English, run setup repeatedly and after a language change;
+- In Finnish and English, run setup repeatedly and after a language change;
   confirm exactly one grid at the bottom of References, unchanged relative order
   of other references, and Results above References above Basemaps.
-- [ ] Inspect the grid at 1:200, 1:300 and 1:500; confirm the first two render
+- Inspect the grid at 1:200, 1:300 and 1:500; confirm the first two render
   and the last does not. Run the same local fixture at near/far canvas scales
   through wizard and Processing and compare calculations and captured snapshots.
-- [ ] Inspect both total-volume aliases/columns, deciduous volume,
+- Inspect both total-volume aliases/columns, deciduous volume,
   integer age shares/coverage, partial metric denominators/lower bounds,
   and source dates/reporting-area notes in the result and workbook in both languages.
-- [ ] Exercise cancellation and representative required-source/geometry failures;
+- Exercise cancellation and representative required-source/geometry failures;
   verify actionable localized messages and no apparently complete partial outputs.
 
 ## Automatic GitHub builds and releases
@@ -274,8 +287,8 @@ Check Finnish and English QGIS locales and English fallback for other QGIS
 languages. Check that the wizard follows QGIS's language, Help/About with the dock
 closed, QGIS language refresh, detached controls, Processing help, full offline
 legal texts, browser failures, and unload/reload cleanup. Automated offscreen
-widget checks supplement interactive desktop acceptance. Remaining acceptance
-checks are tracked in [open questions](open-questions.md#acceptance-and-distribution).
+widget checks supplement interactive desktop acceptance. Record acceptance
+outcomes against the [register](open-questions.md#interactive-acceptance).
 
 For desktop language acceptance, set QGIS's application language to Finnish,
 restart as prompted, and check the wizard, global Help/About and Processing.

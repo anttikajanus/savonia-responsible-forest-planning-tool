@@ -11,25 +11,44 @@ fetching another copy; its source manifest is versioned and downloads are ignore
 
 Start with the [technical architecture diagram and explanation](overview.md#system-diagram). The diagram is available as an [SVG](technical-architecture.svg) and an editable [Draw.io file](technical-architecture.drawio).
 
-| Document | Purpose |
+### Current technical contracts
+
+| Need | Owner |
 | --- | --- |
-| [Overview](overview.md) | Execution path, module ownership, threading, outputs and failure boundaries |
-| [Data sources](data-sources.md) | Required products, schema evidence, interpretation and provider references |
-| [Source-layer requirements](source-layer-requirements.md) | Required/optional fields, aliases, identifiers and source-layer behavior |
-| [Calculations](calculations.md) | Exact classification, geometry, field, aggregation and publication contracts |
-| [Indicators](indicators.md) | Indicator rationale, provider evidence, accuracy and source limitations |
-| [Operations](operations.md) | Logging, runtime, testing and bilingual help design |
-| [Development](development.md) | Setup, reload, debugging, test and packaging commands |
-| [Distribution](distribution.md) | Software inventory, licensing decisions and exported data attribution |
-| [Deferred sources](deferred-sources.md) | Candidate datasets and policy questions outside the implemented scope |
-| [Open questions](open-questions.md) | Remaining verification and release work |
+| Execution path, module ownership and threading | [Overview](overview.md) |
+| Provider fields, aliases, accepted input values and source identity | [Source-layer requirements](source-layer-requirements.md) |
+| Geometry operations, numerical tolerances and tier-to-field mapping | [Geometry and classification](calculations.md) |
+| Intersection weights, metric statistics and aggregation examples | [Indicator calculations](indicator-calculations.md) |
+| Stored fields, field order, coverage JSON and output tables | [Output schema](output-schema.md) |
+
+### Evidence and interpretation
+
+| Need | Owner |
+| --- | --- |
+| Configured products/endpoints, dated checks and provider references | [Data sources](data-sources.md) |
+| Indicator evidence, rationale, accuracy and source limitations | [Indicator design](indicators.md) |
+| Candidate datasets and unadopted policy questions | [Deferred sources](deferred-sources.md) |
+
+### Operations, development and verification
+
+| Need | Owner |
+| --- | --- |
+| Logging configuration and runtime language/help mechanisms | [Operations](operations.md) |
+| Repeatable setup, reload, debugging, test and packaging procedures | [Development](development.md) |
+| Release mechanics, software inventory, licensing and exported attribution | [Distribution](distribution.md) |
+| Current implementation gaps, provider evidence gaps and pending acceptance | [Open questions](open-questions.md) |
 
 [Project context](../project-context.md) explains the external use case and procurement scope. [GLOSSARY.md](../../GLOSSARY.md) defines domain terminology.
 
 ## Architecture decision records
 
-ADRs explain adopted design choices and their reasons. Detailed contracts are
-in the technical references above.
+ADRs record adopted choices, alternatives and consequences at the recorded date.
+Their original decision context is retained, including historical constants;
+they are not another current configuration reference. The technical contracts
+above and linked functional requirements establish current behavior. If a
+consequential choice changes, record its replacement and explicit supersession
+rather than silently rewriting the original decision. Accepted status does not
+establish implementation or provider/desktop acceptance.
 
 | ADR | Decision |
 | --- | --- |

@@ -17,7 +17,7 @@ be presented as birch-only volume. No separate birch field, summary, coverage
 entry, metadata indicator or UI indicator is required. The existing deciduous
 field and its weighting and missing-data rules remain in force.
 [IO-01 and IO-03](../../specs/indicators-and-outputs.md),
-[field and calculation contract](../calculations.md#indicators-and-summaries).
+[field and calculation contract](../indicator-calculations.md).
 
 This decision resolves the birch-support scope gap recorded alongside
 [ADR-0005](0005-independent-stand-and-grid-indicators.md); the independent

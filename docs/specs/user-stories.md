@@ -4,7 +4,7 @@ This catalogue records the prototype's current user goals.
 Stable `US-` IDs identify stories; linked requirement IDs provide their acceptance
 criteria.
 
-Unless explicitly marked deferred, stories describe implemented prototype behavior with acceptance limits stated in the [index](README.md#implementation-and-acceptance-status). They do not establish Savonia acceptance.
+Unless explicitly marked partial or deferred, stories describe implemented prototype behavior with acceptance limits stated in the [index](README.md#implementation-and-acceptance-status). They do not establish Savonia acceptance.
 
 ## Starting and organizing work
 
@@ -14,7 +14,7 @@ Unless explicitly marked deferred, stories describe implemented prototype behavi
 | US-002 | As a GIS analyst, I want a separate setup action available in the wizard and plugin menu, so I can prepare sources before analysis, including with the wizard closed. | [WF-02](workflow.md#wf-02-project-setup) |
 | US-003 | As a planner, I want localized Results, References and Basemaps in a consistent draw order, so results remain visible and the project tree is understandable. | [WF-02](workflow.md#wf-02-project-setup) |
 | US-004 | As a planner, I want each successful run added to Results with its exact clipped inputs while preserving earlier runs and configured sources, so I can compare analyses. | [IO-06](indicators-and-outputs.md#io-06-map-review-and-run-retention) |
-| US-005 | As a planner, I want tier/class filtered map views and a tier selector with distinct sensitive, economic and unknown colors, so I can inspect each classification independently. | [IO-06](indicators-and-outputs.md#io-06-map-review-and-run-retention) |
+| US-005 | As a planner, I want tier/class filtered map views and a tier selector with distinct sensitive, economic and unknown colors, so I can inspect each classification independently. **Partially implemented:** filtered views exist; the [tier selector remains outstanding](../architecture/open-questions.md#known-implementation-gaps). | [IO-06](indicators-and-outputs.md#io-06-map-review-and-run-retention) |
 | US-006 | As a GIS analyst, I want the interface, project labels and new outputs to follow QGIS's Finnish/English language choice, so reports and interactions use a consistent language. | [HL-01](help-and-language.md#hl-01-language-selection-and-consistency) |
 | US-007 | As a QGIS administrator, I want the plugin's compatibility and experimental status visible before installation, so I can choose a suitable QGIS environment. | [WF-01](workflow.md#wf-01-installation-and-runtime) |
 

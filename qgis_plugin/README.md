@@ -68,7 +68,9 @@ interpretation limits and Help/About controls.
 ## Technical references
 
 - [Architecture index](../docs/architecture/README.md): execution, evidence and adopted decisions.
-- [Calculations](../docs/architecture/calculations.md): classification, fields, formulas and coverage.
+- [Geometry and classification](../docs/architecture/calculations.md): geometry mechanics, tolerances and classification field mapping.
+- [Indicator calculations](../docs/architecture/indicator-calculations.md): formulas and aggregation.
+- [Output schema](../docs/architecture/output-schema.md): fields, coverage and output layout.
 - [Source-layer requirements](../docs/architecture/source-layer-requirements.md): exact input contract.
 - [Remaining verification](../docs/architecture/open-questions.md): unresolved acceptance and source checks.
 - [Licences and acknowledgements](../OPEN_SOURCE_ACKNOWLEDGEMENTS.md).

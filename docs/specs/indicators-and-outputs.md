@@ -1,6 +1,6 @@
 # Indicator and output specification
 
-The reporting domain and tiers are defined in [classification](classification.md). This document owns required user-facing results. [Calculations](../architecture/calculations.md) own exact formulas, stored field IDs, sufficient statistics and output schemas; [indicator design](../architecture/indicators.md) owns evidence and accuracy limits.
+The reporting domain and tiers are defined in [classification](classification.md). This document owns required user-facing results. [Indicator calculations](../architecture/indicator-calculations.md) own formulas and sufficient statistics; [output schema](../architecture/output-schema.md) owns stored field IDs and layout; [indicator design](../architecture/indicators.md) owns evidence and accuracy limits.
 
 ## IO-01 Indicator catalogue
 
@@ -19,7 +19,7 @@ Provide these indicators on result polygons and in separate tier/class workbook 
 | Grid land | Source-classified natural-mire area (ha) | Source drainage classification within analyzed forest |
 | Unavailable | Average stumpage price (€/m³) | Blank with `OUT_OF_SCOPE`; no source or estimate |
 
-Use deciduous volume instead of the original bid/project specification's birch-specific volume requirement, as adopted in [ADR-0011](../architecture/adr/0011-deciduous-volume-instead-of-birch.md). Birch-specific volume is out of scope and absent from result fields, summaries, coverage, metadata and UI. Deciduous volume describes all source-classified deciduous trees and must not be presented as birch-only volume.
+Use deciduous volume as adopted in [ADR-0011](../architecture/adr/0011-deciduous-volume-instead-of-birch.md). Birch-specific volume is out of scope and absent from result fields, summaries, coverage, metadata and UI. Deciduous volume describes all source-classified deciduous trees and must not be presented as birch-only volume.
 
 ## IO-02 Weighting and aggregation
 
@@ -30,7 +30,7 @@ Use deciduous volume instead of the original bid/project specification's birch-s
 - Use original grid mean ages for age-band membership. The shares describe area with valid age, rather than stand counts or individual-tree age distribution. Disclose age coverage over the full reporting domain.
 - Soil and drainage classifications are independent. Peatland and natural-mire hectares describe source-classified conditions at source date, rather than certification of present ecological condition.
 
-Acceptance examples: 64 m² at 100 m³/ha and 192 m² at 300 m³/ha give 250 m³/ha. Two 1 ha pieces with 0.25 valid ha at 100 and 1 valid ha at 300 give 260 m³/ha over 1.25 valid ha, with 0.75 unknown ha. If those valid-age areas are respectively under 20 and over 80, the shares are 20%, 0%, 80%, with exact age coverage 62.5%, presented as 63%.
+Acceptance: reproduce the [boundary-weighting example](../architecture/indicator-calculations.md#exact-intersections-and-volume-means) and [partial-coverage/age example](../architecture/indicator-calculations.md#tierclass-summaries-and-metric-coverage), retaining their metric-specific denominators and rounding only after aggregation.
 
 ## IO-03 Unavailable and partial values
 
@@ -38,7 +38,7 @@ Acceptance examples: 64 m² at 100 m³/ha and 192 m² at 300 m³/ha give 250 m³
 - For a density or age metric, complete valid coverage is available; some valid coverage permits a mean/share with partial status; no valid coverage gives null/blank with an explicit unavailable status. Preserve valid and unknown hectares independently for each metric.
 - For peat/mire area totals, any unknown classification area leaves the requested total blank. Expose observed matching hectares as a lower bound, with valid/unknown area. Complete known coverage permits a genuine zero total.
 - A successfully empty grid response may yield unavailable grid metrics while forest classification completes. There is no stand-value fallback for grid metrics.
-- Average stumpage price stays blank/out of scope. Birch-specific volume is excluded by the adopted scope change in [ADR-0011](../architecture/adr/0011-deciduous-volume-instead-of-birch.md), with deciduous volume used instead. Do not add a birch value or placeholder, or infer birch from deciduous volume.
+- Unavailable and excluded indicator scope follows [IO-01](#io-01-indicator-catalogue).
 - An empty tier/class has zero land area and feature count, with null density/age-share values. Missing metrics must remain distinguishable from known zero through both output formats.
 
 ## IO-04 Labels, order and precision
@@ -70,7 +70,7 @@ Neither successful requests, feature counts nor mapped overlap alone establish c
 - After wizard success, retain each run beneath Results without removing configured sources or earlier runs.
 - Include eighteen filtered project views (six tiers × three classes) and hidden-by-default clipped snapshots loaded from that run's GeoPackage. Filtered views reference the same result dataset rather than creating extra outputs. Initially only the All out tier group is visible; users switch tiers through layer-tree group visibility.
 - Use sensitive red/orange, economic green and unknown grey for the class views. Tier and category labels follow the QGIS language. The complete classified dataset is available in the GeoPackage and can be added separately.
-- The separate full-layer presentation and tier selector requested by US-005 are not implemented. Keep that gap explicit in the [verification and deferred-work register](../architecture/open-questions.md#scope-and-source-alternatives); it is separate from interactive acceptance of the existing filtered views.
+- US-005 is partially implemented; the [implementation-gap register](../architecture/open-questions.md#known-implementation-gaps) owns the outstanding tier-selector/full-layer presentation work, separately from acceptance of the existing views.
 - Keep Results above References above Basemaps after setup and publication. Changing map scale or toggling source rendering must not change analysis values.
 
 Acceptance covers reopened bilingual GeoPackage/workbook artifacts, field order/value alignment, independent metric coverage, partial/zero/null behavior, rounding after aggregation, persisted forms and repeated-run retention. Outstanding visual desktop checks remain in [open questions](../architecture/open-questions.md).

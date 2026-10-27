@@ -71,7 +71,8 @@ indicators unavailable or partial. Required-source failures and unrecognized
 classification values stop the run before outputs are published. The results
 support planning and do not determine legal harvesting rights.
 
-See the [classification and calculation rules](docs/architecture/calculations.md),
+See the [classification rules](docs/specs/classification.md),
+[indicator calculations](docs/architecture/indicator-calculations.md),
 [indicator definitions and limitations](docs/architecture/indicators.md), and
 [source requirements](docs/architecture/source-layer-requirements.md) for the
 tier criteria, overlap thresholds, formulas and treatment of missing data.
@@ -193,6 +194,8 @@ third-party software and data retain their [own terms and credits](OPEN_SOURCE_A
 - [Open-source licences and acknowledgements](OPEN_SOURCE_ACKNOWLEDGEMENTS.md) — software dependencies, upstream licence references, and data-source credits.
 - [`qgis_plugin/README.md`](qgis_plugin/README.md) — plugin installation and documentation entry point.
 - [`docs/architecture/development.md`](docs/architecture/development.md) — practical QGIS plugin development, reload, and debugging guide.
-- [`docs/architecture/calculations.md`](docs/architecture/calculations.md) — documented calculation rules and indicator definitions.
+- [Geometry and classification](docs/architecture/calculations.md) — geometry mechanics, tolerances and classification field mapping.
+- [Indicator calculations](docs/architecture/indicator-calculations.md) — formulas, aggregation and worked examples.
+- [Output schema](docs/architecture/output-schema.md) — result fields, coverage statistics and output layout.
 - [Architecture and ADRs](docs/architecture/README.md) — adopted design decisions, source evidence, technical guidance and remaining questions.
 - [Project context](docs/project-context.md) — source use case, procurement references and project scope.

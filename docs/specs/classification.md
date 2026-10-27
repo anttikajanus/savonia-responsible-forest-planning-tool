@@ -1,6 +1,6 @@
 # Classification specification
 
-These are functional planning rules for the personal prototype. [Technical calculations](../architecture/calculations.md) own exact geometry operations, numeric tolerances, code lists and field contracts; [source evidence](../architecture/data-sources.md) owns their supporting provider references.
+These are functional planning rules for the personal prototype. [Geometry/classification contracts](../architecture/calculations.md) own exact geometry operations and numeric tolerances; [source contracts](../architecture/source-layer-requirements.md#accepted-classification-values) own accepted input codes; [output schema](../architecture/output-schema.md) owns stored fields; [source evidence](../architecture/data-sources.md) owns their supporting provider references.
 
 ## CL-01 Reporting domain and geometry
 
@@ -22,7 +22,7 @@ These are functional planning rules for the personal prototype. [Technical calcu
 | Protection | Balance criteria plus other valuable habitats |
 | Superprotection | Protection criteria plus all remaining analyzed forest when required evidence is available |
 
-Recognized Metsäkeskus habitat codes 1 and 5 provide the Section 10 criterion; code 3 provides other valuable habitat. Programme areas and established protected areas remain distinct evidence, with programme identifiers/context and their observed protected-area overlap retained. All returned groundwater footprints count without class/subtype filtering. These are product rules, not statements about legal restrictions.
+The [accepted input mapping](../architecture/source-layer-requirements.md#accepted-classification-values) distinguishes Section 10 from other valuable habitat. Programme areas and established protected areas remain distinct evidence, with programme identifiers/context and their observed protected-area overlap retained. All returned groundwater footprints count without class/subtype filtering. These are product rules, not statements about legal restrictions.
 
 ## CL-03 Classes and evidence policy
 

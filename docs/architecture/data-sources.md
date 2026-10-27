@@ -32,14 +32,9 @@ Saved XSD metadata is provenance rather than a readiness authority. Its parser i
 
 ## Provider evidence
 
-Recreate the ignored [local reference artifacts](../references/README.md) with
-`python scripts/download_references.py`. The versioned
-[download manifest](../references/manifest.json) owns request URLs and filenames;
-`retrievals.json` records UTC retrieval times, byte counts and SHA-256 hashes for
-completed downloads. Cached files are reused unless invalid or explicitly
-refreshed. Failed requests preserve existing copies and produce a nonzero exit
-status after other entries are attempted. The script downloads service metadata
-and documentation, without feature records or recursive imported-XSD retrieval.
+Use the [reference instructions](../references/README.md) to populate or
+explicitly refresh local evidence. The versioned manifest owns request URLs and
+filenames; local retrieval metadata records capture times and checksums.
 Capabilities/XSD files establish advertised types, CRS and property definitions
 at capture time; they contain no representative feature records. Keep dated
 observations separate from subsequent refreshes of these mutable local artifacts.
@@ -47,7 +42,7 @@ observations separate from subsequent refreshes of these mutable local artifacts
 | Evidence | Established fact | Limit |
 | --- | --- | --- |
 | Saved stand XSD + Metsäkeskus 2.1.3 **MV GeoServer** workbook sheet | `standid`, `meanage`, `volume`, `sawlogvolume`, `volumegrowth` exist in the reduced WFS model; age is years, stock/sawlogs m³/ha and annual growth m³/ha/year. | Optional nullable decimal fields do not establish populated or valid values. The wider GeoPackage model is not proof of WFS fields. |
-| Saved habitat XSD + **EY GeoServer** sheet | `habitattype` is the controlling property; workbook links it to the official habitat-type code set. | Schema does not establish current code frequencies or inventory completeness. |
+| Saved habitat XSD + **EY GeoServer** sheet | `habitattype` is the controlling property; workbook links it to the official `elinymparistokuvion_tyyppi-v_1_0` code set. | Schema does not establish current code frequencies or inventory completeness. |
 | Protected-sites capabilities and all three XSDs, refreshed 26 October | Separate state/private/wilderness types advertise EPSG:3067; schemas include `olotila`, `tyyppilyhenne`, `kohdetyyppi`. | Not a sample of active/inactive values or proof of geographic completeness. |
 | Saved programme capabilities/XSD | Exact typename, EPSG:3067, `lsoaluetunnus`, `luokka` and optional nullable `subtype`. | Current class/subtype distribution and completeness are not verified by XSD. |
 | Grid schema and three-cell bounded request checked 25 October | Direct total/pine/spruce/deciduous fields, age, soil/drainage; sample showed a null spruce value and different measurement/update dates. | Raw samples were not saved. Three cells do not estimate regional/national coverage or null prevalence. |
@@ -59,15 +54,15 @@ The grid evidence came from the [DescribeFeatureType request](https://avoin.mets
 
 ## Interpretation and geographic limits
 
-Habitat types 1 and 5 trigger Section 10 and type 3 triggers other valuable habitat, following the workbook code reference and [provider guide](https://www.metsakeskus.fi/sites/default/files/document/tiedosto-geopackage-sisaltoohjeet-tietomalli-2-0.pdf). Other returned codes are fatal interpretation errors. Mapped habitat inventories are incomplete; no mapped hit does not establish absence of a habitat. [Provider data quality](https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto/tietojen-yllapito/tiedon-laatu).
+The provider defines habitat code 1 as an ML10 habitat, code 3 as other valuable habitat, and code 5 as an ML10 habitat requiring ML20 corrective measures, following the workbook code reference and [provider guide](https://www.metsakeskus.fi/sites/default/files/document/tiedosto-geopackage-sisaltoohjeet-tietomalli-2-0.pdf). The adopted [accepted-value mapping](source-layer-requirements.md#accepted-classification-values) is separate from these provider definitions. Mapped habitat inventories are incomplete; no mapped hit does not establish absence of a habitat. [Provider data quality](https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto/tietojen-yllapito/tiedon-laatu).
 
 Stand-wide promotion is the prototype's conservative spatial assumption. The [Forest Act](https://www.finlex.fi/fi/lainsaadanto/saadoskokoelma/1996/1093), [2026 amendment](https://www.finlex.fi/fi/lainsaadanto/saadoskokoelma/2026/448), and [Metsäkeskus interpretation guidance](https://www.metsakeskus.fi/sites/default/files/document/metsalain-10-pykalan-kohteiden-tulkintasuositus.pdf) provide background; operational/legal use needs current authoritative guidance and site evidence.
 
-Protected records require normalized status `voimassa` and a category recognized by the [current interpreter](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/classification.py). Every other returned status/category stops the run, including apparently inactive values. The [protected-area metadata](https://ckan.ymparisto.fi/dataset/luonnonsuojelu-ja-eramaa-alueet) describes updates, overlapping records and exclusion of Åland; it does not independently verify the plugin's entire accepted-status mapping.
+The [protected-area metadata](https://ckan.ymparisto.fi/dataset/luonnonsuojelu-ja-eramaa-alueet) describes updates, overlapping records and exclusion of Åland; it does not independently verify the plugin's entire accepted-status mapping.
 
-The [programme contract](source-layer-requirements.md) requires interpretable identifiers/classes and permits absent subtype. Provider metadata describes indicative boundaries, overlap, exclusions and historical records retained despite later protection/programme changes. Programme membership therefore remains separate from established protection; outputs retain programme attributes and observed protected overlap. [Programme metadata](https://ckan.ymparisto.fi/fi/dataset/luonnonsuojeluohjelma-alueet), [attribute dictionary](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/LuonnonsuojeluOhjelmaAlueet.pdf).
+Provider metadata describes indicative boundaries, overlap, exclusions and historical records retained despite later protection/programme changes. Programme membership therefore remains separate from established protection; outputs retain programme attributes and observed protected overlap. [Programme metadata](https://ckan.ymparisto.fi/fi/dataset/luonnonsuojeluohjelma-alueet), [attribute dictionary](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/LuonnonsuojeluOhjelmaAlueet.pdf).
 
-Groundwater uses all returned polygon footprints without `alueluokka` or `subtype` filtering. The general [groundwater metadata](https://ckan.ymparisto.fi/dataset/pohjavesialueet) and [attribute reference](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Pohjavesialueet.pdf) distinguish groundwater/recharge areas and modern 1/2/E classifications, but these are not a provider mapping to prototype sensitivity tiers. Those documents' CRS and update descriptions are not independent checks of the configured VHS2022 service. Its dataset-specific credit is documented in [distribution](distribution.md#analysis-data-attribution).
+The general [groundwater metadata](https://ckan.ymparisto.fi/dataset/pohjavesialueet) and [attribute reference](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Pohjavesialueet.pdf) distinguish groundwater/recharge areas and modern 1/2/E classifications, but these are not a provider mapping to prototype sensitivity tiers. Those documents' CRS and update descriptions are not independent checks of the configured VHS2022 service. Its dataset-specific credit is documented in [distribution](distribution.md#analysis-data-attribution).
 
 ## WFS retrieval success
 

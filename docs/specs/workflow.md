@@ -78,6 +78,8 @@ Acceptance includes representative successful and failing runs through both entr
 
 ## WF-08 Local development reference material
 
+This requirement is maintainer/agent tooling, separate from the planner analysis workflow.
+
 - A maintainer or agent can explicitly populate a local reference folder with
   service capabilities, schemas for every required source layer and useful
   provider documents, then read those files offline.

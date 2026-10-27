@@ -14,13 +14,11 @@ Use the QGIS panel for support diagnostics, Processing feedback for progress/can
 
 ## Development and verification
 
-Develop in a separate QGIS profile using a stable source junction or `QGIS_PLUGINPATH`, enable the plugin once, and use Plugin Reloader after edits. A built ZIP is for distribution acceptance, not the ordinary edit loop. Keep one package copy on the selected profile's search paths and match the IDE/debugger to the selected QGIS release's Python/Qt/PyQt. QGIS 4.2.3 is the verification baseline. If reload remains stale, restart QGIS; initialization/unload must still undo owned actions, dialogs, handlers, signals and Processing registrations. [QGIS plugin paths/lifecycle](https://docs.qgis.org/4.2/en/docs/pyqgis_developer_cookbook/plugins/index.html), [reload/debug guidance](https://docs.qgis.org/4.2/en/docs/pyqgis_developer_cookbook/plugins/ide_debugging.html), [profile isolation](https://docs.qgis.org/testing/en/docs/user_manual/introduction/qgis_configuration.html#working-with-user-profiles).
-
-The metadata range is `4.2.3`–`4.99`, allowing newer 4.x releases while excluding QGIS 5. QGIS documents the major-version-plus-`.99` convention for plugin metadata. Treat that range as an installation policy: verify each newer runtime separately before claiming it has passed the suites and packaged lifecycle/Processing checks. [QGIS metadata reference](https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/plugins/plugins.html#metadata-txt).
-
-Pure tests cover interpretation, normalization, calculations and statuses without QGIS. PyQGIS tests cover real providers, CRS/geometry, Processing, layers, writes, bilingual surfaces and lifecycle with tiny local fixtures. Workflow tests invoke the same shared algorithm and inspect reopened artifacts semantically, with tolerances. Keep live-service smoke checks separate. Headless/offscreen checks supplement interactive desktop acceptance. [QGIS unit testing](https://docs.qgis.org/4.2/en/docs/developers_guide/unittesting.html), [Processing algorithm tests](https://docs.qgis.org/4.2/en/docs/developers_guide/processingtesting.html).
-
-Run the commands in the [development guide](development.md#deterministic-indicator-and-source-regression-checks) when verifying implementation changes. `package.ps1` preserves the metadata version by default; its explicit `-BumpMinor` switch increments the minor version and resets the patch to zero. Check the extracted package in a fresh process using `SAVONIA_TEST_PLUGIN_ROOT`, then load, register/run Processing and unload in the declared runtime.
+Use [development](development.md) for profile/reload setup, runtime policy,
+test commands and package verification. The
+[QGIS guidance](../agents/qgis.md#testing-and-debugging) defines the required
+implementation workflow. Current evidence gaps and acceptance status belong in
+[open questions](open-questions.md), not in these repeatable procedures.
 
 ## Language and help
 

@@ -9,7 +9,7 @@ This is Antti Kajanus's unfinished personal learning project. Neither the protot
 | Document | Owns |
 | --- | --- |
 | [User stories](user-stories.md) | User goals, stable story IDs and links to acceptance requirements |
-| [Workflow](workflow.md) | Installation expectations, project setup, area selection, wizard, Processing, failure behavior and local development references |
+| [Workflow](workflow.md) | Installation expectations, project setup, area selection, wizard, Processing, failure behavior; WF-08 separately covers maintainer reference tooling |
 | [Classification](classification.md) | Reporting domain, sensitivity tiers, spatial behavior and interpretation limits |
 | [Indicators and outputs](indicators-and-outputs.md) | Required indicators, missing values, presentation, result files and map review |
 | [Help and language](help-and-language.md) | Finnish/English behavior, offline help, About, identity, accessibility and attribution |
@@ -27,7 +27,12 @@ The current scope includes:
 - One stand-based polygon result with six tier classifications, independent stand/grid indicators, source snapshots and coverage.
 - A paired GeoPackage and Excel workbook, with Finnish or English presentation and offline instructions.
 
-Scenario impact models, legal determinations and forestry prescriptions are outside this product. [ADR-0011](../architecture/adr/0011-deciduous-volume-instead-of-birch.md) adopts deciduous volume instead of the original bid/project requirement for birch-specific volume; birch support is explicitly out of scope. Average stumpage price remains blank and out of scope. Whole-AOI/open-mire reporting, local/offline source workflows, additional sensitivity criteria and source alternatives remain deferred. See [classification exclusions](classification.md#cl-04-exclusions-and-interpretation) and [indicator gaps](indicators-and-outputs.md#io-03-unavailable-and-partial-values).
+Scope boundaries are maintained in
+[classification exclusions](classification.md#cl-04-exclusions-and-interpretation)
+and the [indicator catalogue](indicators-and-outputs.md#io-01-indicator-catalogue).
+The latter links adopted scope decisions; the
+[register](../architecture/open-questions.md) separates implementation gaps,
+deferred scope and evidence/acceptance checks.
 
 ## Maintaining specifications
 
@@ -43,4 +48,6 @@ The behavior described here is implemented unless a requirement identifies a gap
 or work in progress. Acceptance remains separate from implementation; see the
 [development guide](../architecture/development.md) for verification instructions.
 
-Interactive Finnish/English desktop, browser and disconnected-help checks remain open where recorded. Provider value/coverage evidence, map-visible OpenStreetMap attribution and release checks also remain open. The maintained [verification and deferred-work register](../architecture/open-questions.md) owns these follow-ups.
+The [verification and deferred-work register](../architecture/open-questions.md)
+owns current implementation gaps, provider checks and acceptance/release status.
+Stories with outstanding functionality carry an explicit partial/deferred marker.
