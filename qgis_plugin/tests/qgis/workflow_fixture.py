@@ -43,7 +43,7 @@ class WorkflowFixtureMixin:
         self.addCleanup(self.temp.cleanup)
 
     @contextmanager
-    def scenario(self, grid, stands=None, aoi=None, prime=True, version="1.0.0", page_size=0):
+    def scenario(self, grid, stands=None, aoi=None, prime=False, version="1.0.0", page_size=0):
         schemas = fixture_sources()
         records = {source: [] for source in schemas}
         records["forest_centre_gridcell"] = grid
@@ -52,6 +52,12 @@ class WorkflowFixtureMixin:
             definitions = {source: {**definition, "endpoint": fixture.endpoint}
                            for source, definition in SERVICE_DEFINITIONS.items()}
             with patch.dict(SERVICE_DEFINITIONS, definitions):
+                aoi_layer = QgsVectorLayer("Polygon?crs=EPSG:3067", "AOI", "memory")
+                for text in aoi or [coordinates(350000, 6900000, 100, 100)]:
+                    feature = QgsFeature()
+                    feature.setGeometry(QgsGeometry.fromWkt("POLYGON ((" + text.replace(" ", ";").replace(",", " ").replace(";", ",") + "))"))
+                    self.assertTrue(aoi_layer.dataProvider().addFeatures([feature])[0])
+                aoi_layer.updateExtents()
                 layers = {}
                 for source in definitions:
                     typename = "fixture:" + source
@@ -64,18 +70,11 @@ class WorkflowFixtureMixin:
                     layer.setCustomProperty("savonia/feature_type", typename)
                     layer.setCustomProperty("savonia/schema_json", "obsolete saved schema")
                     if prime:
-                        # Initialize only the local cache; an unrestricted read
-                        # can fetch records on some QGIS builds.
-                        request = QgsFeatureRequest().setFilterFids([]).setLimit(0)
+                        # Even zero-result initialization can start a download.
+                        request = QgsFeatureRequest().setFilterFids([]).setFilterRect(aoi_layer.extent()).setLimit(0)
                         iterator = layer.getFeatures(request)
                         iterator.close()
                     layers[source] = layer
-                aoi_layer = QgsVectorLayer("Polygon?crs=EPSG:3067", "AOI", "memory")
-                for text in aoi or [coordinates(350000, 6900000, 100, 100)]:
-                    feature = QgsFeature()
-                    feature.setGeometry(QgsGeometry.fromWkt("POLYGON ((" + text.replace(" ", ";").replace(",", " ").replace(";", ",") + "))"))
-                    self.assertTrue(aoi_layer.dataProvider().addFeatures([feature])[0])
-                aoi_layer.updateExtents()
                 yield fixture, layers, aoi_layer
 
     def run_algorithm(self, layers, aoi, language, name, feedback=None, selected_only=False):

@@ -158,14 +158,18 @@ paged retrieval and successful empty responses, and fail a later page. Analysis
 pages carry AOI bounds; QGIS may separately probe geometry with `COUNT=1` during
 provider construction. No live provider is required.
 
-Shared scenarios initialize a provider's local cache with an empty feature-ID
-filter and a zero-result limit, then close that iterator without reading
-features. Setup must not assume an unrestricted first read is empty: the first
-hosted QGIS run returned configured records where the local runtime returned
-none. Keep feature-content assertions in workflow/output tests. The regression
-in `test_workflow_contracts.py` reproduces that populated-read behavior and
-checks that initialization still permits the configured stand volume to reach
-the published result. Fresh-provider scenarios continue to skip fixture priming.
+Shared scenarios and source-field setup leave WFS providers fresh by default;
+the shared production workflow owns AOI-bounded initialization and retrieval.
+The explicit `prime=True` cache and selected-feature scenarios use an empty
+feature-ID filter, the AOI rectangle and a zero-result limit, then close that
+iterator without reading features. Empty IDs and a zero limit alone do not guarantee that QGIS
+will avoid starting a download, so priming must also carry spatial bounds.
+Setup must not assume an unrestricted first read is empty: hosted QGIS returned
+configured records where the local runtime returned none. Keep feature-content
+assertions in workflow/output tests. The regressions in
+`test_workflow_contracts.py` and `test_source_field_workflow.py` reproduce the
+populated-read behavior, assert bounded initial requests and check that source
+values reach published outputs, including Finnish/English source-field runs.
 
 ### Regression seams
 

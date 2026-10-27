@@ -18,8 +18,8 @@ sys.path.insert(0, os.environ.get(
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from qgis.core import (
-    QgsApplication, QgsFeature, QgsGeometry, QgsProcessingContext,
-    QgsProcessingException, QgsProcessingFeedback, QgsProject, QgsVectorLayer,
+    Qgis, QgsApplication, QgsFeature, QgsFeatureRequest, QgsGeometry, QgsProcessingContext,
+    QgsProcessingException, QgsProcessingFeedback, QgsProject, QgsRectangle, QgsVectorLayer,
 )
 from qgis.PyQt.QtCore import QSize
 from qgis.PyQt.QtWidgets import QMainWindow
@@ -61,9 +61,6 @@ class SourceFieldWorkflowChecks:
             layer.setCustomProperty("savonia/endpoint", self.fixture.endpoint)
             layer.setCustomProperty("savonia/feature_type", typename)
             layer.setCustomProperty("savonia/schema_json", saved)
-            # Initialize the request-bbox-only provider without a spatial
-            # request. All feature retrieval for assertions happens in Processing.
-            self.assertEqual(list(layer.getFeatures()), [])
             self.layers[source] = layer
         self.aoi = QgsVectorLayer("Polygon?crs=EPSG:3067", "AOI", "memory")
         feature = QgsFeature()
@@ -158,6 +155,47 @@ class SourceFieldWorkflowEnglishTest(SourceFieldWorkflowChecks, unittest.TestCas
 
 class SourceFieldWorkflowFinnishTest(SourceFieldWorkflowChecks, unittest.TestCase):
     language = "fi"
+
+
+class SourceFieldFixtureTest(unittest.TestCase):
+    def test_populated_initial_reads_preserve_processing_outputs_in_both_languages(self):
+        vector_layer = QgsVectorLayer
+        for test_class in (SourceFieldWorkflowEnglishTest, SourceFieldWorkflowFinnishTest):
+            initial_requests = {}
+
+            def source_layer(*args, **kwargs):
+                layer = vector_layer(*args, **kwargs)
+                if layer.providerType() != "WFS":
+                    return layer
+                get_features = layer.getFeatures
+
+                def first_read(request=None):
+                    layer.getFeatures = get_features
+                    if request is None:
+                        # Return real fixture records even on local runtimes
+                        # whose unrestricted first read happens to be empty.
+                        list(get_features())
+                        return get_features(QgsFeatureRequest().setFilterRect(
+                            QgsRectangle(350000, 6900000, 350100, 6900100)))
+                    initial_requests[layer.name()] = request
+                    return get_features(request)
+
+                layer.getFeatures = first_read
+                return layer
+
+            with self.subTest(language=test_class.language), patch.object(
+                    sys.modules[__name__], "QgsVectorLayer", side_effect=source_layer):
+                case = test_class("test_processing_outputs_ignore_saved_schemas_in_both_languages")
+                outcome = unittest.TestResult()
+                case.run(outcome)
+                self.assertTrue(outcome.wasSuccessful(), "\n".join(
+                    traceback for _, traceback in outcome.errors + outcome.failures))
+                self.assertEqual(set(initial_requests), set(SERVICE_DEFINITIONS))
+                for request in initial_requests.values():
+                    self.assertEqual(request.filterType(), Qgis.FeatureRequestFilterType.Fids)
+                    self.assertFalse(request.filterFids())
+                    self.assertEqual(request.limit(), 0)
+                    self.assertEqual(request.filterRect(), case.aoi.extent())
 
 
 class TranslationTest(unittest.TestCase):

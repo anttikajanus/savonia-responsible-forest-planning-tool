@@ -32,7 +32,7 @@ from workflow_fixture import WorkflowFixtureMixin, fixture_sources, source_recor
 
 
 class WorkflowContractTests(WorkflowFixtureMixin, unittest.TestCase):
-    def test_fixture_priming_does_not_fetch_initial_source_features(self):
+    def test_fixture_priming_keeps_initial_source_reads_aoi_bounded(self):
         initial_requests = {}
         bounds = QgsRectangle(350000, 6900000, 350100, 6900100)
 
@@ -56,12 +56,13 @@ class WorkflowContractTests(WorkflowFixtureMixin, unittest.TestCase):
             return layer
 
         with patch("workflow_fixture.QgsVectorLayer", side_effect=source_layer):
-            with self.scenario([]) as (_, layers, aoi):
+            with self.scenario([], prime=True) as (_, layers, aoi):
                 self.assertEqual(set(initial_requests), set(fixture_sources()))
                 for request in initial_requests.values():
                     self.assertEqual(request.filterType(), Qgis.FeatureRequestFilterType.Fids)
                     self.assertFalse(request.filterFids())
                     self.assertEqual(request.limit(), 0)
+                    self.assertEqual(request.filterRect(), aoi.extent())
                 result = self.run_algorithm(layers, aoi, "en", "populated-initial-read")
                 published = QgsVectorLayer(result["RESULT"], "result", "ogr")
                 self.assertTrue(published.isValid())
@@ -76,7 +77,7 @@ class WorkflowContractTests(WorkflowFixtureMixin, unittest.TestCase):
         for language in ("en", "fi"):
             outputs = []
             for entry in ("processing", "worker"):
-                with self.subTest(language=language, entry=entry), self.scenario([], stands) as (fixture, layers, aoi):
+                with self.subTest(language=language, entry=entry), self.scenario([], stands, prime=True) as (fixture, layers, aoi):
                     stand = layers["forest_centre_stand"]
                     features = list(stand.getFeatures(QgsFeatureRequest().setFilterRect(aoi.extent())))
                     selected = next(feature for feature in features if feature["standid"] == "stand-1")
