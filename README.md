@@ -34,9 +34,9 @@ for the background and source summaries.
 The related [procurement 629864, Paikkatietotyökalu](https://tarjouspalvelu.fi/UX/TP/SiirryTarjouspyyntoon/?tpId=629864)
 describes a QGIS tool for preparing classified geography and forest-input
 tables; development of the separate calculation model is excluded.
-The local materials are the [tender report](docs/bid/TarjouspyyntoRaportti629864.pdf),
-[project description (Annex 1)](docs/bid/liite1_hankkeenkuvaus.pdf) and
-[procurement scope (Annex 2)](docs/bid/liite2_hankinnankohteenkuvaus.pdf).
+The local materials are the [tender report](docs/references/procurement/629864/TarjouspyyntoRaportti629864.pdf),
+[project description (Annex 1)](docs/references/procurement/629864/liite1_hankkeenkuvaus.pdf) and
+[procurement scope (Annex 2)](docs/references/procurement/629864/liite2_hankinnankohteenkuvaus.pdf).
 The complete material and clarifications require access to the authenticated
 procurement portal. See [project context and procurement references](docs/project-context.md#procurement-reference-and-authority)
 for source limitations.
@@ -160,13 +160,13 @@ If Python is available through your Windows QGIS installation, use its launcher:
 & 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' scripts/download_references.py
 ```
 
-This populates `docs/references/` with WFS capabilities, layer schemas and
+This populates `docs/references/service-metadata/` with WFS capabilities, layer schemas and
 provider PDF/XLSX documentation so developers and agents can read them locally.
 Downloaded files and retrieval metadata are ignored by Git; the README and
 source manifest stay versioned. Repeated runs reuse valid cached files. Add
 `--refresh` when you want to update them.
 
-See the [reference instructions](docs/references/README.md) for source selection
+See the [reference instructions](docs/references/service-metadata/README.md) for source selection
 and SYKE configuration, then follow the
 [development guide](docs/architecture/development.md) for the QGIS development
 profile and testing setup.
@@ -188,7 +188,8 @@ third-party software and data retain their [own terms and credits](OPEN_SOURCE_A
 
 ## Project contents
 
-- [Local source references](docs/references/README.md) — run `python scripts/download_references.py` once to cache WFS capabilities, layer schemas and provider PDF/XLSX documentation for offline reading. Downloads stay out of Git; the manifest and downloader are versioned.
+- [External reference material](docs/references/README.md) — original procurement PDFs and the provider service metadata cache.
+- [Service metadata](docs/references/service-metadata/README.md) — run `python scripts/download_references.py` once to cache WFS capabilities, layer schemas and provider PDF/XLSX documentation for offline reading. Downloads stay out of Git; the manifest and downloader are versioned.
 - [User stories and specifications](docs/specs/README.md) — current product scope, user goals, behavior and acceptance requirements.
 - [Agent guidance and documentation map](docs/agents/README.md) — documentation ownership and task instructions.
 - [Open-source licences and acknowledgements](OPEN_SOURCE_ACKNOWLEDGEMENTS.md) — software dependencies, upstream licence references, and data-source credits.

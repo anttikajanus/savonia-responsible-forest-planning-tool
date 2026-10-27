@@ -4,7 +4,7 @@ These documents describe the implemented architecture and adopted design decisio
 
 The [agent guidance and documentation map](../agents/README.md) identifies the
 other documentation owners and task instructions. For provider metadata and
-documents, inspect the [local reference cache](../references/README.md) before
+documents, inspect the [local reference cache](../references/service-metadata/README.md) before
 fetching another copy; its source manifest is versioned and downloads are ignored.
 
 ## Technical documentation

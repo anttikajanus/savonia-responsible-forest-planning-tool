@@ -12,7 +12,7 @@ in `docs/architecture/`, and local working plans in ignored `.scratch/`.
 | Plan a feature, change behavior, complete implementation or reconcile documentation | [Specification workflow](docs/agents/specifications.md) |
 | Create, fetch or update working issues/specs; map a skill's tracker instructions | [Local issue tracker](docs/agents/issue-tracker.md) and [triage labels](docs/agents/triage-labels.md) |
 | Research a question | Use `mattpocock-skills:research` and follow [research guidance](docs/agents/research.md); save findings in `docs/research/` |
-| Inspect provider schemas/documents or set up local references | Read the cached files first; follow [reference instructions](docs/references/README.md) to populate missing files or explicitly refresh them |
+| Inspect provider schemas/documents or set up local references | Read the cached files first; follow [reference instructions](docs/references/service-metadata/README.md) to populate missing files or explicitly refresh them |
 | Read, change, review, test, package or document code under `qgis_plugin/` | First read [QGIS guidance](docs/agents/qgis.md); its implementation workflow, testing and Finnish/English checks are required |
 | Edit agent instructions or skills | Use `mattpocock-skills:writing-for-agents`; keep task conditions explicit and detailed rules with their owner |
 

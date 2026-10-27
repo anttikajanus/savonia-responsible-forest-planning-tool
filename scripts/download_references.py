@@ -20,7 +20,7 @@ from io import BytesIO
 
 
 ROOT = Path(__file__).resolve().parents[1]
-REFERENCE_DIR = ROOT / "docs" / "references"
+REFERENCE_DIR = ROOT / "docs" / "references" / "service-metadata"
 MANIFEST = REFERENCE_DIR / "manifest.json"
 RETRIEVALS = REFERENCE_DIR / "retrievals.json"
 

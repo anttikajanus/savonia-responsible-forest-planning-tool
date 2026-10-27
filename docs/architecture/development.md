@@ -49,7 +49,7 @@ remain outside the plugin package.
 
 ## Local provider references
 
-Populate `docs/references/` once before investigating service contracts:
+Populate `docs/references/service-metadata/` once before investigating service contracts:
 
 ```powershell
 & 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' scripts/download_references.py
@@ -59,7 +59,7 @@ Any Python 3.10+ installation works; the script uses only the standard library.
 Agents can then read capabilities, eight layer schemas and provider PDF/XLSX
 documentation locally. The cache is ignored by Git. Its versioned manifest,
 refresh/filter options, optional `SYKE_USER_ID`, provenance and failure behavior
-are documented in [reference instructions](../references/README.md).
+are documented in [reference instructions](../references/service-metadata/README.md).
 Maintain this manifest alongside the [source registry contract](data-sources.md)
 when endpoints or required layers change. The downloader deliberately does not
 import the plugin or require QGIS to read development reference material.

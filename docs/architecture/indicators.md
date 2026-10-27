@@ -20,7 +20,7 @@ Metric coverage describes which part of the reporting area supports each estimat
 
 ## Growth percentage
 
-The [growth formula](indicator-calculations.md#exact-intersections-and-volume-means) uses stand increment and stock. The saved [Metsäkeskus 2.1.3 workbook](../references/metsakeskus/tiedosto-tietomallikaavio-mv_ey_2-1-3-metsakeskuksen-tietomallin-uudistus.xlsx), **MV GeoServer** A33:B33 and A36:B36, defines m³/ha and m³/ha/year, supporting a percentage-per-year interpretation. [Saved stand XSD](../references/metsakeskus/stands/describe-feature-type.xsd).
+The [growth formula](indicator-calculations.md#exact-intersections-and-volume-means) uses stand increment and stock. The saved [Metsäkeskus 2.1.3 workbook](../references/service-metadata/metsakeskus/tiedosto-tietomallikaavio-mv_ey_2-1-3-metsakeskuksen-tietomallin-uudistus.xlsx), **MV GeoServer** A33:B33 and A36:B36, defines m³/ha and m³/ha/year, supporting a percentage-per-year interpretation. [Saved stand XSD](../references/service-metadata/metsakeskus/stands/describe-feature-type.xsd).
 
 The adopted summary combines per-stand rates rather than weighting by standing
 stock. [Calculation mechanics](indicator-calculations.md#tierclass-summaries-and-metric-coverage)

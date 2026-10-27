@@ -9,7 +9,7 @@ evidence; maintained specs and technical references hold adopted outcomes.
 1. Read the affected maintained specification/technical reference and its open
    questions so the investigation answers an actual evidence gap.
 2. For provider capabilities, schemas or PDF/XLSX documentation, inspect
-   `docs/references/` first. Follow the [reference instructions](../references/README.md)
+   `docs/references/service-metadata/` first. Follow the [reference instructions](../references/service-metadata/README.md)
    to populate missing files. Use `--list` to inspect source URLs offline and
    `--only` to select a needed path prefix. Refresh explicitly when the question
    needs current evidence rather than the cached snapshot.
@@ -35,6 +35,6 @@ Mark a fully superseded note `Disposition: ready to delete`, link its replacemen
 and redirect incoming project-documentation links before removal. A note with
 unique unresolved findings remains needed until those findings have a maintained
 home. Keep downloaded source artifacts and retrieval metadata in ignored
-`docs/references/`; maintain their public URLs and paths in its versioned
-manifest. Use [reference instructions](../references/README.md) for cache and
+`docs/references/service-metadata/`; maintain their public URLs and paths in its versioned
+manifest. Use [reference instructions](../references/service-metadata/README.md) for cache and
 application-identifier handling instead of copying downloads into Git or fixtures.

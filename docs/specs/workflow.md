@@ -97,4 +97,4 @@ This requirement is maintainer/agent tooling, separate from the planner analysis
   availability does not certify values, interpretation or geographic coverage.
 - Commands, formats, exact inventory and verification belong in
   [development](../architecture/development.md#local-provider-references) and
-  [reference instructions](../references/README.md).
+  [reference instructions](../references/service-metadata/README.md).

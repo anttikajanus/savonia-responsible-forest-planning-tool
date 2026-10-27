@@ -4,7 +4,7 @@ Status: accepted
 Recorded: 2026-10-26
 
 The original bid/project specification requests birch-specific volume
-([procurement Annex 2](../../bid/liite2_hankinnankohteenkuvaus.pdf)). The selected
+([procurement Annex 2](../../references/procurement/629864/liite2_hankinnankohteenkuvaus.pdf)). The selected
 grid source provides all-deciduous volume rather than a separate birch estimate.
 Amend the adopted product scope to use **deciduous volume (lehtipuun tilavuus)**
 instead and explicitly exclude birch-specific volume. This keeps the existing

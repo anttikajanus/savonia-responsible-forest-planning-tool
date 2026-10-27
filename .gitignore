@@ -2,9 +2,9 @@
 /qgis_plugin/dist/
 
 # Downloaded provider references; keep setup instructions and source URLs
-/docs/references/*
-!/docs/references/README.md
-!/docs/references/manifest.json
+/docs/references/service-metadata/*
+!/docs/references/service-metadata/README.md
+!/docs/references/service-metadata/manifest.json
 
 # Local specifications and ticket management
 /.scratch/
