@@ -14,8 +14,8 @@ sys.path.insert(0, os.environ.get(
 ))
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from qgis.core import (QgsApplication, QgsFeature, QgsFeatureRequest, QgsGeometry,
-                       QgsProcessingException, QgsProject, QgsVectorLayer)
+from qgis.core import (Qgis, QgsApplication, QgsFeature, QgsFeatureRequest, QgsGeometry,
+                       QgsProcessingException, QgsProject, QgsRectangle, QgsVectorLayer)
 from qgis.PyQt.QtTest import QTest
 
 APP = QgsApplication.instance()
@@ -32,6 +32,42 @@ from workflow_fixture import WorkflowFixtureMixin, fixture_sources, source_recor
 
 
 class WorkflowContractTests(WorkflowFixtureMixin, unittest.TestCase):
+    def test_fixture_priming_does_not_fetch_initial_source_features(self):
+        initial_requests = {}
+        bounds = QgsRectangle(350000, 6900000, 350100, 6900100)
+
+        def source_layer(*args, **kwargs):
+            layer = QgsVectorLayer(*args, **kwargs)
+            if layer.providerType() != "WFS":
+                return layer
+            get_features = layer.getFeatures
+
+            def read_features(request=None):
+                layer.getFeatures = get_features
+                if request is None:
+                    # Reproduce hosted QGIS's populated initial read using
+                    # real provider features, independent of local defaults.
+                    list(get_features())
+                    return get_features(QgsFeatureRequest().setFilterRect(bounds))
+                initial_requests[layer.name()] = request
+                return get_features(request)
+
+            layer.getFeatures = read_features
+            return layer
+
+        with patch("workflow_fixture.QgsVectorLayer", side_effect=source_layer):
+            with self.scenario([]) as (_, layers, aoi):
+                self.assertEqual(set(initial_requests), set(fixture_sources()))
+                for request in initial_requests.values():
+                    self.assertEqual(request.filterType(), Qgis.FeatureRequestFilterType.Fids)
+                    self.assertFalse(request.filterFids())
+                    self.assertEqual(request.limit(), 0)
+                result = self.run_algorithm(layers, aoi, "en", "populated-initial-read")
+                published = QgsVectorLayer(result["RESULT"], "result", "ogr")
+                self.assertTrue(published.isValid())
+                feature, = list(published.getFeatures())
+                self.assertEqual(feature["total_volume_m3_ha"], 200)
+
     def test_selected_source_snapshot_survives_validation_and_later_selection_changes(self):
         fields = fixture_sources()
         stands = [source_record(fields["forest_centre_stand"]),

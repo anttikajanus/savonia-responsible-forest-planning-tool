@@ -4,7 +4,7 @@ from contextlib import contextmanager
 import tempfile
 from unittest.mock import patch
 
-from qgis.core import (QgsFeature, QgsGeometry, QgsProcessingContext, QgsProcessingFeedback,
+from qgis.core import (QgsFeature, QgsFeatureRequest, QgsGeometry, QgsProcessingContext, QgsProcessingFeedback,
                        QgsProject, QgsVectorLayer)
 from savonia_responsible_forest_planning_tool.adapters.sources import SERVICE_DEFINITIONS, qgis_wfs_uri
 from savonia_responsible_forest_planning_tool.processing.provider import ResponsibleForestPlanningInputsAlgorithm
@@ -64,7 +64,11 @@ class WorkflowFixtureMixin:
                     layer.setCustomProperty("savonia/feature_type", typename)
                     layer.setCustomProperty("savonia/schema_json", "obsolete saved schema")
                     if prime:
-                        self.assertEqual(list(layer.getFeatures()), [])
+                        # Initialize only the local cache; an unrestricted read
+                        # can fetch records on some QGIS builds.
+                        request = QgsFeatureRequest().setFilterFids([]).setLimit(0)
+                        iterator = layer.getFeatures(request)
+                        iterator.close()
                     layers[source] = layer
                 aoi_layer = QgsVectorLayer("Polygon?crs=EPSG:3067", "AOI", "memory")
                 for text in aoi or [coordinates(350000, 6900000, 100, 100)]:

@@ -107,20 +107,24 @@ also checked. These checks leave the interactive acceptance items below pending.
 
 ### Release and distribution verification
 
-- Required CI quality checks (27 October 2026): the workflow includes Pylint
+- CI quality checks (27 October 2026): the workflow includes Pylint
   and offscreen QGIS 4.2.3 integration against source and the built ZIP, with
-  release publication depending on both build and quality jobs. First hosted
-  execution must still verify the MSI download/install, artifact transfer and
-  job results. The session's GitHub account has pull access only, so required
-  merge-check activation could not be performed. A repository administrator
-  must apply or reconcile the checked-in ruleset and confirm failing checks
-  prevent merging. Local verification passed the existing Pylint policy,
-  15 tooling tests, 36 pure tests and 80 QGIS integration tests; the pure and
-  QGIS suites also passed against the extracted current-version ZIP.
-  Workflow/PowerShell validation and mocked installation/native-command
-  failure probes passed. One stale field-order test lookup was changed to the
-  documentation's preserved anchor. These local checks do not verify hosted
-  installation or interactive acceptance. See
+  release publication depending on both build and quality jobs. The
+  [first hosted run](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/actions/runs/40484712894)
+  passed the build job, official MSI installation, runtime verification,
+  development dependency installation and Pylint. Source integration stopped
+  with 36 failures and one downstream error because the shared fixture assumed
+  its first unrestricted feature read was empty; hosted QGIS returned records.
+  Fixture priming now opens and closes a zero-result iterator, with a regression
+  reproducing the populated-read failure and checking successful output values.
+  Local source verification passed Pylint, 36 pure tests and 81 integration
+  tests; both suites also passed against the built and extracted 1.0.0 ZIP.
+  Hosted artifact download and packaged integration were skipped, and
+  release publication was correctly skipped after the source failure. A hosted
+  rerun must verify the fix and complete those remaining steps; interactive
+  acceptance remains separate.
+  Optional merge blocking also requires administrator activation of the
+  checked-in ruleset; it is independent of CI execution and release gating. See
   [required merge checks](development.md#required-merge-checks).
 - Automatic GitHub releases (26 October 2026): the build/release workflow is implemented; its first hosted execution, token/tag policy and downloadable asset still require verification after pushing it to main. Local tooling/package checks, upload-recovery simulation and QGIS 4.2.3 suites against source and the extracted release ZIP passed; they do not establish hosted publication or interactive acceptance. See the [release contract](distribution.md#github-builds-and-releases).
 - Arrange explicit map-visible OpenStreetMap attribution for the basemap and shared maps/screenshots; the reviewed setup and About credits do not establish that display. Separately review tile-client usage-policy behavior if preparing distribution.
