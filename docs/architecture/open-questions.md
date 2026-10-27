@@ -51,6 +51,31 @@ Local GeoPackage/raster adapters, open-mire/whole-AOI reporting, potential prote
 
 No reviewed repository evidence establishes Savonia acceptance of the prototype's tier rules, interpretations or deliverables. Tender requirements and implementation choices have different authority. [Project context](../project-context.md).
 
+### Section 10 stand-wide promotion validation
+
+Added 27 October 2026; planning-rule acceptance remains pending. Validate with
+the intended planners whether a qualifying mapped Section 10 habitat overlap
+should make the entire AOI-clipped parent stand sensitive, including result
+pieces outside the mapped habitat, or whether sensitivity should follow only
+the mapped habitat footprint. The current stand-wide assumption is owned by
+[CL-01](../specs/classification.md#cl-01-reporting-domain-and-geometry) and
+[ADR-0004](adr/0004-stand-based-sensitivity-classification.md).
+
+Use a concrete example: a 10 ha stand containing a 0.2 ha qualifying habitat
+overlap currently becomes 10 ha of sensitive forest in every tier containing
+Section 10. Check that planners understand and accept this extension as a
+planning assumption; it does not establish that all 10 ha are legally a
+Section 10 habitat. Also validate that the explanation of
+`section10_stand_promoted = true` communicates the stand-wide rule, rather than
+claiming that each result piece overlaps the mapped habitat. The
+[field contract](output-schema.md#classification-reasons-and-context) owns its
+stored meaning.
+
+Record the reviewer, date, rationale and accepted spatial extent. Automated
+tests of the implemented rule do not establish its suitability or acceptance.
+This note leaves current behavior unchanged; a different accepted extent
+requires a specification change and reconsideration of ADR-0004.
+
 ## Known implementation gaps
 
 | Item | Current status and completion boundary |
