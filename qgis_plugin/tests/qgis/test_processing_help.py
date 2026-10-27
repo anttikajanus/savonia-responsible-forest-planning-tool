@@ -25,7 +25,10 @@ class ProcessingHelpTests(unittest.TestCase):
         self.folder = tempfile.TemporaryDirectory(prefix="Metsä Processing help ")
         self.addCleanup(self.folder.cleanup)
         root = Path(self.folder.name)
-        source = Path(os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])))
+        source = Path(os.environ.get(
+            "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
+            os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
+        ))
         package = "savonia_responsible_forest_planning_tool"
         staging = root / "staging" / package
         shutil.copytree(source / package, staging, ignore=shutil.ignore_patterns("__pycache__"))
@@ -41,13 +44,13 @@ class ProcessingHelpTests(unittest.TestCase):
         extracted = root / "extracted plugin"
         shutil.unpack_archive(archive, extracted)
         self.package_root = extracted / package
-        self.alias = "savonia_processing_help_fixture"
-        spec = importlib.util.spec_from_file_location(self.alias, self.package_root / "__init__.py")
+        self.processing_package_alias = "responsible_forest_planning_processing_help_fixture"
+        spec = importlib.util.spec_from_file_location(self.processing_package_alias, self.package_root / "__init__.py")
         module = importlib.util.module_from_spec(spec)
-        sys.modules[self.alias] = module
+        sys.modules[self.processing_package_alias] = module
         spec.loader.exec_module(module)
-        self.provider = importlib.import_module(self.alias + ".processing.provider")
-        self.i18n = importlib.import_module(self.alias + ".i18n")
+        self.processing_module = importlib.import_module(self.processing_package_alias + ".processing.provider")
+        self.i18n = importlib.import_module(self.processing_package_alias + ".i18n")
         self.addCleanup(self.remove_modules)
         settings = QgsSettings()
         key = "savonia_responsible_forest_planning_tool/language"
@@ -57,7 +60,7 @@ class ProcessingHelpTests(unittest.TestCase):
 
     def remove_modules(self):
         for name in tuple(sys.modules):
-            if name == self.alias or name.startswith(self.alias + "."):
+            if name == self.processing_package_alias or name.startswith(self.processing_package_alias + "."):
                 del sys.modules[name]
 
     def test_help_url_follows_qgis_in_extracted_zip_despite_legacy_plugin_override(self):
@@ -66,7 +69,7 @@ class ProcessingHelpTests(unittest.TestCase):
                 self.qgis_locale.return_value = language
                 QgsSettings().setValue("savonia_responsible_forest_planning_tool/language",
                                        "en" if language == "fi" else "fi")
-                algorithm = self.provider.ResponsibleForestPlanningInputsAlgorithm()
+                algorithm = self.processing_module.ResponsibleForestPlanningInputsAlgorithm()
                 url = algorithm.helpUrl()
                 parsed = QUrl(url)
                 self.assertTrue(parsed.isLocalFile())
@@ -82,7 +85,7 @@ class ProcessingHelpTests(unittest.TestCase):
                 (self.package_root / "docs" / "help" / f"manual_{language}.html").unlink()
                 with self.assertLogs("savonia_responsible_forest_planning_tool", level="ERROR") as logs, \
                         patch.object(QgsMessageLog, "logMessage") as notification:
-                    url = self.provider.ResponsibleForestPlanningInputsAlgorithm().helpUrl()
+                    url = self.processing_module.ResponsibleForestPlanningInputsAlgorithm().helpUrl()
                 self.assertEqual(url, "")
                 self.assertIn(correction, notification.call_args.args[0])
                 self.assertEqual(notification.call_args.args[2], Qgis.MessageLevel.Warning)
@@ -95,7 +98,7 @@ class ProcessingHelpTests(unittest.TestCase):
         for language, limit in (("fi", "oikeudellisia"), ("en", "legal")):
             with self.subTest(language=language):
                 self.qgis_locale.return_value = language
-                help_text = self.provider.ResponsibleForestPlanningInputsAlgorithm().shortHelpString()
+                help_text = self.processing_module.ResponsibleForestPlanningInputsAlgorithm().shortHelpString()
                 for parameter in ("AOI", "SELECTED_ONLY", "STANDS", "GRIDCELLS", "HABITATS", "PROTECTED",
                                   "PROTECTED_PRIVATE", "PROTECTED_WILDERNESS", "PROGRAMME", "GROUNDWATER",
                                   "OUTPUT_FOLDER", "OUTPUT_NAME", "RESULT", "EXCEL"):

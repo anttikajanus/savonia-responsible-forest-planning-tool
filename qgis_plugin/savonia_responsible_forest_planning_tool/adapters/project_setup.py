@@ -7,6 +7,7 @@ from qgis.core import (
     QgsSingleSymbolRenderer, QgsVectorLayer,
 )
 
+from .. import RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX
 from ..i18n import source_readiness_message, tr
 from .source_layers import provider_field_names
 from .sources import (
@@ -48,11 +49,11 @@ def _managed_layer(project, property_name, property_value):
 
 def _disable_legacy_protected_layer(project, language):
     """Hide the former single protected layer so it cannot be reused by mistake."""
-    layer = _managed_layer(project, "savonia/service_id", "syke_protected_areas")
+    layer = _managed_layer(project, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", "syke_protected_areas")
     if layer is None:
         return
-    layer.setCustomProperty("savonia/legacy_service_id", "syke_protected_areas")
-    layer.setCustomProperty("savonia/service_id", "")
+    layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "legacy_service_id", "syke_protected_areas")
+    layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", "")
     layer.setName(tr(language, "legacy_protected_layer"))
     node = project.layerTreeRoot().findLayer(layer.id())
     if node is not None:
@@ -128,7 +129,7 @@ def _style_forest_source(layer, service_id):
 
 def _place_grid_last(project, group):
     """Move only the managed grid; preserve all other reference-layer order."""
-    layer = _managed_layer(project, "savonia/service_id", "forest_centre_gridcell")
+    layer = _managed_layer(project, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", "forest_centre_gridcell")
     if layer is None:
         return
     node = _place_layer_in_group(project, group, layer)
@@ -145,10 +146,10 @@ def _place_grid_last(project, group):
 
 
 def _localized_group(root, group_id, label):
-    node = _managed_node(root, "savonia/group_id", group_id)
+    node = _managed_node(root, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "group_id", group_id)
     if node is None:
         node = root.addGroup(label)
-        node.setCustomProperty("savonia/group_id", group_id)
+        node.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "group_id", group_id)
     else:
         node.setName(label)
     return node
@@ -177,7 +178,7 @@ def ensure_group_order(project, language):
     for group_id, label_key in GROUP_IDS:
         groups.append(_localized_group(root, group_id, tr(language, label_key)))
     for index, group_id in enumerate(("results", "references", "basemaps")):
-        current = _managed_node(root, "savonia/group_id", group_id)
+        current = _managed_node(root, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "group_id", group_id)
         _move_group_to_index(project, root, current, index)
     # A custom order can override tree order. Reset it to the layer-tree order
     # so the visible tree and map rendering follow the same documented stack.
@@ -187,7 +188,7 @@ def ensure_group_order(project, language):
     except AttributeError:
         pass
     return {
-        group_id: _managed_node(root, "savonia/group_id", group_id)
+        group_id: _managed_node(root, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "group_id", group_id)
         for group_id, _label_key in GROUP_IDS
     }
 
@@ -195,17 +196,17 @@ def ensure_group_order(project, language):
 def results_group(project, language):
     """Return the existing results group, creating only that group if needed."""
     root = project.layerTreeRoot()
-    group = _managed_node(root, "savonia/group_id", "results")
+    group = _managed_node(root, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "group_id", "results")
     if group is None:
         group = root.addGroup(tr(language, "results_group"))
-        group.setCustomProperty("savonia/group_id", "results")
+        group.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "group_id", "results")
     return group
 
 
 def _add_or_relabel_wfs(project, group, service_id, language):
     definition = SERVICE_DEFINITIONS[service_id]
     label = tr(language, definition["name_key"])
-    layer = _managed_layer(project, "savonia/service_id", service_id)
+    layer = _managed_layer(project, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", service_id)
     if layer is not None:
         _place_layer_in_group(project, group, layer)
         layer.setName(label)
@@ -219,18 +220,18 @@ def _add_or_relabel_wfs(project, group, service_id, language):
                 "service_id": service_id, "status": "UNAVAILABLE", "error_code": exc.code,
                 "message": tr(language, "source_discovery_detail", detail="{0}: {1}".format(exc.code, safe_source_error(exc.message))),
             }
-        configured_type = layer.customProperty("savonia/feature_type", "")
+        configured_type = layer.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "feature_type", "")
         if configured_type and configured_type != metadata["feature_type"]:
-            layer.setCustomProperty("savonia/schema_changed_to", metadata["feature_type"])
+            layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "schema_changed_to", metadata["feature_type"])
             return layer, {
                 "service_id": service_id,
                 "status": "SCHEMA_CHANGED",
                 "message": tr(language, "source_schema_changed", old=configured_type, new=metadata["feature_type"]),
                 "metadata": metadata,
             }
-        layer.setCustomProperty("savonia/schema_changed_to", "")
-        layer.setCustomProperty("savonia/query_time", metadata["query_time"])
-        layer.setCustomProperty("savonia/schema_json", json.dumps(metadata["properties"], ensure_ascii=False))
+        layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "schema_changed_to", "")
+        layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "query_time", metadata["query_time"])
+        layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "schema_json", json.dumps(metadata["properties"], ensure_ascii=False))
         status, message, readiness = _setup_readiness(
             service_id, provider_field_names(layer), language
         )
@@ -260,12 +261,12 @@ def _add_or_relabel_wfs(project, group, service_id, language):
             "metadata": metadata,
         }
     _style_forest_source(layer, service_id)
-    layer.setCustomProperty("savonia/service_id", service_id)
-    layer.setCustomProperty("savonia/endpoint", metadata["endpoint"])
-    layer.setCustomProperty("savonia/feature_type", metadata["feature_type"])
-    layer.setCustomProperty("savonia/source_crs", metadata["source_crs"])
-    layer.setCustomProperty("savonia/query_time", metadata["query_time"])
-    layer.setCustomProperty("savonia/schema_json", json.dumps(metadata["properties"], ensure_ascii=False))
+    layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", service_id)
+    layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "endpoint", metadata["endpoint"])
+    layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "feature_type", metadata["feature_type"])
+    layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "source_crs", metadata["source_crs"])
+    layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "query_time", metadata["query_time"])
+    layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "schema_json", json.dumps(metadata["properties"], ensure_ascii=False))
     project.addMapLayer(layer, False)
     _place_layer_in_group(project, group, layer)
     status, message, readiness = _setup_readiness(
@@ -284,7 +285,7 @@ def _remove_empty_results_placeholder(project):
     """Remove the obsolete setup layer without touching completed run outputs."""
     for layer in list(project.mapLayers().values()):
         if (
-            layer.customProperty("savonia/layer_id", "") == RESULTS_LAYER_ID
+            layer.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "layer_id", "") == RESULTS_LAYER_ID
             and layer.providerType() == "memory"
             and layer.featureCount() == 0
         ):
@@ -292,7 +293,7 @@ def _remove_empty_results_placeholder(project):
 
 
 def _ensure_osm(project, basemaps_group, language):
-    layer = _managed_layer(project, "savonia/layer_id", OSM_LAYER_ID)
+    layer = _managed_layer(project, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "layer_id", OSM_LAYER_ID)
     if layer is not None:
         layer.setName(tr(language, "osm_layer"))
         _place_layer_in_group(project, basemaps_group, layer)
@@ -304,8 +305,8 @@ def _ensure_osm(project, basemaps_group, language):
     )
     if not layer.isValid():
         return None
-    layer.setCustomProperty("savonia/layer_id", OSM_LAYER_ID)
-    layer.setCustomProperty("savonia/managed", True)
+    layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "layer_id", OSM_LAYER_ID)
+    layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "managed", True)
     project.addMapLayer(layer, False)
     basemaps_group.addLayer(layer)
     return layer

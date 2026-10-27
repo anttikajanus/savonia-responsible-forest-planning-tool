@@ -8,7 +8,10 @@ import unittest
 from unittest.mock import patch
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-sys.path.insert(0, os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])))
+sys.path.insert(0, os.environ.get(
+    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
+    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
+))
 
 from qgis.core import Qgis, QgsApplication, QgsProcessing, QgsProject, QgsVectorLayer
 

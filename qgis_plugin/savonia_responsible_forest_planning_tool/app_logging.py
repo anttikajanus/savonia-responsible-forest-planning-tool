@@ -10,6 +10,7 @@ from logging.handlers import RotatingFileHandler
 from qgis.core import Qgis, QgsApplication, QgsMessageLog
 
 
+LOG_DIRECTORY_NAME = "savonia_responsible_forest_planning_tool"
 PLUGIN_TAG = "Savonia - Responsible Forest Planning"
 LOGGER_NAME = "savonia_responsible_forest_planning_tool"
 BUSINESS_LOGGER_NAME = "savonia_responsible_forest_planning.business_actions"
@@ -86,7 +87,7 @@ def configure_logging():
 
     settings_dir = QgsApplication.qgisSettingsDirPath()
     log_dir = os.path.join(
-        settings_dir, "savonia_responsible_forest_planning_tool", "logs"
+        settings_dir, LOG_DIRECTORY_NAME, "logs"
     )
     try:
         os.makedirs(log_dir, exist_ok=True)

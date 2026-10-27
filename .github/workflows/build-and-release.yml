@@ -36,8 +36,8 @@ jobs:
         run: |
           $archive = Get-ChildItem qgis_plugin/dist/*.zip
           if (@($archive).Count -ne 1) { throw 'Expected one plugin ZIP' }
-          $env:SAVONIA_TEST_PLUGIN_ROOT = Join-Path $env:RUNNER_TEMP 'installed-plugin'
-          Expand-Archive -LiteralPath $archive.FullName -DestinationPath $env:SAVONIA_TEST_PLUGIN_ROOT
+          $env:RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT = Join-Path $env:RUNNER_TEMP 'installed-plugin'
+          Expand-Archive -LiteralPath $archive.FullName -DestinationPath $env:RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT
           python -m unittest discover -s qgis_plugin/tests -v
       - name: Upload installable ZIP
         uses: actions/upload-artifact@v7
@@ -79,8 +79,8 @@ jobs:
         run: |
           $archive = Get-ChildItem qgis_plugin/dist/*.zip
           if (@($archive).Count -ne 1) { throw 'Expected one release ZIP' }
-          $env:SAVONIA_TEST_PLUGIN_ROOT = Join-Path $env:RUNNER_TEMP 'release-plugin'
-          Expand-Archive -LiteralPath $archive.FullName -DestinationPath $env:SAVONIA_TEST_PLUGIN_ROOT
+          $env:RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT = Join-Path $env:RUNNER_TEMP 'release-plugin'
+          Expand-Archive -LiteralPath $archive.FullName -DestinationPath $env:RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT
           python -m unittest discover -s qgis_plugin/tests -v
       - name: Tag versioned release commit
         if: steps.version.outputs.existing != 'true'

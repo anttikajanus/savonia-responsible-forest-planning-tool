@@ -12,8 +12,12 @@ from ..i18n import selected_language, tr
 from .. import documentation
 from ..processing import ResponsibleForestPlanningProcessingProvider
 from ..adapters.project_setup import setup_project
-from ..adapters.sources import SYKE_USER_ID_KEY, syke_user_id
+from ..adapters.sources import SYKE_USER_ID_SETTING_KEY, syke_user_id
 from .wizard import ResponsibleForestPlanningWizard
+
+
+TOOLBAR_OBJECT_NAME = "SavoniaForestPlanningToolbar"
+WIZARD_DOCK_OBJECT_NAME = "SavoniaForestPlanningWizardDock"
 
 
 logger = logging.getLogger(LOGGER_NAME + ".ui.plugin")
@@ -41,7 +45,7 @@ class ResponsibleForestPlanningPlugin:
         logger.info("event=plugin_initialized log_directory=%s", log_dir or "unavailable")
         self.language = selected_language()
         self.toolbar = self.iface.addToolBar(tr(self.language, "toolbar_name"))
-        self.toolbar.setObjectName("SavoniaForestPlanningToolbar")
+        self.toolbar.setObjectName(TOOLBAR_OBJECT_NAME)
         self.wizard_action = QAction(tr(self.language, "open_wizard"), self.iface.mainWindow())
         self.wizard_action.setIcon(
             self.iface.mainWindow().style().standardIcon(QStyle.StandardPixmap.SP_FileDialogContentsView)
@@ -120,7 +124,7 @@ class ResponsibleForestPlanningPlugin:
         if self.dock is not None:
             return
         self.dock = QDockWidget(tr(self.language, "wizard_title"), self.iface.mainWindow())
-        self.dock.setObjectName("SavoniaForestPlanningWizardDock")
+        self.dock.setObjectName(WIZARD_DOCK_OBJECT_NAME)
         self.dock.setAllowedAreas(
             Qt.DockWidgetArea.LeftDockWidgetArea
             | Qt.DockWidgetArea.RightDockWidgetArea
@@ -190,7 +194,7 @@ class ResponsibleForestPlanningPlugin:
                 tr(self.language, "syke_id_prompt"),
             )
             if accepted and identifier.strip():
-                QgsSettings().setValue(SYKE_USER_ID_KEY, identifier.strip())
+                QgsSettings().setValue(SYKE_USER_ID_SETTING_KEY, identifier.strip())
         record_business_action("project_setup_started")
         logger.info("event=project_setup_started")
         try:

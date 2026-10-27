@@ -18,8 +18,20 @@ Main application classes use the `ResponsibleForestPlanning` prefix followed by
 their role: `Plugin`, `Wizard`, `ProcessingProvider`, `InputsAlgorithm`,
 `AnalysisTask` and `AboutDialog`. The plugin owns its Processing provider through
 `self.processing_provider`. Supporting classes retain descriptive role names.
-Processing IDs, settings keys and Qt object names are stable independently of
-these Python class names.
+Use the application prefix where it identifies ownership across a shared boundary:
+main component classes, `RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX` and the test
+environment configuration described in [development](development.md).
+Module-local names such as `ABOUT_LINK_SCHEME`, `LOGGER_NAME`,
+`OUTPUT_FOLDER_SETTING_KEY` and `PROCESSING_PROVIDER_ID` already have clear context
+and do not repeat the application prefix. Ordinary local variables and source/domain
+constants retain descriptive names; QGIS data providers use `data_provider`,
+while a captured provider type uses `source_provider_type`. Shared property namespace
+ownership lives in the existing package `__init__.py`, which imports no QGIS code
+until `classFactory()` is called; other constants stay in their owning modules.
+Processing IDs, settings keys, custom property keys, Qt object names, log paths,
+output prefixes and displayed tool names keep their existing values independently
+of Python identifier names. The `savonia/` property namespace is represented by
+`RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX` for saved-project compatibility.
 
 ## One execution path
 

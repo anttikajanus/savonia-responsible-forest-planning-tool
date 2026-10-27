@@ -16,6 +16,11 @@ from ..app_logging import LOGGER_NAME, PLUGIN_TAG
 from ..analysis.workflow import run_workflow
 
 
+PROCESSING_PROVIDER_ID = "savonia_forest_planning"
+PROCESSING_GROUP_ID = "savonia_forest_planning"
+INPUTS_ALGORITHM_NAME = "prepare_forest_scenario_inputs"
+
+
 class ResponsibleForestPlanningInputsAlgorithm(QgsProcessingAlgorithm):
     AOI = "AOI"
     SELECTED_ONLY = "SELECTED_ONLY"
@@ -33,7 +38,7 @@ class ResponsibleForestPlanningInputsAlgorithm(QgsProcessingAlgorithm):
     EXCEL = "EXCEL"
 
     def name(self):
-        return "prepare_forest_scenario_inputs"
+        return INPUTS_ALGORITHM_NAME
 
     def displayName(self):
         return tr(selected_language(), "algorithm_name")
@@ -42,7 +47,7 @@ class ResponsibleForestPlanningInputsAlgorithm(QgsProcessingAlgorithm):
         return tr(selected_language(), "algorithm_group")
 
     def groupId(self):
-        return "savonia_forest_planning"
+        return PROCESSING_GROUP_ID
 
     def shortHelpString(self):
         language = selected_language()
@@ -145,7 +150,7 @@ class ResponsibleForestPlanningInputsAlgorithm(QgsProcessingAlgorithm):
 
 class ResponsibleForestPlanningProcessingProvider(QgsProcessingProvider):
     def id(self):
-        return "savonia_forest_planning"
+        return PROCESSING_PROVIDER_ID
 
     def name(self):
         return tr(selected_language(), "toolbar_name")

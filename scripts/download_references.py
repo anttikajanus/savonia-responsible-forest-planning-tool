@@ -19,6 +19,7 @@ import zipfile
 from io import BytesIO
 
 
+HTTP_USER_AGENT = "Savonia-reference-downloader/1.0"
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE_DIR = ROOT / "docs" / "references" / "service-metadata"
 MANIFEST = REFERENCE_DIR / "manifest.json"
@@ -96,7 +97,7 @@ def request_url(url, syke_user_id):
 def fetch(url, timeout, retries):
     for attempt in range(retries + 1):
         try:
-            request = Request(url, headers={"User-Agent": "Savonia-reference-downloader/1.0"})
+            request = Request(url, headers={"User-Agent": HTTP_USER_AGENT})
             with urlopen(request, timeout=timeout) as response:
                 return response.read()
         except HTTPError as error:

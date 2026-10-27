@@ -5,7 +5,10 @@ from pathlib import Path
 import sys
 import unittest
 
-sys.path.insert(0, os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[1])))
+sys.path.insert(0, os.environ.get(
+    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
+    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[1])),
+))
 
 from savonia_responsible_forest_planning_tool.analysis.classification import assemble_classified_piece
 from savonia_responsible_forest_planning_tool.analysis.grid_indicators import summarize_indicator_rows

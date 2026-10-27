@@ -40,10 +40,11 @@ network-disconnected acceptance remains pending. Automated/headless checks do
 not close these items. Use the procedures below and record build/runtime,
 locale, date and outcome when checking them:
 
-On 27 October 2026, the main-component class naming refactor passed lint, 33 pure
-tests and 62 offscreen QGIS 4.2.3 tests against source and the extracted plugin ZIP,
-including Finnish/English workflow, help and lifecycle checks. These checks leave
-the interactive acceptance items below pending.
+On 27 October 2026, the component naming and prefix cleanup passed lint, 15 tooling
+tests, and 33 pure plus 62 offscreen QGIS 4.2.3 tests against source and the extracted
+plugin ZIP, including Finnish/English workflow, help and lifecycle checks.
+Preferred/legacy test-root configuration and persisted project-property keys were
+also checked. These checks leave the interactive acceptance items below pending.
 
 | Pending check | Procedure |
 | --- | --- |

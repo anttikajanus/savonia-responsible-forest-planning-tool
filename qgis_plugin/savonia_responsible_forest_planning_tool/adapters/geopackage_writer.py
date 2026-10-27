@@ -64,9 +64,9 @@ def _table_layer(name, rows):
         for key in row:
             if key not in keys:
                 keys.append(key)
-    provider = layer.dataProvider()
+    data_provider = layer.dataProvider()
     require_provider_success(
-        provider.addAttributes([QgsField(key, QVariant.String) for key in keys]),
+        data_provider.addAttributes([QgsField(key, QVariant.String) for key in keys]),
         "{0} table fields".format(name),
     )
     layer.updateFields()
@@ -75,7 +75,7 @@ def _table_layer(name, rows):
         feature = QgsFeature(layer.fields())
         feature.setAttributes([stringify(row.get(key)) for key in keys])
         features.append(feature)
-    require_provider_success(provider.addFeatures(features), "{0} table features".format(name))
+    require_provider_success(data_provider.addFeatures(features), "{0} table features".format(name))
     layer.updateExtents()
     return layer
 

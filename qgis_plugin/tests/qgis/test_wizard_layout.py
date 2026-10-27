@@ -8,7 +8,8 @@ from unittest.mock import Mock
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 sys.path.insert(0, os.environ.get(
-    "SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])
+    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
+    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
 ))
 
 from qgis.PyQt.QtCore import QPoint, QSize

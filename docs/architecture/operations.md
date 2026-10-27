@@ -4,6 +4,11 @@ The [development guide](development.md) owns setup, reload, debugger, test and p
 
 ## Logging
 
+Logging constants retain descriptive module-local names in `app_logging.py`,
+including `LOGGER_NAME`, `BUSINESS_LOGGER_NAME`, `PLUGIN_TAG` and
+`LOG_DIRECTORY_NAME`. Their existing logger names, display tag, directory and
+rotation values remain stable; identifier cleanup does not change destinations.
+
 The plugin uses module loggers under `savonia_responsible_forest_planning_tool`, configured once at plugin initialization, with propagation disabled. The plugin does not configure the process-wide root logger. Technical diagnostics go to UTF-8 `technical.log` at DEBUG and selected INFO/WARNING/ERROR records go one-way to QGIS's Log Messages panel under the stable plugin tag. ERROR/CRITICAL maps to QGIS Critical, WARNING to Warning, other selected records to Info; routine messages use `notifyUser=False` and panel forwarding strips tracebacks. The detailed file retains them. [ADR-0007](adr/0007-separate-operational-log-channels.md), [app_logging.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/app_logging.py).
 
 Structured operation events use a separate logger and UTF-8 `business-actions.jsonl`: timestamp, stable event, outcome/context, run ID, entry point and necessary aggregate counts/choices. These are local operational records, not telemetry or the durable analysis record. Avoid user identity, project/layer names, paths, credentials and feature-level data in this channel. Technical diagnostics may retain the minimum relevant source/stage identifiers needed to reproduce a defect; credentials and unnecessary source/personal data stay out of both channels.

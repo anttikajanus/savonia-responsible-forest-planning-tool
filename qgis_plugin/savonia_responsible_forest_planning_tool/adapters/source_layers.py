@@ -3,6 +3,7 @@
 import json
 import urllib.parse
 
+from .. import RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX
 from ..analysis.source_readiness import assess_source_schema
 from ..i18n import source_readiness_message, tr
 from .sources import SERVICE_DEFINITIONS
@@ -10,8 +11,8 @@ from .sources import SERVICE_DEFINITIONS
 
 def provider_field_names(layer):
     """Return source-provider fields, excluding project joins and virtual fields."""
-    provider = layer.dataProvider()
-    return [field.name() for field in provider.fields()] if provider is not None else []
+    data_provider = layer.dataProvider()
+    return [field.name() for field in data_provider.fields()] if data_provider is not None else []
 
 
 def verify_source_layer(layer, service_id, language="en"):
@@ -25,7 +26,7 @@ def verify_source_layer(layer, service_id, language="en"):
     definition = SERVICE_DEFINITIONS[service_id]
     expected_endpoint = definition["endpoint"].lower()
     uri = urllib.parse.unquote(layer.source()).lower()
-    configured_endpoint = layer.customProperty("savonia/endpoint", "").lower()
+    configured_endpoint = layer.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "endpoint", "").lower()
     # Layer names are user-editable, so verify the provider identity before
     # trusting the discovery metadata saved on the layer.
     if expected_endpoint not in uri and configured_endpoint != expected_endpoint:
@@ -34,8 +35,8 @@ def verify_source_layer(layer, service_id, language="en"):
             "message": tr(language, "source_endpoint_mismatch"),
         }
 
-    configured_type = layer.customProperty("savonia/feature_type", "")
-    changed_type = layer.customProperty("savonia/schema_changed_to", "")
+    configured_type = layer.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "feature_type", "")
+    changed_type = layer.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "schema_changed_to", "")
     if changed_type:
         return None, {
             "reason_code": "SOURCE_FEATURE_TYPE_CHANGED",
@@ -47,7 +48,7 @@ def verify_source_layer(layer, service_id, language="en"):
             "message": tr(language, "source_endpoint_mismatch"),
         }
 
-    raw_schema = layer.customProperty("savonia/schema_json", "")
+    raw_schema = layer.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "schema_json", "")
     try:
         properties = json.loads(raw_schema)
     except (TypeError, ValueError):
@@ -57,8 +58,8 @@ def verify_source_layer(layer, service_id, language="en"):
         "provider": "WFS",
         "endpoint": configured_endpoint or definition["endpoint"],
         "feature_type": configured_type,
-        "query_time": layer.customProperty("savonia/query_time", ""),
-        "source_crs": layer.customProperty("savonia/source_crs", ""),
+        "query_time": layer.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "query_time", ""),
+        "source_crs": layer.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "source_crs", ""),
         "properties": properties,
     }
     field_names = provider_field_names(layer)

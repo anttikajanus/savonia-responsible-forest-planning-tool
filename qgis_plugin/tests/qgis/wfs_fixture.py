@@ -76,7 +76,7 @@ class LocalWfs:
         )
         return (
             '<WFS_Capabilities version="1.0.0" xmlns="http://www.opengis.net/wfs" '
-            'xmlns:fixture="urn:savonia:fixture"><Service><Name>WFS</Name><Title>Local fixture</Title>'
+            'xmlns:fixture="urn:responsible-forest-planning:fixture"><Service><Name>WFS</Name><Title>Local fixture</Title>'
             '</Service><Capability><Request>{0}</Request></Capability><FeatureTypeList>'
             '<Operations><Query/></Operations>{1}</FeatureTypeList></WFS_Capabilities>'
         ).format(operations, types)
@@ -89,8 +89,8 @@ class LocalWfs:
         )
         return (
             '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" '
-            'xmlns:gml="http://www.opengis.net/gml" xmlns:fixture="urn:savonia:fixture" '
-            'targetNamespace="urn:savonia:fixture" elementFormDefault="qualified">'
+            'xmlns:gml="http://www.opengis.net/gml" xmlns:fixture="urn:responsible-forest-planning:fixture" '
+            'targetNamespace="urn:responsible-forest-planning:fixture" elementFormDefault="qualified">'
             '<xsd:complexType name="{0}Type"><xsd:complexContent><xsd:extension base="gml:AbstractFeatureType">'
             '<xsd:sequence><xsd:element name="geometry" type="gml:PolygonPropertyType"/>{1}'
             '</xsd:sequence></xsd:extension></xsd:complexContent></xsd:complexType>'
@@ -125,6 +125,6 @@ class LocalWfs:
             ).format(source, index, record["coordinates"], fields))
         return (
             '<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs" '
-            'xmlns:gml="http://www.opengis.net/gml" xmlns:fixture="urn:savonia:fixture" numberOfFeatures="{0}">'
+            'xmlns:gml="http://www.opengis.net/gml" xmlns:fixture="urn:responsible-forest-planning:fixture" numberOfFeatures="{0}">'
             '{1}</wfs:FeatureCollection>'
         ).format(len(records), "".join(members))

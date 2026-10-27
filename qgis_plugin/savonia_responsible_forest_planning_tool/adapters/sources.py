@@ -10,11 +10,12 @@ import re
 from qgis.core import QgsDataSourceUri, QgsSettings
 
 
-SYKE_USER_ID_KEY = "savonia-forest-planning/sykeuserid"
+HTTP_USER_AGENT = "SavoniaResponsibleForestPlanning/1.0"
+SYKE_USER_ID_SETTING_KEY = "savonia-forest-planning/sykeuserid"
 
 
 def syke_user_id():
-    return str(QgsSettings().value(SYKE_USER_ID_KEY, "") or "").strip()
+    return str(QgsSettings().value(SYKE_USER_ID_SETTING_KEY, "") or "").strip()
 
 
 def safe_source_error(error):
@@ -119,7 +120,7 @@ def _request_xml(url, params=None, timeout=30, service_id=None):
     full_url = url + ("&" if "?" in url else "?") + urllib.parse.urlencode(query)
     request = urllib.request.Request(
         full_url,
-        headers={"User-Agent": "SavoniaResponsibleForestPlanning/1.0", "Accept": "application/xml,text/xml"},
+        headers={"User-Agent": HTTP_USER_AGENT, "Accept": "application/xml,text/xml"},
     )
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:

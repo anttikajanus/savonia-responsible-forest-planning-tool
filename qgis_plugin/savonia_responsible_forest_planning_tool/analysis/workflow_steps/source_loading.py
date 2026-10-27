@@ -308,14 +308,14 @@ def _read_source(context):
     progress_start = context.progress_start
     progress_end = context.progress_end
 
-    provider = layer.dataProvider()
-    if layer.thread() != QThread.currentThread() or provider.thread() != QThread.currentThread():
+    data_provider = layer.dataProvider()
+    if layer.thread() != QThread.currentThread() or data_provider.thread() != QThread.currentThread():
         raise QgsProcessingException(tr(language, "source_request_failed",
                                         detail=service_id + ": SOURCE_THREAD_OWNERSHIP_VIOLATION"))
     # Flush earlier queued failures before clearing them, so a successful retry
     # is judged by this request's errors rather than stale provider state.
-    QCoreApplication.sendPostedEvents(provider, QEvent.Type.MetaCall)
-    provider.clearErrors()
+    QCoreApplication.sendPostedEvents(data_provider, QEvent.Type.MetaCall)
+    data_provider.clearErrors()
 
     if not layer.crs().isValid():
         raise QgsProcessingException(tr(language, "error_source_crs", source=service_id))
@@ -469,9 +469,9 @@ def _read_source(context):
     # its errors; do not process unrelated application/UI events.
     if hasattr(source_iterator, "close"):
         source_iterator.close()
-    QCoreApplication.sendPostedEvents(provider, QEvent.Type.MetaCall)
+    QCoreApplication.sendPostedEvents(data_provider, QEvent.Type.MetaCall)
     _check_cancelled(feedback, language)
-    provider_errors = provider.errors()
+    provider_errors = data_provider.errors()
     if provider_errors and not request_error:
         request_error = safe_source_error("\n".join(provider_errors))
     if request_error:

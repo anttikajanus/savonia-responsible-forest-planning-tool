@@ -17,6 +17,7 @@ from qgis.core import (
 )
 from qgis.gui import QgsMapLayerComboBox, QgsMapTool, QgsRubberBand
 
+from .. import RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX
 from ..analysis.classification import TIERS
 from ..analysis.worker_task import ResponsibleForestPlanningAnalysisTask, capture_worker_inputs
 from ..adapters.sources import SERVICE_DEFINITIONS
@@ -24,7 +25,7 @@ from ..i18n import tr
 from ..adapters.project_setup import results_group
 
 
-OUTPUT_FOLDER_SETTING = "savonia-forest-planning/output-folder"
+OUTPUT_FOLDER_SETTING_KEY = "savonia-forest-planning/output-folder"
 
 
 class PolygonDrawTool(QgsMapTool):
@@ -197,7 +198,7 @@ class ResponsibleForestPlanningWizard(QWidget):
         documents_folder = QStandardPaths.writableLocation(
             QStandardPaths.StandardLocation.DocumentsLocation
         )
-        remembered_folder = QgsSettings().value(OUTPUT_FOLDER_SETTING, documents_folder)
+        remembered_folder = QgsSettings().value(OUTPUT_FOLDER_SETTING_KEY, documents_folder)
         self.output_folder.setText(str(remembered_folder or documents_folder))
         self.output_folder.editingFinished.connect(self._remember_output_folder)
         browse_button = QPushButton("…", area_page)
@@ -423,7 +424,7 @@ class ResponsibleForestPlanningWizard(QWidget):
                 canvas.unsetMapTool(self.draw_tool)
         self.draw_tool = None
         for layer in list(QgsProject.instance().mapLayers().values()):
-            if layer.customProperty("savonia/layer_id", "") == "drawn_analysis_area":
+            if layer.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "layer_id", "") == "drawn_analysis_area":
                 QgsProject.instance().removeMapLayer(layer.id())
         self.drawn_aoi = None
         self._update_drawn_aoi_status()
@@ -434,11 +435,11 @@ class ResponsibleForestPlanningWizard(QWidget):
             return
         project = QgsProject.instance()
         for existing in list(project.mapLayers().values()):
-            if existing.customProperty("savonia/layer_id", "") == "drawn_analysis_area":
+            if existing.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "layer_id", "") == "drawn_analysis_area":
                 project.removeMapLayer(existing.id())
         layer.setName(tr(self.language, "drawn_aoi_layer"))
-        layer.setCustomProperty("savonia/layer_id", "drawn_analysis_area")
-        layer.setCustomProperty("savonia/managed", True)
+        layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "layer_id", "drawn_analysis_area")
+        layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "managed", True)
         symbol = QgsFillSymbol.createSimple({
             "color": "230,100,40,55",
             "outline_color": "230,100,40,255",
@@ -459,7 +460,7 @@ class ResponsibleForestPlanningWizard(QWidget):
     def _remember_output_folder(self):
         folder = self.output_folder.text().strip()
         if folder:
-            QgsSettings().setValue(OUTPUT_FOLDER_SETTING, folder)
+            QgsSettings().setValue(OUTPUT_FOLDER_SETTING_KEY, folder)
 
     def _selected_aoi(self):
         if self.draw_mode.isChecked():
@@ -493,9 +494,9 @@ class ResponsibleForestPlanningWizard(QWidget):
             return
         project = QgsProject.instance()
         references = {
-            layer.customProperty("savonia/service_id", ""): layer
+            layer.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", ""): layer
             for layer in project.mapLayers().values()
-            if layer.customProperty("savonia/service_id", "")
+            if layer.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", "")
         }
         sources = {
             service_id: references.get(service_id)
@@ -600,7 +601,7 @@ class ResponsibleForestPlanningWizard(QWidget):
                 ):
                     raise RuntimeError("Could not apply the class filter to a result view.")
                 class_layer.setRenderer(QgsSingleSymbolRenderer(self._class_symbol(class_code)))
-                class_layer.setCustomProperty("savonia/class_view", True)
+                class_layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "class_view", True)
                 class_layers.append((tier, class_layer))
 
         # Publish clipped snapshots so the output shows the evidence actually classified,
@@ -624,7 +625,7 @@ class ResponsibleForestPlanningWizard(QWidget):
                 snapshot_layers.append(snapshot)
 
         run_group = results.addGroup(run_name)
-        run_group.setCustomProperty("savonia/run_group", run_name)
+        run_group.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "run_group", run_name)
         active_layer = None
         for tier, class_layer in class_layers:
             tier_group = run_group.findGroup(tr(self.language, "tier_" + tier))

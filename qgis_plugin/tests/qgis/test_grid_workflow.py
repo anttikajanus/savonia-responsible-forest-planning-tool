@@ -10,7 +10,10 @@ import time
 import unittest
 from unittest.mock import patch
 
-sys.path.insert(0, os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])))
+sys.path.insert(0, os.environ.get(
+    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
+    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
+))
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from qgis.core import (NULL, QgsApplication, QgsFeature, QgsGeometry, QgsProcessingContext,

@@ -166,11 +166,15 @@ integer half-up age rounding and null preservation. Compare reopened artifacts
 by semantic values with tolerances rather than GeoPackage bytes. Keep grid and
 stand volume denominators separate; never aggregate rounded age percentages.
 
-To check an extracted plugin ZIP, set `SAVONIA_TEST_PLUGIN_ROOT` to the directory
+To check an extracted plugin ZIP, set `RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT` to the directory
 containing the extracted `savonia_responsible_forest_planning_tool` folder and run
 the integration command in a new Python process. The test code remains outside
 the distributable plugin. GUI acceptance and live-source smoke checks remain
 separate from these deterministic checks.
+
+Tests also accept `SAVONIA_TEST_PLUGIN_ROOT` for existing local commands. The
+`RESPONSIBLE_FOREST_PLANNING_` variable takes precedence when both are set. CI
+uses the preferred variable. Plugin folders and archive names remain unchanged.
 
 ## Check packaging separately
 
@@ -208,7 +212,7 @@ persisted GeoPackage form groups and area explanations, and the matching
 workbook/documentation order. These checks are part of the
 [integration suite](../../qgis_plugin/tests/qgis/test_result_field_organization.py).
 Build the ZIP with `./qgis_plugin/package.ps1`, extract it and run the suites
-against that copy using `SAVONIA_TEST_PLUGIN_ROOT` as described above.
+against that copy using `RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT` as described above.
 
 For desktop acceptance, install the ZIP in a separate profile, inspect
 table/form/Identify labels and nulls in both languages, reopen the GeoPackage,
@@ -276,7 +280,7 @@ suites with the configured QGIS 4.2.3 launcher shown above. The packaging checks
 exercise both modes, including the version-incrementing path only in a temporary
 copy; they leave working metadata and generated source caches intact.
 
-For extracted-package verification, set `SAVONIA_TEST_PLUGIN_ROOT` to the directory
+For extracted-package verification, set `RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT` to the directory
 containing the extracted package and run each suite in a new Python process. All
 plugin imports in the regression suites honor that root. The packaging-script
 tests still exercise the checkout's scripts and source package; the Processing

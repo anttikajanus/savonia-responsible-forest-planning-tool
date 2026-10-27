@@ -7,6 +7,7 @@ from qgis.core import (
     QgsProcessingFeedback, QgsTask, QgsVectorLayer,
 )
 
+from .. import RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX
 from ..app_logging import LOGGER_NAME
 from ..adapters.sources import restrict_wfs_uri_to_request_bbox
 from ..i18n import tr
@@ -16,12 +17,12 @@ from .workflow import run_workflow
 logger = logging.getLogger(LOGGER_NAME + ".analysis.worker_task")
 
 SOURCE_LAYER_PROPERTIES = (
-    "savonia/endpoint",
-    "savonia/feature_type",
-    "savonia/schema_changed_to",
-    "savonia/schema_json",
-    "savonia/query_time",
-    "savonia/source_crs",
+    RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "endpoint",
+    RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "feature_type",
+    RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "schema_changed_to",
+    RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "schema_json",
+    RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "query_time",
+    RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "source_crs",
 )
 
 
@@ -58,14 +59,14 @@ def capture_worker_inputs(aoi, sources, selected_only, transform_context,
         if layer is None:
             copied_sources[service_id] = None
             continue
-        provider = str(layer.providerType())
+        source_provider_type = str(layer.providerType())
         source_uri = str(layer.source())
-        if provider.lower() == "wfs":
+        if source_provider_type.lower() == "wfs":
             source_uri = restrict_wfs_uri_to_request_bbox(source_uri)
         copied_sources[service_id] = {
             "uri": source_uri,
             "name": str(layer.name()),
-            "provider": provider,
+            "provider": source_provider_type,
             "properties": {
                 key: str(layer.customProperty(key, "") or "")
                 for key in SOURCE_LAYER_PROPERTIES

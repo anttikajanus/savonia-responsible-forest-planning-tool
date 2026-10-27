@@ -11,6 +11,9 @@ from ...adapters.sources import SERVICE_DEFINITIONS
 from .common import TARGET_CRS, _apply_coordinate_transform
 
 
+DEFAULT_OUTPUT_NAME_PREFIX = "savonia_responsible_forest_inputs_"
+
+
 def _validate_output_destination(parameters, run_id, language):
     raw_folder = str(parameters.get("output_folder") or "").strip()
     if not raw_folder:
@@ -18,7 +21,7 @@ def _validate_output_destination(parameters, run_id, language):
     folder = os.path.abspath(raw_folder)
     if os.path.exists(folder) and not os.path.isdir(folder):
         raise QgsProcessingException(tr(language, "error_output_writable", path=folder))
-    output_name = str(parameters.get("output_name") or "savonia_responsible_forest_inputs_" + run_id).strip()
+    output_name = str(parameters.get("output_name") or DEFAULT_OUTPUT_NAME_PREFIX + run_id).strip()
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,119}", output_name) or output_name in (".", ".."):
         raise QgsProcessingException(tr(language, "error_output_name"))
     check_folder = folder if os.path.isdir(folder) else os.path.dirname(folder)

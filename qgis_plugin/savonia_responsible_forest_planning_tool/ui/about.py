@@ -10,6 +10,9 @@ from .. import documentation
 from ..i18n import tr
 
 
+ABOUT_LINK_SCHEME = "savonia"
+
+
 class ResponsibleForestPlanningAboutDialog(QDialog):
     def __init__(self, plugin, parent=None):
         super().__init__(parent)
@@ -44,7 +47,9 @@ class ResponsibleForestPlanningAboutDialog(QDialog):
         if self.active_resource is not None:
             self._refresh_legal_title()
         def link(key, label):
-            return '<a href="savonia:{0}">{1}</a>'.format(key, escape(tr(language, label)))
+            return '<a href="{scheme}:{key}">{label}</a>'.format(
+                scheme=ABOUT_LINK_SCHEME,
+                key=key, label=escape(tr(language, label)))
         self.content.setHtml(
             "<h1>{name}</h1><p><strong>{prototype}</strong></p><p>{version}</p><p>{identity}</p>"
             "<p>{manual}<br>{online}<br>{repository}<br>{issues}</p>"

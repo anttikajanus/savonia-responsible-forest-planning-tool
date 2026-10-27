@@ -7,7 +7,10 @@ import tempfile
 import unittest
 import zipfile
 
-sys.path.insert(0, os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])))
+sys.path.insert(0, os.environ.get(
+    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
+    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
+))
 
 from savonia_responsible_forest_planning_tool.data_attribution import data_attribution
 from savonia_responsible_forest_planning_tool.adapters.excel_writer import write_workbook
