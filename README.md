@@ -145,19 +145,8 @@ area is the forest represented by the classified stand polygons; land outside
 those stands is not automatically included. Spatial outputs use EPSG:3067;
 areas are planar hectares.
 
-### Example polygon results
-
-Two supplied result features illustrate how to read the outputs:
-
-| Source stand | Result area | Classification | Indicator coverage |
-| --- | --- | --- | --- |
-| `40962774` | 1.87 ha | Economic in All out–Light; sensitive from Balance because of conservation programme `SSO110426` | Grid total volume and age cover only 38% of the polygon; stand volume is a known zero |
-| `40962772` | 2.23 ha | Economic in All out–Protection; sensitive in Superprotection under its remaining-forest rule | Grid total volume and age have complete coverage; deciduous volume is partial |
-
-See the [worked output examples](docs/examples/classified-forest-polygons.md)
-for the field values, classification reasons, coverage calculations and complete
-pasted attribute records. These are individual polygon results; the workbook
-summarizes polygons by tier and class.
+See the [output examples](docs/examples/classified-forest-polygons.md) and
+[output schema](docs/architecture/output-schema.md).
 
 ## Development setup
 
