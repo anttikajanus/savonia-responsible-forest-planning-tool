@@ -186,12 +186,12 @@ class WorkflowContractTests(WorkflowFixtureMixin, unittest.TestCase):
                 self.assertEqual(snapshot.featureCount(), 5)
                 requests = [query for query in fixture.requests if query.get("request", "").lower() == "getfeature"]
                 pages = [query for query in requests if query.get("typenames", "").endswith("forest_centre_gridcell")
-                         and query.get("resulttype", "").lower() != "hits" and query.get("count") != "1"]
+                         and query.get("resulttype", "").lower() != "hits"]
                 self.assertEqual([int(query.get("startindex", 0)) for query in pages], [0, 2, 4])
                 self.assertTrue(all(query.get("version") == "2.0.0" for query in requests))
-                # QGIS may probe geometry with COUNT=1 while constructing a provider.
-                # All paged analysis reads must be spatially bounded.
-                self.assertTrue(all("bbox" in query or query.get("count") == "1" for query in requests))
+                # Managed providers skip initial sample reads. Every feature
+                # request, including the first, must carry the AOI bounds.
+                self.assertTrue(all("bbox" in query for query in requests))
                 self.assertTrue(all("bbox" in query for query in pages))
 
     def test_wfs2_empty_success_differs_from_later_page_failure(self):

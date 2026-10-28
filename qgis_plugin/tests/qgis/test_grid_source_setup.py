@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -14,6 +15,8 @@ sys.path.insert(0, os.environ.get(
 ))
 
 from qgis.core import Qgis, QgsApplication, QgsProcessing, QgsProject, QgsVectorLayer
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QColor
 
 APP = QgsApplication.instance()
 if APP is None:
@@ -29,6 +32,8 @@ from savonia_responsible_forest_planning_tool.adapters.project_setup import setu
 from savonia_responsible_forest_planning_tool.i18n import tr
 from savonia_responsible_forest_planning_tool.processing.provider import ResponsibleForestPlanningInputsAlgorithm
 from wfs_fixture import LocalWfs
+from oapif_fixture import LocalOapif
+from wmts_fixture import LocalWmts
 
 
 GRID_ID = "forest_centre_gridcell"
@@ -40,6 +45,28 @@ GRID_FIELDS = {
 
 
 class GridSourceTest(unittest.TestCase):
+    def assert_grid_style(self, project):
+        grid = next(layer for layer in project.mapLayers().values()
+                    if layer.customProperty("savonia/service_id", "") == GRID_ID)
+        symbol = grid.renderer().symbol().symbolLayer(0)
+        self.assertEqual(symbol.brushStyle(), Qt.BrushStyle.NoBrush)
+        self.assertEqual(symbol.strokeStyle(), Qt.PenStyle.SolidLine)
+        self.assertEqual(symbol.strokeColor(), QColor("#006400"))
+        self.assertEqual(symbol.strokeWidth(), 0.25)
+        self.assertEqual(symbol.strokeWidthUnit(), Qgis.RenderUnit.Millimeters)
+
+    def assert_forest_visibility(self, project):
+        for service_id in ("forest_centre_stand", "forest_centre_habitat"):
+            layer = next(layer for layer in project.mapLayers().values()
+                         if layer.customProperty("savonia/service_id", "") == service_id)
+            with self.subTest(service_id=service_id):
+                self.assertTrue(layer.hasScaleBasedVisibility())
+                self.assertEqual(layer.maximumScale(), 0.0)
+                self.assertTrue(layer.isInScaleRange(1000))
+                self.assertTrue(layer.isInScaleRange(7763))
+                self.assertFalse(layer.isInScaleRange(7763.001))
+                self.assertFalse(layer.isInScaleRange(500000))
+
     def test_grid_provider_fields_are_ready_independently_of_saved_schema(self):
         self.assertIn(GRID_ID, SERVICE_DEFINITIONS)
         with LocalWfs({GRID_ID: GRID_FIELDS}) as fixture:
@@ -111,43 +138,112 @@ class GridSourceTest(unittest.TestCase):
         basemap = QgsVectorLayer("Polygon?crs=EPSG:3067", "basemap", "memory")
         basemap.setCustomProperty("savonia/layer_id", "osm_xyz")
         project.addMapLayer(basemap)
-        with LocalWfs(sources) as fixture:
+        with LocalWfs(sources) as fixture, LocalOapif() as parcels, LocalWmts() as maps:
             definitions = {
                 source: {**definition, "endpoint": fixture.endpoint, "feature_type": "fixture:" + source}
                 for source, definition in SERVICE_DEFINITIONS.items()
             }
-            with patch.dict(SERVICE_DEFINITIONS, definitions):
+            with (patch.dict(SERVICE_DEFINITIONS, definitions),
+                  patch("savonia_responsible_forest_planning_tool.adapters.sources.MML_WMTS_CAPABILITIES", maps.capabilities_url),
+                  patch("savonia_responsible_forest_planning_tool.adapters.sources.mml_api_key", return_value=parcels.key),
+                  patch("savonia_responsible_forest_planning_tool.adapters.project_setup.mml_api_key", return_value=parcels.key),
+                  patch("savonia_responsible_forest_planning_tool.adapters.sources.MML_PARCEL_ENDPOINT", parcels.endpoint)):
                 first = setup_project(project, "en")
+                QgsApplication.processEvents()
+                QgsApplication.processEvents()
                 self.assertTrue(first["ready"], first["sources"])
+                self.assert_forest_visibility(project)
+                self.assert_grid_style(project)
                 references = project.layerTreeRoot().findGroup(tr("en", "references_group"))
+                expected = (
+                    ("property_group", ("mml_parcels", "mml_property_identifiers")),
+                    ("forest_group", ("forest_centre_habitat", "forest_centre_stand", GRID_ID)),
+                    ("protected_group", ("syke_nature_conservation_programme_areas",
+                                         "syke_protected_areas_wilderness",
+                                         "syke_protected_areas_state_owned",
+                                         "syke_protected_areas_private_land")),
+                    ("water_group", ("syke_groundwater_areas",)),
+                )
+                original_ids = set(project.mapLayers())
+                forest = references.children()[1]
                 grid = next(layer for layer in project.mapLayers().values()
                             if layer.customProperty("savonia/service_id", "") == GRID_ID)
                 grid_id = grid.id()
-                self.assertEqual(references.children()[-1].layerId(), grid_id)
+                self.assertEqual(forest.children()[-1].layerId(), grid_id)
                 self.assertTrue(grid.hasScaleBasedVisibility())
                 self.assertTrue(grid.isInScaleRange(200))
                 self.assertTrue(grid.isInScaleRange(300))
                 self.assertFalse(grid.isInScaleRange(300.001))
                 self.assertFalse(grid.isInScaleRange(500))
-                # A user layer appended after setup must retain its position
-                # relative to the other references when the grid moves below it.
+                # User layers survive grouping and group reorder, with check states.
                 user = QgsVectorLayer("Polygon?crs=EPSG:3067", "user reference", "memory")
                 project.addMapLayer(user, False)
-                user_node = references.addLayer(user)
-                other_ids = [node.layerId() for node in references.children() if node.layerId() != grid_id]
+                references.addLayer(user).setItemVisibilityChecked(False)
+                forest.children()[0].setItemVisibilityChecked(False)
                 # Also exercise restoring the managed group order after a user
                 # adds another group above it; all existing children must survive.
                 project.layerTreeRoot().insertGroup(0, "user group")
                 for language in ("fi", "en", "fi"):
+                    grid.renderer().symbol().symbolLayer(0).setBrushStyle(Qt.BrushStyle.SolidPattern)
+                    grid.renderer().symbol().symbolLayer(0).setStrokeColor(QColor("red"))
+                    # Repeated setup restores limits on reused layers too.
+                    for layer in project.mapLayers().values():
+                        if layer.customProperty("savonia/service_id", "") in (
+                                "forest_centre_stand", "forest_centre_habitat"):
+                            layer.setScaleBasedVisibility(False)
+                            layer.setMinimumScale(500000)
+                            layer.setMaximumScale(2000)
                     result = setup_project(project, language)
+                    QgsApplication.processEvents()
+                    QgsApplication.processEvents()
                     references = project.layerTreeRoot().findGroup(tr(language, "references_group"))
                     self.assertTrue(result["ready"], result["sources"])
-                    self.assertEqual(references.children()[-1].layerId(), grid_id)
-                    self.assertEqual([node.layerId() for node in references.children()[:-1]], other_ids,
-                                     [node.name() for node in references.children()])
+                    self.assert_forest_visibility(project)
+                    self.assert_grid_style(project)
+                    self.assertEqual([node.name() for node in references.children()[:4]],
+                                     [tr(language, key) for key, _ids in expected])
+                    for group, (_key, ids) in zip(references.children(), expected):
+                        self.assertEqual([node.layer().customProperty("savonia/service_id")
+                                          for node in group.children()], list(ids))
+                    self.assertEqual(references.children()[4].layerId(), user.id())
+                    self.assertFalse(references.children()[4].itemVisibilityChecked())
+                    self.assertFalse(references.children()[1].children()[0].itemVisibilityChecked())
+                    self.assertEqual(set(project.mapLayers()), original_ids | {user.id()})
+                    protected = [node.layer() for node in references.children()[2].children()]
+                    symbols = [layer.renderer().symbol().symbolLayer(0) for layer in protected]
+                    groundwater = references.children()[3].children()[0].layer().renderer().symbol().symbolLayer(0)
+                    self.assertTrue(all(symbol.color() == symbols[0].color() for symbol in symbols))
+                    for symbol in symbols:
+                        self.assertEqual(symbol.color().alpha(), groundwater.color().alpha())
+                        self.assertEqual(symbol.strokeColor().alpha(), groundwater.strokeColor().alpha())
+                        self.assertEqual(symbol.strokeWidth(), groundwater.strokeWidth())
                     self.assertEqual(grid.name(), tr(language, "gridcell_layer"))
                     self.assertEqual(sum(layer.customProperty("savonia/service_id", "") == GRID_ID
                                          for layer in project.mapLayers().values()), 1)
+                # A setup rerun restores the three layers absent in the reported UI.
+                missing = {"forest_centre_habitat", "syke_nature_conservation_programme_areas",
+                           "syke_protected_areas_wilderness"}
+                project.removeMapLayers([layer.id() for layer in project.mapLayers().values()
+                                         if layer.customProperty("savonia/service_id", "") in missing])
+                restored = setup_project(project, "fi")
+                QgsApplication.processEvents()
+                QgsApplication.processEvents()
+                self.assertTrue(restored["ready"], restored["sources"])
+                self.assert_forest_visibility(project)
+                self.assertEqual({layer.customProperty("savonia/service_id", "")
+                                  for layer in project.mapLayers().values()} - {""},
+                                 set(SERVICE_DEFINITIONS) | {"mml_parcels", "mml_property_identifiers"})
+                self.assertEqual(len(project.layerTreeRoot().findLayers()), len(project.mapLayers()))
+                with tempfile.TemporaryDirectory() as folder:
+                    filename = str(Path(folder) / "forest.qgs")
+                    self.assertTrue(project.write(filename))
+                    reopened = QgsProject()
+                    try:
+                        self.assertTrue(reopened.read(filename))
+                        self.assert_forest_visibility(reopened)
+                        self.assert_grid_style(reopened)
+                    finally:
+                        reopened.clear()
         project.clear()
 
     def test_processing_exposes_required_polygon_grid_parameter_in_both_languages(self):

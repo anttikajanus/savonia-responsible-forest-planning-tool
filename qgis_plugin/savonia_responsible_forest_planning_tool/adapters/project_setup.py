@@ -3,16 +3,21 @@
 import json
 
 from qgis.core import (
-    QgsFillSymbol, QgsLayerTreeNode, QgsProject, QgsRasterLayer,
-    QgsSingleSymbolRenderer, QgsVectorLayer,
+    Qgis, QgsFillSymbol, QgsLayerTreeNode, QgsNullSymbolRenderer, QgsPalLayerSettings, QgsProject, QgsRasterLayer,
+    QgsSingleSymbolRenderer, QgsTextBufferSettings, QgsTextFormat, QgsVectorLayer, QgsVectorLayerSimpleLabeling,
 )
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QColor, QFont
 
 from .. import RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX
 from ..i18n import source_readiness_message, tr
 from .source_layers import provider_field_names
 from .sources import (
     SERVICE_DEFINITIONS, SourceError, inspect_service, qgis_wfs_uri,
-    safe_source_error, syke_user_id,
+    safe_source_error, syke_user_id, mml_api_key, qgis_mml_uri,
+    MML_PARCEL_SERVICE_ID, MML_PARCEL_COLLECTION, MML_PARCEL_LABEL_FIELD,
+    MML_IDENTIFIER_SERVICE_ID, MML_IDENTIFIER_COLLECTION,
+    qgis_mml_wmts_uri,
 )
 from ..analysis.source_readiness import assess_source_schema
 
@@ -24,9 +29,25 @@ GROUP_IDS = (
 )
 RESULTS_LAYER_ID = "classified_forest_polygons"
 OSM_LAYER_ID = "osm_xyz"
+BASEMAPS = (
+    ("mml_ortokuva", "orthophoto_layer", "ortokuva", "image/jpeg"),
+    ("mml_maastokartta", "topographic_layer", "maastokartta", "image/png"),
+)
 DETAILED_REFERENCE_SERVICE_IDS = frozenset(("forest_centre_stand", "forest_centre_habitat"))
-REFERENCE_MINIMUM_VISIBLE_SCALE = 500000.0
+FOREST_MINIMUM_VISIBLE_SCALE = 7763.0
+REFERENCE_MINIMUM_VISIBLE_SCALE = 25000.0
+IDENTIFIER_MINIMUM_VISIBLE_SCALE = 10000.0
 GRID_MINIMUM_VISIBLE_SCALE = 300.0
+REFERENCE_GROUPS = (
+    ("properties", "property_group", (MML_PARCEL_SERVICE_ID, MML_IDENTIFIER_SERVICE_ID)),
+    ("forest", "forest_group", ("forest_centre_habitat", "forest_centre_stand", "forest_centre_gridcell")),
+    ("protected", "protected_group", (
+        "syke_nature_conservation_programme_areas", "syke_protected_areas_wilderness",
+        "syke_protected_areas_state_owned", "syke_protected_areas_private_land",
+    )),
+    ("water", "water_group", ("syke_groundwater_areas",)),
+)
+PROTECTED_SERVICE_IDS = frozenset(REFERENCE_GROUPS[2][2])
 
 
 def _managed_node(parent, property_name, property_value):
@@ -66,15 +87,25 @@ def _place_layer_in_group(project, group, layer):
         return node
     if node is None:
         return group.addLayer(layer)
-    bridge = project.layerTreeRegistryBridge()
-    bridge_was_enabled = bridge.isEnabled()
-    bridge.setEnabled(False)
-    try:
-        node.parent().takeChild(node)
-        group.addChildNode(node)
-    finally:
-        bridge.setEnabled(bridge_was_enabled)
-    return node
+    return _move_tree_node(node, group, len(group.children()))
+
+
+def _move_tree_node(node, parent, index):
+    """Keep a layer's tree presence continuous during registry synchronization."""
+    old_parent = node.parent()
+    if old_parent == parent:
+        old_index = parent.children().index(node)
+        if old_index == index:
+            return node
+        if old_index < index:
+            index += 1
+    replacement = node.clone()
+    # QGIS queues project-layer deletion when the last tree node disappears.
+    # Disabling the registry bridge does not suppress its tree-removal slots.
+    # Match native drag/drop: insert the replacement before removing the old node.
+    parent.insertChildNode(index, replacement)
+    old_parent.removeChildNode(node)
+    return replacement
 
 
 def _setup_readiness(service_id, field_names, language):
@@ -92,7 +123,7 @@ def _syke_id_notice(service_id, language):
 
 
 def _style_forest_source(layer, service_id):
-    """Apply stable project colors to the stand and habitat polygon layers."""
+    """Apply stable project colors to managed reference polygon layers."""
     styles = {
         "forest_centre_stand": {
             "color": "75,150,85,255",
@@ -104,6 +135,13 @@ def _style_forest_source(layer, service_id):
             "outline_color": "105,155,80,255",
             "outline_width": "0.35",
         },
+        "forest_centre_gridcell": {
+            "style": "no",
+            "outline_style": "solid",
+            "outline_color": "0,100,0,255",
+            "outline_width": "0.25",
+            "outline_width_unit": "MM",
+        },
         "syke_groundwater_areas": {
             "color": "95,175,220,95",
             "outline_color": "55,115,165,220",
@@ -111,12 +149,19 @@ def _style_forest_source(layer, service_id):
         },
     }
     style = styles.get(service_id)
+    if service_id in PROTECTED_SERVICE_IDS:
+        style = {
+            "color": "210,95,125,95",
+            "outline_color": "155,55,85,220",
+            "outline_width": "0.35",
+        }
     if style is not None:
         layer.setRenderer(QgsSingleSymbolRenderer(QgsFillSymbol.createSimple(style)))
     if service_id in DETAILED_REFERENCE_SERVICE_IDS:
         # QGIS minimumScale is the most zoomed-out visible scale. At smaller
         # denominators (closer zooms) these detailed WFS layers remain visible.
-        layer.setMinimumScale(REFERENCE_MINIMUM_VISIBLE_SCALE)
+        # Include the boundary despite QGIS's minimum-scale comparison tolerance.
+        layer.setMinimumScale(FOREST_MINIMUM_VISIBLE_SCALE + 1e-6)
         layer.setMaximumScale(0.0)
         layer.setScaleBasedVisibility(True)
     elif service_id == "forest_centre_gridcell":
@@ -127,22 +172,88 @@ def _style_forest_source(layer, service_id):
         layer.setScaleBasedVisibility(True)
 
 
-def _place_grid_last(project, group):
-    """Move only the managed grid; preserve all other reference-layer order."""
-    layer = _managed_layer(project, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", "forest_centre_gridcell")
-    if layer is None:
-        return
-    node = _place_layer_in_group(project, group, layer)
-    if group.children()[-1] == node:
-        return
-    bridge = project.layerTreeRegistryBridge()
-    bridge_was_enabled = bridge.isEnabled()
-    bridge.setEnabled(False)
-    try:
-        group.takeChild(node)
-        group.addChildNode(node)
-    finally:
-        bridge.setEnabled(bridge_was_enabled)
+def _order_reference_layers(project, groups):
+    """Restore managed child order while retaining user layers and check states."""
+    for group_id, _key, service_ids in REFERENCE_GROUPS:
+        group = groups[group_id]
+        index = 0
+        for service_id in service_ids:
+            layer = _managed_layer(project, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", service_id)
+            if layer is None:
+                continue
+            node = _place_layer_in_group(project, group, layer)
+            _move_tree_node(node, group, index)
+            index += 1
+
+
+def _setup_parcels(project, group, language):
+    """Create/reconnect polygon boundaries and a separate labels-only point layer."""
+    return [
+        _setup_mml_layer(project, group, language, service_id, collection, name_key, geometry)
+        for service_id, collection, name_key, geometry in (
+            (MML_PARCEL_SERVICE_ID, MML_PARCEL_COLLECTION, "parcel_layer", Qgis.GeometryType.Polygon),
+            (MML_IDENTIFIER_SERVICE_ID, MML_IDENTIFIER_COLLECTION, "property_identifier_layer", Qgis.GeometryType.Point),
+        )
+    ]
+
+
+def _setup_mml_layer(project, group, language, service_id, collection, name_key, geometry):
+    label = tr(language, name_key)
+    uri = qgis_mml_uri(collection)
+    layer = _managed_layer(project, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", service_id)
+    existing = layer is not None
+    if existing:
+        if not layer.isValid() or layer.source() != uri or layer.providerType() != "oapif":
+            layer.setDataSource(uri, label, "oapif")
+        layer.setName(label)
+    else:
+        layer = QgsVectorLayer(uri, label, "oapif")
+    if not layer.isValid():
+        return {"service_id": service_id, "status": "UNAVAILABLE", "message": tr(language, "mml_layer_unavailable", layer=label)}
+    if (layer.geometryType() != geometry or not layer.crs().isValid()
+            or (geometry == Qgis.GeometryType.Point and MML_PARCEL_LABEL_FIELD not in provider_field_names(layer))):
+        return {"service_id": service_id, "status": "INVALID_LAYER", "message": tr(language, "mml_layer_schema_invalid", layer=label)}
+    if geometry == Qgis.GeometryType.Polygon:
+        layer.setRenderer(QgsSingleSymbolRenderer(QgsFillSymbol.createSimple({
+            "style": "no", "outline_style": "solid", "outline_color": "255,0,0,255",
+            "outline_width": "1", "outline_width_unit": "MM",
+        })))
+        layer.setLabelsEnabled(False)
+        layer.setLabeling(None)
+    else:
+        layer.setRenderer(QgsNullSymbolRenderer())
+        text_format = QgsTextFormat()
+        text_format.setFont(QFont("Arial"))
+        text_format.setColor(QColor("red"))
+        text_format.setSize(20)
+        buffer = QgsTextBufferSettings()
+        buffer.setEnabled(True)
+        buffer.setSize(2)
+        buffer.setSizeUnit(Qgis.RenderUnit.Millimeters)
+        buffer.setColor(QColor("white"))
+        buffer.setOpacity(1)
+        buffer.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+        buffer.setFillBufferInterior(False)
+        text_format.setBuffer(buffer)
+        labeling = QgsPalLayerSettings()
+        labeling.fieldName = MML_PARCEL_LABEL_FIELD
+        labeling.isExpression = False
+        labeling.placement = Qgis.LabelPlacement.OverPoint
+        labeling.setFormat(text_format)
+        layer.setLabeling(QgsVectorLayerSimpleLabeling(labeling))
+        layer.setLabelsEnabled(True)
+    # Include the exact visibility boundary despite QGIS comparison tolerance.
+    minimum_scale = (IDENTIFIER_MINIMUM_VISIBLE_SCALE
+                     if service_id == MML_IDENTIFIER_SERVICE_ID else REFERENCE_MINIMUM_VISIBLE_SCALE)
+    layer.setMinimumScale(minimum_scale + 1e-6)
+    layer.setMaximumScale(0.0)
+    layer.setScaleBasedVisibility(True)
+    layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", service_id)
+    if not existing:
+        project.addMapLayer(layer, False)
+    _place_layer_in_group(project, group, layer)
+    layer.triggerRepaint()
+    return {"service_id": service_id, "status": "AVAILABLE", "message": ""}
 
 
 def _localized_group(root, group_id, label):
@@ -155,23 +266,6 @@ def _localized_group(root, group_id, label):
     return node
 
 
-def _move_group_to_index(project, root, group, index):
-    if root.children()[index] == group:
-        return group
-    bridge = project.layerTreeRegistryBridge()
-    bridge_was_enabled = bridge.isEnabled()
-    bridge.setEnabled(False)
-    try:
-        # QGIS 4.2 takeChild(group) detaches its children as well. Clone the
-        # tree nodes before removal so user reference layers/order survive.
-        replacement = group.clone()
-        root.removeChildNode(group)
-        root.insertChildNode(index, replacement)
-    finally:
-        bridge.setEnabled(bridge_was_enabled)
-    return replacement
-
-
 def ensure_group_order(project, language):
     root = project.layerTreeRoot()
     groups = []
@@ -179,7 +273,7 @@ def ensure_group_order(project, language):
         groups.append(_localized_group(root, group_id, tr(language, label_key)))
     for index, group_id in enumerate(("results", "references", "basemaps")):
         current = _managed_node(root, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "group_id", group_id)
-        _move_group_to_index(project, root, current, index)
+        _move_tree_node(current, root, index)
     # A custom order can override tree order. Reset it to the layer-tree order
     # so the visible tree and map rendering follow the same documented stack.
     try:
@@ -190,6 +284,18 @@ def ensure_group_order(project, language):
     return {
         group_id: _managed_node(root, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "group_id", group_id)
         for group_id, _label_key in GROUP_IDS
+    }
+
+
+def _reference_groups(project, references, language):
+    for group_id, key, _service_ids in REFERENCE_GROUPS:
+        _localized_group(references, group_id, tr(language, key))
+    for index, (group_id, _key, _service_ids) in enumerate(REFERENCE_GROUPS):
+        group = _managed_node(references, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "group_id", group_id)
+        _move_tree_node(group, references, index)
+    return {
+        group_id: _managed_node(references, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "group_id", group_id)
+        for group_id, _key, _service_ids in REFERENCE_GROUPS
     }
 
 
@@ -230,6 +336,16 @@ def _add_or_relabel_wfs(project, group, service_id, language):
                 "metadata": metadata,
             }
         layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "schema_changed_to", "")
+        # Upgrade older managed connections without replacing the project layer
+        # or losing user filters/authentication. Suppress the startup sample read
+        # on reconnection as well as on newly created providers.
+        uri = qgis_wfs_uri(metadata, layer.source())
+        if uri != layer.source():
+            layer.setDataSource(uri, label, "WFS")
+            _style_forest_source(layer, service_id)
+            if not layer.isValid():
+                return layer, {"service_id": service_id, "status": "INVALID_LAYER",
+                               "message": tr(language, "source_configured_invalid")}
         layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "query_time", metadata["query_time"])
         layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "schema_json", json.dumps(metadata["properties"], ensure_ascii=False))
         status, message, readiness = _setup_readiness(
@@ -312,6 +428,55 @@ def _ensure_osm(project, basemaps_group, language):
     return layer
 
 
+def _setup_basemaps(project, group, language):
+    """Restore the stack, defaulting to topographic only when first introduced."""
+    property_name = RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "layer_id"
+    topographic_is_new = _managed_layer(project, property_name, "mml_maastokartta") is None
+    layers = []
+    statuses = []
+    for layer_id, name_key, product, image_format in BASEMAPS:
+        label = tr(language, name_key)
+        uri = qgis_mml_wmts_uri(product, image_format)
+        layer = _managed_layer(project, property_name, layer_id)
+        existing = layer is not None
+        if existing:
+            if not layer.isValid() or layer.source() != uri:
+                layer.setDataSource(uri, label, "wms")
+            layer.setName(label)
+        else:
+            layer = QgsRasterLayer(uri, label, "wms")
+        if not layer.isValid():
+            statuses.append({"service_id": layer_id, "status": "INVALID_LAYER",
+                             "error_code": "WMTS_LAYER_INVALID",
+                             "message": tr(language, "basemap_unavailable", layer=label)})
+            continue
+        layer.setCustomProperty(property_name, layer_id)
+        layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "managed", True)
+        if not existing:
+            project.addMapLayer(layer, False)
+        node = _place_layer_in_group(project, group, layer)
+        if not existing:
+            node.setItemVisibilityChecked(layer_id == "mml_maastokartta")
+        layers.append(layer)
+    osm = _ensure_osm(project, group, language)
+    if osm is None:
+        statuses.append({"service_id": OSM_LAYER_ID, "status": "INVALID_LAYER",
+                         "error_code": "XYZ_LAYER_INVALID",
+                         "message": tr(language, "basemap_unavailable", layer=tr(language, "osm_layer"))})
+    else:
+        layers.append(osm)
+    topographic = next((layer for layer in layers
+                        if layer.customProperty(property_name) == "mml_maastokartta"), None)
+    for index, layer in enumerate(layers):
+        node = _place_layer_in_group(project, group, layer)
+        node = _move_tree_node(node, group, index)
+        if topographic_is_new and topographic is not None:
+            node.setItemVisibilityChecked(layer == topographic)
+    if topographic_is_new and topographic is not None:
+        group.setItemVisibilityChecked(True)
+    return statuses
+
+
 def setup_project(project=None, language="en"):
     """Create/reuse groups and configured online source layers.
 
@@ -319,25 +484,27 @@ def setup_project(project=None, language="en"):
     Failed source discovery is returned as coverage information for the UI.
     """
     project = project or QgsProject.instance()
+    if not mml_api_key():
+        return {
+            "language": language, "ready": False, "groups": (), "out_of_scope": (),
+            "sources": [{"service_id": MML_PARCEL_SERVICE_ID, "status": "UNAVAILABLE",
+                         "error_code": "MML_API_KEY_REQUIRED", "message": tr(language, "mml_key_required")}],
+        }
     groups = ensure_group_order(project, language)
+    references = _reference_groups(project, groups["references"], language)
     _disable_legacy_protected_layer(project, language)
-    statuses = []
-    # Layer-tree order is top to bottom, and addLayer() appends. Create habitat
-    # before stands so habitat polygons render above the stand polygons.
-    setup_order = ("forest_centre_habitat", "forest_centre_stand") + tuple(
-        service_id for service_id in SERVICE_DEFINITIONS
-        if service_id not in ("forest_centre_habitat", "forest_centre_stand")
-    )
-    for service_id in setup_order:
-        layer, status = _add_or_relabel_wfs(project, groups["references"], service_id, language)
+    statuses = _setup_parcels(project, references["properties"], language)
+    for service_id in SERVICE_DEFINITIONS:
+        group_id = next(group_id for group_id, _key, ids in REFERENCE_GROUPS if service_id in ids)
+        layer, status = _add_or_relabel_wfs(project, references[group_id], service_id, language)
         statuses.append(status)
-    _place_grid_last(project, groups["references"])
+    _order_reference_layers(project, references)
     _remove_empty_results_placeholder(project)
-    osm = _ensure_osm(project, groups["basemaps"], language)
-    if osm is None:
-        statuses.append({"service_id": OSM_LAYER_ID, "status": "INVALID_LAYER", "error_code": "XYZ_LAYER_INVALID"})
+    statuses.extend(_setup_basemaps(project, groups["basemaps"], language))
     source_statuses = {row["service_id"]: row["status"] for row in statuses}
-    required_sources_ready = all(
+    required_sources_ready = all(source_statuses.get(service_id) == "AVAILABLE" for service_id in (
+        MML_PARCEL_SERVICE_ID, MML_IDENTIFIER_SERVICE_ID,
+    )) and all(
         source_statuses.get(service_id) == "AVAILABLE"
         for service_id, definition in SERVICE_DEFINITIONS.items()
         if definition["required"]

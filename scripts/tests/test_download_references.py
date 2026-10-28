@@ -1,6 +1,7 @@
 """Downloader acceptance checks using a local HTTP server, never provider services."""
 
 from contextlib import redirect_stderr, redirect_stdout
+import base64
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import importlib.util
@@ -126,6 +127,30 @@ class DownloadTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             downloader.validate(stream.getvalue()[:30], "broken.xlsx")
 
+    def test_wmts_capabilities_are_cached_and_exception_reports_rejected(self):
+        capabilities = b'<Capabilities xmlns="http://www.opengis.net/wmts/1.0"/>'
+        entry = self.entry("mml/wmts/get-capabilities.xml", [(200, capabilities)])
+        self.assertEqual(self.run_downloads([entry]), 0)
+        self.assertEqual(self.run_downloads([entry]), 0)
+        self.assertEqual(len(self.requests), 1)
+        self.responses["/mml/wmts/get-capabilities.xml"] = [(200, OWS_ERROR)]
+        self.assertEqual(self.run_downloads([entry], refresh=True), 1)
+        self.assertEqual((self.destination / entry["path"]).read_bytes(), capabilities)
+
+    def test_mml_key_is_sent_only_to_map_service_as_basic_auth(self):
+        with patch.dict(downloader.os.environ, {"MML_API_KEY": "private-key"}):
+            with patch.object(downloader, "urlopen") as opened:
+                opened.return_value.__enter__.return_value.read.return_value = CAPABILITIES
+                for url, expected in (
+                    ("https://avoin-karttakuva.maanmittauslaitos.fi/avoin/wmts/1.0.0/WMTSCapabilities.xml",
+                     "Basic " + base64.b64encode(b"private-key:").decode()),
+                    ("https://example.org/capabilities.xml", None),
+                ):
+                    downloader.fetch(url, 2, 0)
+                    request = opened.call_args.args[0]
+                    self.assertEqual(request.get_header("Authorization"), expected)
+                    self.assertNotIn("private-key", request.full_url)
+
     def test_identifier_is_only_sent_to_syke_wfs_and_not_logged(self):
         url = "https://paikkatiedot.ymparisto.fi/geoserver/test/wfs?service=WFS"
         self.assertIn("sykeuserid=example+id", downloader.request_url(url, "example id"))
@@ -140,7 +165,7 @@ class DownloadTests(unittest.TestCase):
 
     def test_manifest_paths_and_offline_listing(self):
         entries = downloader.load_manifest()
-        self.assertEqual(len(entries), 22)
+        self.assertEqual(len(entries), 25)
         with patch.object(downloader, "fetch", side_effect=AssertionError("Listing must work offline")), redirect_stdout(StringIO()) as output:
             self.assertEqual(downloader.main(["--list", "--only", "syke/groundwater/"]), 0)
         self.assertIn("groundwater/describe-feature-type.xsd", output.getvalue())

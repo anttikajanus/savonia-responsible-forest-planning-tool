@@ -1,5 +1,17 @@
 [
   {
+    "path": "mml/wmts/get-capabilities.xml",
+    "url": "https://avoin-karttakuva.maanmittauslaitos.fi/avoin/wmts/1.0.0/WMTSCapabilities.xml"
+  },
+  {
+    "path": "mml/parcels/kiinteistotunnuksen-sijaintitiedot.pdf",
+    "url": "https://www.maanmittauslaitos.fi/sites/maanmittauslaitos.fi/files/KiinteistotunnuksenSijaintitiedot_20201005_1.pdf"
+  },
+  {
+    "path": "mml/parcels/palstan-sijaintitiedot.pdf",
+    "url": "https://www.maanmittauslaitos.fi/sites/maanmittauslaitos.fi/files/PalstanSijaintitiedot_20201005_1.pdf"
+  },
+  {
     "path": "metsakeskus/stands/get-capabilities.xml",
     "url": "https://avoin.metsakeskus.fi/rajapinnat/v2/stand/ows?service=WFS&version=2.0.0&request=GetCapabilities"
   },

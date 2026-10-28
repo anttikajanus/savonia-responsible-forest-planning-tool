@@ -46,6 +46,14 @@ and omits it from progress output and recorded URLs. See the
 Service-generated XML can itself include request URLs; the entire cache stays
 local and should be reviewed before sharing.
 
+The MML WMTS capabilities require an API key. Supply `MML_API_KEY` in the
+downloader's environment for `--only mml/wmts/`. The downloader sends it as
+HTTP Basic username with an empty password only to
+`avoin-karttakuva.maanmittauslaitos.fi`; the key is absent from the manifest,
+recorded URLs and progress output. This setting is separate from the plugin's
+saved QGIS key. Without it, that uncached reference reports HTTP 401 while
+other references can still complete.
+
 ## Reading and provenance
 
 Agents and maintainers should inspect these local artifacts before fetching the
@@ -75,6 +83,20 @@ Saved WFS service descriptions are grouped by provider and service. Filenames
 use lowercase kebab case. Each service uses `get-capabilities.xml`; its schema
 response uses `describe-feature-type.xsd`, with a feature-type qualifier when
 the service has multiple schemas in this reference set.
+
+## Maanmittauslaitos
+
+- Open raster WMTS: [GetCapabilities](mml/wmts/get-capabilities.xml).
+  Ortokuva and Maastokartta use the ETRS-TM35FIN matrix set; authenticated
+  retrieval is required. See the [basemap contract](../../architecture/data-sources.md#mml-basemap-context).
+- [Parcel location model](mml/parcels/palstan-sijaintitiedot.pdf), dated
+  5 October 2020: polygon location and `kiinteistotunnuksenEsitysmuoto`.
+  This model describes the display-only `PalstanSijaintitiedot` collection;
+  it is not live collection/schema evidence. The API-key-protected service
+  is described in [data sources](../../architecture/data-sources.md#mml-parcel-map-context).
+- [Identifier location model](mml/parcels/kiinteistotunnuksen-sijaintitiedot.pdf),
+  dated 5 October 2020: `KiinteistotunnuksenSijaintitiedot`, `GM_Point` geometry
+  and `kiinteistotunnuksenEsitysmuoto`. This is model evidence, not a live schema.
 
 ## Metsäkeskus
 
@@ -109,8 +131,9 @@ the service has multiple schemas in this reference set.
 The files are retained as source evidence. The XSDs describe field names and
 types; they do not contain representative feature values.
 
-The manifest covers six services, eight layer schemas and eight provider
-documents (22 files). The provider documents complement the service schemas.
+The manifest covers six WFS services, one WMTS service, eight layer schemas and
+ten provider documents (25 files), including the MML parcel and identifier-point
+models. Provider documents complement the service schemas.
 See [provider evidence gaps](../../architecture/open-questions.md#provider-evidence)
 for the value, interpretation and completeness checks still needed.
 

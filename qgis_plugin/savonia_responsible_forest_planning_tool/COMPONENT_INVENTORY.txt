@@ -38,7 +38,9 @@ These dependencies are not bundled or relicensed by this project.
 EXTERNAL DATA AND SERVICES
 
 Metsäkeskus and Syke WFS data are retrieved at runtime. OpenStreetMap raster
-tiles provide display context. Source datasets and tiles are not bundled.
+tiles, Maanmittauslaitos WMTS orthophoto/topographic tiles and OGC API Features
+parcels/identifier points provide display context.
+Source datasets and tiles are not bundled.
 THIRD_PARTY_NOTICES contains dataset/provider credits, licence and terms links,
 modification notices, and OpenStreetMap attribution guidance in Finnish and
 English. The manuals' data-sources sections provide further context.

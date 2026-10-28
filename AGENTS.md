@@ -4,6 +4,11 @@ Use the [documentation map](docs/agents/README.md) to find the owner of each kin
 of information. Current behavior belongs in `docs/specs/`, technical contracts
 in `docs/architecture/`, and local working plans in ignored `.scratch/`.
 
+## Skills
+
+Use relevant `mattpocock-skills:*` skills when available, following their
+`SKILL.md` alongside repository guidance.
+
 ## Read the guidance for your task
 
 | Task | Required guidance |

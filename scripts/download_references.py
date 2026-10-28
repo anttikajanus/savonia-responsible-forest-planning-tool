@@ -2,6 +2,7 @@
 """Populate the ignored local reference cache using only the Python standard library."""
 
 import argparse
+import base64
 from datetime import datetime, timezone
 import hashlib
 from http.client import HTTPException
@@ -54,9 +55,10 @@ def validate(data, name):
             root = ET.fromstring(data)
         except ET.ParseError as error:
             raise ValueError("Response is not well-formed XML") from error
-        expected = ("{http://www.w3.org/2001/XMLSchema}schema" if suffix == ".xsd"
-                    else "{http://www.opengis.net/wfs/2.0}WFS_Capabilities")
-        if root.tag != expected:
+        expected = ({"{http://www.w3.org/2001/XMLSchema}schema"} if suffix == ".xsd"
+                    else {"{http://www.opengis.net/wfs/2.0}WFS_Capabilities",
+                          "{http://www.opengis.net/wmts/1.0}Capabilities"})
+        if root.tag not in expected:
             raise ValueError(f"Unexpected XML root {root.tag}; expected {expected}")
     elif suffix == ".pdf":
         if not data.startswith(b"%PDF-") or b"%%EOF" not in data[-2048:]:
@@ -97,7 +99,11 @@ def request_url(url, syke_user_id):
 def fetch(url, timeout, retries):
     for attempt in range(retries + 1):
         try:
-            request = Request(url, headers={"User-Agent": HTTP_USER_AGENT})
+            headers = {"User-Agent": HTTP_USER_AGENT}
+            mml_key = os.environ.get("MML_API_KEY", "").strip()
+            if urlsplit(url).hostname == "avoin-karttakuva.maanmittauslaitos.fi" and mml_key:
+                headers["Authorization"] = "Basic " + base64.b64encode((mml_key + ":").encode("utf-8")).decode("ascii")
+            request = Request(url, headers=headers)
             with urlopen(request, timeout=timeout) as response:
                 return response.read()
         except HTTPError as error:

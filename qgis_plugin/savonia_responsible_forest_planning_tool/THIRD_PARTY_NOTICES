@@ -90,6 +90,28 @@ tunnuslukuja. Alkuperäiset tuottajat eivät ole hyväksyneet johdettuja tuloksi
    database text is linked for the external service, not a bundled component.
    OSM-tiiliä tai -aineistoja ei paketoida eikä kopioida analyysituloksiin.
 
+6. Palstan sijaintitiedot / Parcel locations (display context / kartan viiteaineisto)
+   Source / Lähde: Maanmittauslaitos (National Land Survey of Finland).
+   Collections / Kokoelmat: PalstanSijaintitiedot, KiinteistotunnuksenSijaintitiedot.
+   https://avoin-paikkatieto.maanmittauslaitos.fi/kiinteisto-avoin/simple-features/v3/
+   Open interface terms and linked MML open-data licence / Avoimen rajapinnan
+   käyttöehdot ja linkitetty MML:n avoimen tietoaineiston lisenssi:
+   https://www.maanmittauslaitos.fi/kartat-ja-paikkatieto/asiantuntevalle-kayttajalle/maanmittauslaitoksen-avoimen-rajapinnan
+   Preserve the source credit on shared maps. Parcels are not bundled or
+   included in analysis exports. / Säilytä lähdemerkintä jaettavissa kartoissa.
+   Palstoja ei paketoida eikä sisällytetä analyysin tulosteisiin.
+
+7. Ortokuva and Maastokartta / Ortokuva ja Maastokartta (WMTS basemaps / taustakartat)
+   Source / Lähde: Maanmittauslaitos (National Land Survey of Finland).
+   https://avoin-karttakuva.maanmittauslaitos.fi/avoin/wmts/1.0.0/WMTSCapabilities.xml
+   Products / Tuotteet: ortokuva, maastokartta; ETRS-TM35FIN.
+   Provider information, open-data licence and interface terms / Tuottajan tiedot,
+   avoimen aineiston lisenssi ja rajapinnan käyttöehdot:
+   https://www.maanmittauslaitos.fi/kartat-ja-paikkatieto/aineistot-ja-rajapinnat/karttojen-rajapintapalvelut/karttakuvapalvelu-wms-0
+   Preserve MML source attribution on shared maps. Tiles are not bundled or
+   copied into analysis exports. / Säilytä MML:n lähdemerkintä jaettavissa kartoissa.
+   Tiiliä ei paketoida eikä kopioida analyysin tulosteisiin.
+
 SCOPE / RAJAUS
 
 This records inspected package contents and provider statements, not a complete

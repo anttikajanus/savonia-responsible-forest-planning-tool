@@ -57,6 +57,27 @@ identifier for sustained or intensive use. Setup can save one later. See
 [access and identifier handling](../docs/architecture/data-sources.md#access-and-evidence-maintenance)
 for provider instructions and how saved projects retain service URLs.
 
+Project setup also requires an [MML API key](https://www.maanmittauslaitos.fi/rajapinnat/api-avaimen-ohje).
+Cancelling or leaving it blank stops setup before any layers change. The key is
+remembered separately from SYKE and used as the layer connection username with
+an empty password, including saved projects. Valid keys authenticate discovery
+and feature requests without a second username/password prompt.
+Basemaps contains **Orthophoto**, **Topographic map** and **OpenStreetMap** in
+that order (Finnish: **Ortokuva**, **Maastokartta**, **OpenStreetMap**). MML maps
+use ETRS-TM35FIN and the same saved key. Topographic map is initially visible;
+later setup preserves your visibility choices. Basemaps are display context only.
+Setup groups References into **Property boundaries**, **Forest inventory**,
+**Protected areas** and **Water**, in that order. Property boundaries contains
+red unfilled boundaries and a separate red identifier-text layer with invisible
+points. Boundaries are visible at 1:25,000 or closer; identifiers at 1:10,000 or closer. Finnish layer names are
+**Kiinteistörajat** and **Kiinteistötunnukset**. The forest grid is last within
+Forest inventory. All protected-area layers share a translucent rose fill and
+outline treatment matching groundwater. MML layers provide display context; analysis
+still uses the eight required WFS sources. To replace an invalid key, change or
+clear `savonia-forest-planning/mml-api-key` in QGIS's Advanced Settings Editor
+and repeat setup. Review saved project connections before sharing; they retain
+the API key as username.
+
 ## Language
 
 The plugin follows QGIS's application language: Finnish uses Finnish; other or

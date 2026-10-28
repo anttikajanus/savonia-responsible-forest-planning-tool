@@ -90,6 +90,11 @@ These are supplied by QGIS rather than copied into the plugin ZIP. The table doe
 
 ## Analysis-data attribution
 
+MML `PalstanSijaintitiedot` and `KiinteistotunnuksenSijaintitiedot` are online map context and are excluded from analysis
+exports. The package notices and bilingual manuals credit Maanmittauslaitos
+and link its [open interface terms and data licence](https://www.maanmittauslaitos.fi/kartat-ja-paikkatieto/asiantuntevalle-kayttajalle/maanmittauslaitoksen-avoimen-rajapinnan).
+Preserve the provider credit on shared maps. No parcel data are bundled.
+
 The implemented [data attribution registry](../../qgis_plugin/savonia_responsible_forest_planning_tool/data_attribution.py) records the following provider-specific credits for the actual configured products:
 
 | Dataset | Credit retained with results | Evidence |
@@ -106,6 +111,12 @@ AOI-clipped snapshots redistribute source geometry/attributes and derived result
 The original English [CC BY 4.0 plain-text legal code](https://creativecommons.org/licenses/by/4.0/legalcode.txt) is stored offline in `licenses/CC-BY-4.0.txt` and embedded verbatim in `THIRD_PARTY_NOTICES`. The recorded download was 18,657 bytes with SHA-256 `9ba9550ad48438d0836ddab3da480b3b69ffa0aac7b7878b5a0039e7ab429411`. Its licence-text dedication does not change the datasets' CC BY licence. Packaging/content checks distinguish exact original notices from translated summaries.
 
 ## OpenStreetMap context and remaining limits
+
+MML Ortokuva and Maastokartta WMTS tiles also provide display context only.
+They are not bundled or included in analysis exports. Both manuals and
+`THIRD_PARTY_NOTICES` carry MML source credits and provider licence/terms links;
+preserve attribution on shared maps. Connection and verification limits are in
+[data sources](data-sources.md#mml-basemap-context).
 
 Setup uses standard raster tiles from `tile.openstreetmap.org`; OSM is not copied to analysis GeoPackage/XLSX outputs. The reviewed [OSM attribution guidance](https://www.openstreetmap.org/copyright) and [tile policy](https://operations.osmfoundation.org/policies/tiles/) require map-visible attribution and impose tile-client conditions such as caching, identification and no bulk/prefetch download. Keep `© OpenStreetMap contributors` with shared maps/screenshots and a route to the copyright/ODbL information. The About/root credits alone do not provide visible canvas attribution.
 

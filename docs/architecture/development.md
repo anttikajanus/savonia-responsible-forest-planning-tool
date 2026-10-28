@@ -155,8 +155,8 @@ small GML2 scenarios use WFS 1.0 as test transport; they do not establish suppor
 for legacy production services. Dedicated WFS 2.0/GML 3.2 scenarios construct
 layers through the production URI builder with fresh unprimed providers, verify
 paged retrieval and successful empty responses, and fail a later page. Analysis
-pages carry AOI bounds; QGIS may separately probe geometry with `COUNT=1` during
-provider construction. No live provider is required.
+pages carry AOI bounds. Managed WFS providers skip the initial sample-feature
+request; caller-supplied legacy test connections may still probe with `COUNT=1`. No live provider is required.
 
 Shared scenarios and source-field setup leave WFS providers fresh by default;
 the shared production workflow owns AOI-bounded initialization and retrieval.
@@ -181,6 +181,7 @@ values reach published outputs, including Finnish/English source-field runs.
 | Paired publication, WF-07 | `tests/qgis/test_publication_failures.py`: later GeoPackage-layer and required-style failures, cancellation after workbook creation, paired cleanup, and original error preservation when deletion fails. Existing grid workflow checks cover cancellation after GeoPackage writing and workbook-write failure. |
 | Wizard, WF-01/05 and IO-06 | `tests/qgis/test_wizard_completion.py`: localized failure/cancellation recovery, reopening failure, exact readable counts and feature iteration for 18 filtered views plus eight snapshots, visibility, prior-run retention, and cancellation/detachment on unload. |
 | Logging, WF-07 | `tests/qgis/test_logging_contract.py`: owned handler reload/unload, root preservation, rotation settings, aggregate JSON events correlated by run ID, technical-only tracebacks, and directory/file-open failures. |
+| WFS initialization, WF-02/03 | `tests/qgis/test_wfs_initialization.py`: zero feature/count requests during managed setup, reconnect, project reopen and worker construction; generic Surface schema readiness; first/cached map rendering bounded to the view; complete 1,001-record retrieval in 1,000-record pages; retained IDs, filters and visibility during connection upgrades. |
 
 `workflow_fixture.py` owns shared source records and Processing scenarios;
 `ui_fixture.py` supplies real Qt widgets behind a small QGIS interface adapter.
@@ -191,10 +192,44 @@ implementation constants. Headless checks do not establish desktop acceptance.
 Grid setup checks use the same local WFS boundary and real QGIS 4.2.3 layer trees
 and rendering APIs. They cover the eighth required source, provider-backed fields
 and stable cell IDs, explicit `GRIDCELLS` Processing input, repeated setup and
-Finnish/English relabeling, preservation of unmanaged references, and bottom grid
-placement. Scale checks include visible 1:200/1:300 and hidden 1:300.001/1:500.
+Finnish/English relabeling, preservation of unmanaged references and check states,
+group/child order, shared protected-area styling and last grid placement inside
+Forest inventory. Scale checks include visible 1:200/1:300 and hidden 1:300.001/1:500.
+After setup and node moves, tests process Qt events before asserting layer-tree
+and registry completeness. `test_project_tree.py` reproduces delayed removal
+during sorting and covers moves between groups and populated-group reordering.
+Disabling `QgsLayerTreeRegistryBridge` does not prevent its tree-removal slots
+from queuing project-layer deletions. Insert cloned nodes before removing their
+originals, as native drag/drop does. The full setup test also recreates missing
+habitat, programme and wilderness layers and checks them after event processing.
 QGIS excludes an exactly equal minimum scale; setup uses a `1e-6` denominator
-margin for inclusive 1:300. This is display only and is absent from worker inputs.
+margin for inclusive 1:300 and 1:7,763. Stand/habitat checks cover visible 1:1,000/1:7,763, hidden 1:7,763.001/1:500,000, restoration of changed limits during repeated Finnish/English setup, and saved-project persistence. This is display only and is absent from worker inputs.
+
+Parcel setup checks use an authenticated local OGC API Features fixture and
+real `oapif` providers. They cover a missing-key stop before project changes,
+Finnish/English masked prompts, saved-key reuse and redaction, polygon/point/field
+validation, rejected-key recovery, first/cached rendered red point labels without
+point symbols, disabled polygon labeling, inclusive 1:25,000 boundary and 1:10,000 identifier visibility, repeated
+setup order and saved-project connection/style persistence. The parcel tests
+also require HTTP Basic credentials (key as username, empty password) on all
+requests, including conformance and reopened-project feature reads. A dedicated
+fixture returns MML-style `WWW-Authenticate: Basic` challenges; a valid saved
+key must produce no rejected requests. Check URI-escaped usernames and Basic
+authorization values are redacted from plugin errors. The tests
+isolate their SpatiaLite provider cache in a writable temporary directory and
+restore the user's cache setting afterwards; a read-only profile cache can
+otherwise prevent feature and label rendering in a sandbox. Live MML access
+and desktop map acceptance remain separate checks.
+
+Basemap checks use an authenticated local WMTS with PNG/JPEG tiles. They verify
+EPSG:3067 and `ETRS-TM35FIN`, successful raster rendering, credentials on both
+capabilities and tile requests, Finnish/English names, the Ortokuva/Maastokartta/
+OpenStreetMap order, initial Maastokartta visibility, OSM-only project upgrades,
+retained user layers/check states/IDs, key replacement, missing-layer recreation,
+saved-project connections and localized unavailable-service diagnostics. These
+checks do not require a live MML key. For desktop acceptance, repeat setup in
+both languages with a valid key, switch between the three maps, pan/zoom and
+save/reopen; verify ordering, visibility and no extra credential prompt.
 
 Calculation/workflow acceptance covers exact boundary intersections (including
 0.5 m²), projected CRS transforms, cell duplicates/conflicts, stand overlaps
@@ -267,10 +302,13 @@ separately; this list is the reusable procedure.
 - Install the current-version ZIP in a separate QGIS 4.2.3 profile; load,
   open/reopen the wizard, check Processing registration, reload and unload.
 - In Finnish and English, run setup repeatedly and after a language change;
-  confirm exactly one grid at the bottom of References, unchanged relative order
-  of other references, and Results above References above Basemaps.
+  confirm References contains Property boundaries, Forest inventory, Protected
+  areas and Water in that order; verify child order from WF-02, one grid last in
+  Forest inventory, and Results above References above Basemaps. Check that
+  protected layers share a rose fill and outlines matching groundwater's treatment.
 - Inspect the grid at 1:200, 1:300 and 1:500; confirm the first two render
-  and the last does not. Run the same local fixture at near/far canvas scales
+  and the last does not. Confirm solid dark green grid borders with no fill,
+  including after repeated setup and project reopen. Run the same local fixture at near/far canvas scales
   through wizard and Processing and compare calculations and captured snapshots.
 - Inspect both total-volume aliases/columns, deciduous volume,
   integer age shares/coverage, partial metric denominators/lower bounds,

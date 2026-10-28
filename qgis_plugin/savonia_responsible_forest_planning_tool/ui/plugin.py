@@ -4,7 +4,7 @@ import logging
 
 from qgis.PyQt.QtCore import Qt, QUrl
 from qgis.PyQt.QtGui import QAction, QDesktopServices
-from qgis.PyQt.QtWidgets import QDockWidget, QInputDialog, QStyle
+from qgis.PyQt.QtWidgets import QDockWidget, QInputDialog, QLineEdit, QStyle
 from qgis.core import QgsApplication, QgsProject, QgsSettings
 
 from ..app_logging import LOGGER_NAME, configure_logging, record_business_action, shutdown_logging
@@ -12,7 +12,9 @@ from ..i18n import selected_language, tr
 from .. import documentation
 from ..processing import ResponsibleForestPlanningProcessingProvider
 from ..adapters.project_setup import setup_project
-from ..adapters.sources import SYKE_USER_ID_SETTING_KEY, syke_user_id
+from ..adapters.sources import (
+    SYKE_USER_ID_SETTING_KEY, syke_user_id, MML_API_KEY_SETTING_KEY, mml_api_key,
+)
 from .wizard import ResponsibleForestPlanningWizard
 
 
@@ -187,6 +189,17 @@ class ResponsibleForestPlanningPlugin:
 
     def setup_project_layers(self):
         self._refresh_language()
+        if not mml_api_key():
+            key, accepted = QInputDialog.getText(
+                self.iface.mainWindow(), tr(self.language, "mml_key_title"),
+                tr(self.language, "mml_key_prompt"), QLineEdit.EchoMode.Password,
+            )
+            if not accepted or not key.strip():
+                self.iface.messageBar().pushWarning(
+                    tr(self.language, "toolbar_name"), tr(self.language, "mml_key_required"),
+                )
+                return
+            QgsSettings().setValue(MML_API_KEY_SETTING_KEY, key.strip())
         if not syke_user_id():
             identifier, accepted = QInputDialog.getText(
                 self.iface.mainWindow(),

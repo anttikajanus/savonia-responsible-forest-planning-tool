@@ -22,9 +22,72 @@ Eight WFS layers are required. The three protected-area layers form one interpre
 
 Metsäkeskus and SYKE list their services in the [Metsäkeskus interface directory](https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto/aineistot-paikkatieto-ohjelmille/rajapinnat) and [SYKE service directory](https://www.syke.fi/fi/ymparistotieto/avoimet-rajapinnat/paikkatietorajapinnat). WMS is map context; analysis uses vector WFS. `inspire_ps` contains multiple feature families: a Natura type does not satisfy the required protected/wilderness contract. Compare the provider's [Natura dictionary](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Natura.pdf) with the [protected/wilderness dictionary](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Luonnonsuojelujaeramaaalueet.pdf).
 
-Ranta10 is disabled and not retrieved. OpenStreetMap is display context and does not enter classifications or exported analysis snapshots. MY, potential protected sites, recreation, water buffers and peatland sensitivity sources are excluded; [deferred sources](deferred-sources.md) records alternatives without activating them.
+Ranta10 is disabled and not retrieved. MML WMTS basemaps and OpenStreetMap are display context and do not enter classifications or exported analysis snapshots. MY, potential protected sites, recreation, water buffers and peatland sensitivity sources are excluded; [deferred sources](deferred-sources.md) records alternatives without activating them.
+
+## MML basemap context
+
+Setup uses the [open MML WMTS capabilities endpoint](https://avoin-karttakuva.maanmittauslaitos.fi/avoin/wmts/1.0.0/WMTSCapabilities.xml)
+with products `ortokuva` (`image/jpeg`) and `maastokartta` (`image/png`), style
+`default`, matrix set `ETRS-TM35FIN` and CRS `EPSG:3067`. QGIS's `wms` raster
+provider discovers capabilities and reads tiles. The saved parcel-service MML
+key is supplied as `username` with an empty `password`, authenticating both
+capabilities and tile requests without adding secrets to service URLs. Saved
+projects retain the username; repeating setup refreshes changed credentials.
+The project CRS is unchanged.
+
+The [official WMTS technical description](https://www.maanmittauslaitos.fi/en/maps-and-spatial-data/datasets-and-interfaces/map-interface-services/map-image-service-wms-wmts-1)
+and [API-key instructions](https://www.maanmittauslaitos.fi/rajapinnat/api-avaimen-ohje)
+were checked on 28 October 2026. An unauthenticated capabilities request returned
+HTTP 401; authenticated live capabilities/tiles remain unverified here.
+The [reference cache](../references/service-metadata/README.md) supports an
+optional `MML_API_KEY` for this download. These are display-only rasters outside
+the eight-source analysis registry and exports. Preserve MML attribution in
+shared maps under the provider's open-data licence and interface terms.
+The [source-layer contract](source-layer-requirements.md#basemap-stack)
+owns identity, visibility, reuse and failures.
+
+## MML parcel map context
+
+Project setup also adds `PalstanSijaintitiedot` and
+`KiinteistotunnuksenSijaintitiedot` through QGIS's `oapif` provider
+from `https://avoin-paikkatieto.maanmittauslaitos.fi/kiinteisto-avoin/simple-features/v3/`.
+This is map context outside the eight analysis sources. The
+[MML API-key product description](https://www.maanmittauslaitos.fi/kiinteistotietojen-kyselypalvelu-ogc-api/avoimet-tuotteet-api-avain)
+documents the collections and CRS84 default, with EPSG:3067 also supported.
+The [parcel model](../references/service-metadata/mml/parcels/palstan-sijaintitiedot.pdf)
+defines polygon location. The cached
+[identifier-location model](../references/service-metadata/mml/parcels/kiinteistotunnuksen-sijaintitiedot.pdf)
+defines identifier points (`GM_Point`) and `kiinteistotunnuksenEsitysmuoto`.
+These are older model evidence, not live service schema checks. Reviewed 28 October 2026; live
+credentialed/schema and desktop verification remain in the
+[verification register](open-questions.md#provider-evidence).
+
+Setup stores the mandatory key under QGIS setting
+`savonia-forest-planning/mml-api-key`, separate from SYKE. Blank/cancelled input
+stops setup before project changes. The provider URI uses the API key as its
+username (`QgsDataSourceUri.setUsername`) and an empty password. QGIS sends HTTP
+Basic credentials on discovery, conformance, collection and feature requests,
+including links which have no query parameters. This follows
+[MML's authentication instructions](https://www.maanmittauslaitos.fi/rajapinnat/api-avaimen-ohje).
+Query-only authentication omitted the key on QGIS 4.2.3 conformance probes,
+triggering MML's Basic challenge and a second credential dialog even when
+collection access succeeded. Do not treat that failed probe as harmless.
+The key is retained as the username in saved project layer connections. Review
+those connections before sharing projects; plugin source errors redact raw,
+URL/URI-escaped and Basic-encoded keys, credential fields and `api-key` parameters.
+To replace a rejected key, change or clear the setting
+in QGIS's Advanced Settings Editor, then run setup again. See
+[MML key instructions](https://www.maanmittauslaitos.fi/rajapinnat/api-avaimen-ohje).
+The [source-layer contract](source-layer-requirements.md#configured-layer-behavior)
+owns presentation, field checks, retry and ordering.
 
 ## Readiness and normalization
+
+WFS setup discovers schemas without downloading sample features or counting
+records. Managed connections use explicit WFS 2.0, view/AOI-bounded reads and
+1,000-feature pages with no total feature cap. Repeated setup upgrades older
+connection options; the [source-layer contract](source-layer-requirements.md#configured-layer-behavior)
+owns exact initialization parameters and preservation behavior.
 
 The [source-layer contract](source-layer-requirements.md) owns field readiness, alias priority, source identity and normalization. Setup and analysis use the same provider-field contract; schema readiness remains distinct from valid feature values and complete metric coverage. [Contract implementation](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/source_readiness.py), [QGIS-facing checks](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/source_layers.py).
 

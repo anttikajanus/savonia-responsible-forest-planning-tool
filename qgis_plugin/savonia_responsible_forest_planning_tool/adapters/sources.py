@@ -1,5 +1,6 @@
-"""WFS discovery and schema inspection for online V1 sources."""
+"""Provider discovery, schema inspection and connection settings for online sources."""
 
+import base64
 import datetime
 import urllib.error
 import urllib.parse
@@ -12,19 +13,66 @@ from qgis.core import QgsDataSourceUri, QgsSettings
 
 HTTP_USER_AGENT = "SavoniaResponsibleForestPlanning/1.0"
 SYKE_USER_ID_SETTING_KEY = "savonia-forest-planning/sykeuserid"
+MML_API_KEY_SETTING_KEY = "savonia-forest-planning/mml-api-key"
+MML_PARCEL_SERVICE_ID = "mml_parcels"
+MML_PARCEL_ENDPOINT = "https://avoin-paikkatieto.maanmittauslaitos.fi/kiinteisto-avoin/simple-features/v3/"
+MML_PARCEL_COLLECTION = "PalstanSijaintitiedot"
+MML_IDENTIFIER_SERVICE_ID = "mml_property_identifiers"
+MML_IDENTIFIER_COLLECTION = "KiinteistotunnuksenSijaintitiedot"
+MML_PARCEL_LABEL_FIELD = "kiinteistotunnuksenEsitysmuoto"
+MML_WMTS_CAPABILITIES = "https://avoin-karttakuva.maanmittauslaitos.fi/avoin/wmts/1.0.0/WMTSCapabilities.xml"
+
+
+def qgis_mml_wmts_uri(layer_name, image_format):
+    """Use the national tile matrix and saved key for capabilities and tiles."""
+    uri = QgsDataSourceUri()
+    for name, value in {
+        "url": MML_WMTS_CAPABILITIES, "layers": layer_name, "styles": "default",
+        "format": image_format, "tileMatrixSet": "ETRS-TM35FIN", "crs": "EPSG:3067",
+        "username": mml_api_key(), "password": "",
+    }.items():
+        uri.setParam(name, value)
+    return bytes(uri.encodedUri()).decode("utf-8")
 
 
 def syke_user_id():
     return str(QgsSettings().value(SYKE_USER_ID_SETTING_KEY, "") or "").strip()
 
 
+def mml_api_key():
+    return str(QgsSettings().value(MML_API_KEY_SETTING_KEY, "") or "").strip()
+
+
 def safe_source_error(error):
     message = str(error)
-    identifier = syke_user_id()
-    if identifier:
-        message = message.replace(identifier, "[redacted]")
-        message = message.replace(urllib.parse.quote(identifier, safe=""), "[redacted]")
-    return re.sub(r"(?i)(sykeuserid=)[^&\s'\"]+", r"\1[redacted]", message)
+    for identifier in (syke_user_id(), mml_api_key()):
+        if identifier:
+            message = message.replace(identifier, "[redacted]")
+            message = message.replace(urllib.parse.quote(identifier, safe=""), "[redacted]")
+            message = message.replace(urllib.parse.quote_plus(identifier, safe=""), "[redacted]")
+            message = message.replace(identifier.replace("\\", "\\\\").replace("'", "\\'"), "[redacted]")
+            encoded_basic = base64.b64encode((identifier + ":").encode("utf-8")).decode("ascii")
+            message = message.replace(encoded_basic, "[redacted]")
+    message = re.sub(r"(?i)((?:sykeuserid|api-key)=)[^&\s'\"]+", r"\1[redacted]", message)
+    message = re.sub(r"(?i)(\b(?:user|username|password)\s*=\s*)(?:'[^']*'|\"[^\"]*\"|[^\s&]+)", r"\1'[redacted]'", message)
+    return re.sub(r"(?i)(\bBasic\s+)[A-Za-z0-9+/]+=*", r"\1[redacted]", message)
+
+
+def qgis_mml_uri(collection):
+    """Build a view-bounded OGC API Features connection with the saved MML key."""
+    key = mml_api_key()
+    if not key:
+        raise SourceError(MML_PARCEL_SERVICE_ID, "MML API key is required.", "MML_API_KEY_REQUIRED")
+    uri = QgsDataSourceUri()
+    uri.setParam("url", MML_PARCEL_ENDPOINT)
+    # QGIS does not forward URL query parameters to every OAPIF discovery link.
+    # MML supports Basic authentication: API key as username, empty password.
+    uri.setUsername(key)
+    uri.setPassword("")
+    uri.setParam("typename", collection)
+    uri.setParam("restrictToRequestBBOX", "1")
+    uri.setParam("pageSize", "1000")
+    return uri.uri()
 
 
 def _endpoint_with_syke_id(endpoint):
@@ -136,7 +184,9 @@ def _request_xml(url, params=None, timeout=30, service_id=None):
 def discover_feature_types(endpoint, service_id):
     """Return advertised WFS feature types, each with name, title and CRS."""
     endpoint = _endpoint_with_syke_id(endpoint)
-    root, _url = _request_xml(endpoint, {"service": "WFS", "request": "GetCapabilities"}, service_id=service_id)
+    root, _url = _request_xml(endpoint, {
+        "service": "WFS", "version": "2.0.0", "request": "GetCapabilities",
+    }, service_id=service_id)
     feature_types = []
     for node in root.iter():
         if _local_name(node.tag) != "FeatureType":
@@ -158,7 +208,7 @@ def discover_feature_types(endpoint, service_id):
 def describe_feature_type(endpoint, service_id, typename):
     endpoint = _endpoint_with_syke_id(endpoint)
     root, _url = _request_xml(endpoint, {
-        "service": "WFS", "request": "DescribeFeatureType", "typeNames": typename,
+        "service": "WFS", "version": "2.0.0", "request": "DescribeFeatureType", "typeNames": typename,
     }, service_id=service_id)
     properties = []
     for node in root.iter():
@@ -245,12 +295,28 @@ def inspect_service(service_id):
     }
 
 
-def qgis_wfs_uri(metadata):
-    """Build an explicit WFS provider URI from discovered, not guessed, metadata."""
-    endpoint = _endpoint_with_syke_id(metadata["endpoint"])
-    return "url='{0}' typename='{1}' version='2.0.0' pagingEnabled='true' restrictToRequestBBOX='1'".format(
-        endpoint, metadata["feature_type"]
-    )
+def qgis_wfs_uri(metadata, existing_uri=None):
+    """Configure managed WFS startup without sample reads or a total feature cap.
+
+    When upgrading a managed layer, retain its endpoint, filters, authentication
+    and chosen CRS. Analysis reads remain bounded by their feature request.
+    """
+    uri = QgsDataSourceUri(existing_uri or "")
+    if existing_uri is None:
+        uri.setParam("url", _endpoint_with_syke_id(metadata["endpoint"]))
+        uri.setParam("typename", metadata["feature_type"])
+    for key, value in {
+        "version": "2.0.0", "pagingEnabled": "true", "pageSize": "1000",
+        "restrictToRequestBBOX": "1", "skipInitialGetFeature": "true",
+        "forceInitialGetFeature": "false",
+    }.items():
+        uri.removeParam(key)
+        uri.setParam(key, value)
+    # A page size bounds each response; a total cap would truncate evidence.
+    uri.removeParam("maxNumFeatures")
+    if metadata.get("source_crs") and not uri.param("srsname"):
+        uri.setParam("srsname", metadata["source_crs"])
+    return uri.uri(False)
 
 
 def restrict_wfs_uri_to_request_bbox(uri):

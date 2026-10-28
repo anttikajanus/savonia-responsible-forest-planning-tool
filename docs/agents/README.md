@@ -4,6 +4,17 @@
 directory. Use the map below to choose where to read and maintain project
 information; follow only the branches relevant to the task.
 
+## Optional agent setup
+
+For agent-assisted development, install the `mattpocock/skills` collection as an
+external plugin using the [upstream installation instructions](https://github.com/mattpocock/skills#installation-30-second-setup)
+for your agent. Keep upstream skill files outside this repository. This setup is
+optional for developing and running the project.
+
+When a skill asks for project-specific setup, use the [local issue tracker](issue-tracker.md),
+[triage labels](triage-labels.md) and documentation ownership map below for the
+tracker, labels and document destinations.
+
 ## Documentation ownership
 
 | Need | Owner | How to use it |
