@@ -40,6 +40,8 @@ Finnish or English.
 
 Each analysis requires an explicit positive sawlog stumpage price (€/m³).
 The wizard remembers the last valid price; Processing requires its own input.
+Results also contain calculated sawlog value (€), using unrounded represented
+sawlog volume times the supplied unit price, with coverage-aware group totals.
 Stand overlaps are retained with parent flags and completion warnings, so
 summaries can include duplicate area/timber contributions. Read the manuals
 before interpreting the ordinary criterion checks and metric coverage.

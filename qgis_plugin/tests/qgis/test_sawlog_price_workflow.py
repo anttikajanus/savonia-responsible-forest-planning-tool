@@ -10,6 +10,50 @@ from test_grid_publication import workbook_rows
 from savonia_responsible_forest_planning_tool.i18n import tr
 
 class SawlogPriceWorkflowTest(WorkflowFixtureMixin, unittest.TestCase):
+    def test_calculated_value_is_published_in_both_languages_with_partial_totals_explicit(self):
+        fields = fixture_sources()
+        stands = [source_record({**fields["forest_centre_stand"], "standid": str(index),
+                                  "SAWLOGVOLUME": volume}, x=350000 + 100 * index)
+                  for index, volume in enumerate((506.26885023593775, 0, None))]
+        for language in ("fi", "en"):
+            with self.subTest(language=language), self.scenario([], stands,
+                    aoi=[coordinates(350000, 6900000, 300, 100)]) as (fixture, layers, aoi):
+                fixture.records["syke_groundwater_areas"] = [source_record(
+                    fields["syke_groundwater_areas"], width=200)]
+                result = self.run_algorithm(layers, aoi, language, "value-" + language, sawlog_price=10)
+                layer = QgsVectorLayer(result["RESULT"], "result", "ogr")
+                features = {feature["source_stand_id"]: feature for feature in layer.getFeatures()}
+                value_index = layer.fields().indexFromName("sawlog_value_eur")
+                self.assertGreaterEqual(value_index, 0)
+                self.assertEqual(value_index, layer.fields().indexFromName("stumpage_price_eur_m3") + 1)
+                self.assertEqual(layer.attributeAlias(value_index), "Tukkipuun laskennallinen arvo (€)"
+                                 if language == "fi" else "Calculated sawlog value (€)")
+                self.assertEqual(features["0"]["sawlog_value_eur"], 5062.69)
+                self.assertEqual(features["0"]["stumpage_price_eur_m3"], 10)
+                self.assertEqual(features["1"]["sawlog_value_eur"], 0)
+                self.assertTrue(QgsVariantUtils.isNull(features["2"]["sawlog_value_eur"]))
+                statistics = json.loads(features["0"]["indicator_coverage"])["sawlog_value_eur"]
+                self.assertAlmostEqual(statistics["weighted_sum"], 5062.688502359378)
+                sheets = workbook_rows(result["EXCEL"])
+                summary = sheets[tr(language, "sheet_summary")]
+                value_column = summary[0].index(layer.attributeAlias(value_index))
+                complete = next(row for row in summary if row[:2] == [tr(language, "tier_balance"), tr(language, "class_sensitive")])
+                partial = next(row for row in summary if row[:2] == [tr(language, "tier_all_out"), tr(language, "class_economic")])
+                self.assertEqual(complete[value_column], 5062.69)
+                self.assertIsNone(partial[value_column])
+                metric_rows = sheets[tr(language, "sheet_metric_coverage")]
+                header = metric_rows[0]
+                metric_id = header.index(tr(language, "column_metric_id"))
+                value_coverage = next(row for row in metric_rows[1:] if row[:2] == [tr(language, "tier_all_out"), tr(language, "class_economic")]
+                                      and row[metric_id] == "sawlog_value_eur")
+                self.assertEqual(value_coverage[header.index(tr(language, "column_status"))], "PARTIAL")
+                self.assertAlmostEqual(value_coverage[header.index(tr(language, "column_weighted_sum"))], 5062.688502359378)
+                metadata = QgsVectorLayer(result["RESULT"].split("|")[0] + "|layername=run_metadata", "metadata", "ogr")
+                record, = list(metadata.getFeatures())
+                semantics = json.loads(record["indicator_semantics"])["sawlog_value_eur"]
+                self.assertEqual(semantics["unit"], "EUR")
+                self.assertIn("stand.sawlogvolume", semantics["formula"])
+
     def test_invalid_price_rejected_before_feature_requests_and_outputs(self):
         with self.scenario([]) as (fixture, layers, aoi):
             before = list(fixture.requests)

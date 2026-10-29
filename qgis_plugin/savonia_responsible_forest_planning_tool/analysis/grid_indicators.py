@@ -90,6 +90,14 @@ def calculate_stand_indicators(area_ha, values, source_status="AVAILABLE", sawlo
         weighted_sum=represented * price if eligible else 0.0,
     )
     indicators["stumpage_price_eur_m3"] = price if eligible and area_ha > 0 else None
+    value_known = sawlogs is not None and price is not None and price > 0
+    value_volume = area_ha * sawlogs if value_known else 0.0
+    value_eur = value_volume * price if value_known else 0.0
+    coverage["sawlog_value_eur"] = _coverage(
+        area_ha, area_ha if value_known else 0.0, STAND_SOURCE_ID,
+        represented_volume_m3=value_volume, weighted_sum=value_eur,
+    )
+    indicators["sawlog_value_eur"] = value_eur if value_known and area_ha > 0 else None
     return _result(coverage, indicators)
 
 
@@ -209,5 +217,16 @@ def summarize_indicator_rows(rows):
         represented_volume_m3=price_volume, weighted_sum=price_sum,
     )
     indicators["stumpage_price_eur_m3"] = price_sum / price_volume if price_volume else None
+    value_parts = [row["indicator_coverage"].get("sawlog_value_eur", {}) for row in rows]
+    value_area = math.fsum(_area(part.get("valid_area_ha", 0.0)) for part in value_parts)
+    value_volume = math.fsum(_area(part.get("represented_volume_m3", 0.0)) for part in value_parts)
+    value_sum = math.fsum(_area(part.get("weighted_sum", 0.0)) for part in value_parts)
+    coverage["sawlog_value_eur"] = _coverage(
+        area_ha, value_area, STAND_SOURCE_ID,
+        represented_volume_m3=value_volume, weighted_sum=value_sum,
+    )
+    indicators["sawlog_value_eur"] = (
+        value_sum if coverage["sawlog_value_eur"]["status"] == "AVAILABLE" else None
+    )
     return {"area_ha": area_ha, "feature_count": len(rows), **indicators,
             "indicator_coverage": coverage}

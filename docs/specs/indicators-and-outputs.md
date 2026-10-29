@@ -22,6 +22,7 @@ Provide these indicators on result polygons and in separate tier/class workbook 
 | Grid land | Peatland area (ha) | Source-classified peat soil within analyzed forest |
 | Grid land | Source-classified natural-mire area (ha) | Source drainage classification within analyzed forest |
 | Sawlog price | Sawlog stumpage price (€/m³) | User-supplied unit price where valid positive stand sawlog volume is represented; otherwise blank |
+| Sawlog value | Calculated sawlog value (€) | Full-precision represented stand sawlog m³ times the supplied unit price; known zero gives zero euros, missing evidence remains blank |
 
 Use deciduous volume as adopted in [ADR-0011](../architecture/adr/0011-deciduous-volume-instead-of-birch.md). Birch-specific volume is out of scope and absent from result fields, summaries, coverage, metadata and UI. Deciduous volume describes all source-classified deciduous trees and must not be presented as birch-only volume.
 
@@ -31,7 +32,8 @@ Use deciduous volume as adopted in [ADR-0011](../architecture/adr/0011-deciduous
 - Use each metric's own valid area and source. Keep grid and stand total volume separate; never blend, add or silently substitute them. Missing species values are independent of available total volume and must not be inferred by subtraction.
 - Summaries combine full-precision metric statistics before final rounding. Do not average already rounded polygon fields or weight a partially covered metric by the entire piece area.
 - Weight stand metrics by actual result-piece area. Growth remains an area-weighted mean of stand growth rates using stand volume, rather than a ratio mixing stand growth with grid stock.
-- Weight sawlog prices by represented sawlog cubic metres from unrounded stand sawlog volume and piece hectares. With one supplied unit price, every nonempty eligible group has that price; groups without eligible sawlogs have a null price. Price eligibility uses original values even when a tiny positive displayed volume rounds to zero. No pulpwood calculation, external price feed or total monetary indicator is included.
+- Weight sawlog prices by represented sawlog cubic metres from unrounded stand sawlog volume and piece hectares. With one supplied unit price, every nonempty eligible group has that price; groups without eligible sawlogs have a null price. Price eligibility uses original values even when a tiny positive displayed volume rounds to zero.
+- Calculate sawlog euro amounts from unrounded represented sawlog volume times the supplied €/m³. Complete group values sum exact piece amounts, then round to cents; they are totals rather than weighted mean prices. Retained stand overlaps can duplicate monetary contributions. Pulpwood valuation, external price feeds, whole-forest value and scenario income forecasts remain outside scope.
 - Use original grid mean ages for age-band membership. The shares describe area with valid age, rather than stand counts or individual-tree age distribution. Disclose age coverage over the full reporting domain.
 - Soil and drainage classifications are independent. Peatland and natural-mire hectares describe source-classified conditions at source date, rather than certification of present ecological condition.
 
@@ -42,6 +44,7 @@ Acceptance: reproduce the [boundary-weighting example](../architecture/indicator
 - Numeric zero is valid. Null, boolean, text, negative and non-finite volume/age inputs are unavailable rather than zero. Missing required schema fields are fatal under [WF-07](workflow.md#wf-07-failure-cancellation-and-observability), unlike missing individual numeric values.
 - For a density or age metric, complete valid coverage is available; some valid coverage permits a mean/share with partial status; no valid coverage gives null/blank with an explicit unavailable status. Preserve valid and unknown hectares independently for each metric.
 - For peat/mire area totals, any unknown classification area leaves the requested total blank. Expose observed matching hectares as a lower bound, with valid/unknown area. Complete known coverage permits a genuine zero total.
+- Apply the same completeness policy to calculated sawlog value: valid zero sawlog stock gives zero euros, while missing/invalid stock gives null. Partial group totals and empty groups stay blank; coverage retains the known euro subtotal and valid/unknown hectares. Do not treat missing stock as zero value.
 - A successfully empty grid response may yield unavailable grid metrics while forest classification completes. There is no stand-value fallback for grid metrics.
 - Unavailable and excluded indicator scope follows [IO-01](#io-01-indicator-catalogue).
 - An empty tier/class has zero land area and feature count, with null density/age-share values. Missing metrics must remain distinguishable from known zero through both output formats.
@@ -51,8 +54,10 @@ Acceptance: reproduce the [boundary-weighting example](../architecture/indicator
 
 - Put identity and classification before indicators, and coverage/provenance after them. Use the catalogue order in QGIS attributes/forms, workbook summaries, metric coverage and calculation notes.
 - Source-dependent labels start with **Kuvio / Stand** or **Hila / Grid**, followed by the attribute and explicit units. Availability belongs in statuses/notes.
+- Sawlog price/value labels name the assortment and distinguish €/m³ from €. Their coverage and notes identify the user price assumption and stand-stock source.
 - Provide localized field groups and explain ground area versus tree basal area in forms and workbook notes. Preserve aliases, grouping and presentation when reopening the GeoPackage.
 - Publish volume densities as whole m³/ha and hectares to 0.01 ha, rounding exact halves up. These are exported numeric values as well as display choices. Other decimal results and numeric coverage statistics display two decimals; age shares/coverage and feature counts use whole numbers.
+- Publish calculated sawlog euro amounts to cents, half up, after calculation or group summation. Retain exact unrounded euro subtotals in coverage.
 - Preserve full precision for calculations, coverage statistics and aggregation inputs. Round summaries only after aggregation. Nulls stay blank. Explain that rounded shares may total 99% or 101% and small positive quantities can display as zero.
 - Explain that reporting precision is not measurement accuracy, and independently covered species means need not sum to grid total. Stand and grid totals may also differ legitimately.
 

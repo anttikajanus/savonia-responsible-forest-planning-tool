@@ -24,6 +24,8 @@ Provide bilingual short help explaining the algorithm, inputs, outputs and limit
 
 Explain the explicit required sawlog price, its eligibility and constant unit-price
 meaning, recoverable stand-overlap warnings and possible duplicate contributions.
+Distinguish the €/m³ assumption from calculated sawlog value in euros, including
+unrounded-volume multiplication, zero/unknown stock and incomplete group totals.
 Describe readable criterion checks and retained metric coverage without presenting
 removed independent indicator status or diagnostic fields as current interfaces.
 

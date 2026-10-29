@@ -28,4 +28,9 @@ The [maintained specifications](specs/README.md) record current requirements and
 [open discrepancies and verification](architecture/open-questions.md), with
 implementation status kept separate from acceptance.
 
+The prototype also reports a calculated sawlog euro amount under
+[ADR-0016](architecture/adr/0016-calculated-sawlog-value.md), extending the earlier
+price-only scope. It remains distinct from whole-forest valuation and the
+separate model's scenario-income calculations.
+
 Sensitivity classes, programme membership, active protection, predictive candidates and scenario impacts remain distinct. Grid age-area share is not stand-count share; deciduous volume is not birch volume; tree basal area is not land area. [ADR-0011](architecture/adr/0011-deciduous-volume-instead-of-birch.md) deliberately changes the adopted product requirement to use deciduous volume instead of supporting procurement-requested birch-specific volume. This resolves the prototype's scope choice without changing the original tender's meaning or establishing buyer acceptance. The prototype now accepts one user-supplied sawlog stumpage price; this narrower assumption is distinct from a composition-dependent all-timber average or full valuation. [ADR-0014](architecture/adr/0014-user-supplied-sawlog-price.md) records that choice. These meanings and their evidence limits survive in the glossary, [indicator design](architecture/indicators.md), [data sources](architecture/data-sources.md), and [deferred-source register](architecture/deferred-sources.md).

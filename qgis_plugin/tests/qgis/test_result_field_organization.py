@@ -25,14 +25,14 @@ EXPECTED_METRICS = (
     "total_volume_m3_ha", "sawtimber_volume_m3_ha", "growth_percent", "basal_area_m2_ha",
     "grid_total_volume_m3_ha", "pine_volume_m3_ha", "spruce_volume_m3_ha", "deciduous_volume_m3_ha",
     "share_under_20", "share_20_80", "share_over_80",
-    "peatland_area_ha", "natural_mire_area_ha", "stumpage_price_eur_m3",
+    "peatland_area_ha", "natural_mire_area_ha", "stumpage_price_eur_m3", "sawlog_value_eur",
 )
 
 
 class ResultFieldOrganizationTests(unittest.TestCase):
     def assert_presentation(self, layer, language):
         names = [name for name in layer.fields().names() if name != "fid"]
-        self.assertEqual(names[13:28], ["area_ha", *EXPECTED_METRICS])
+        self.assertEqual(names[13:29], ["area_ha", *EXPECTED_METRICS])
         self.assertEqual(names[7:13], ["check_protected", "check_section10", "check_programme",
                                      "check_groundwater", "check_other_habitat", "stand_has_overlap"])
         self.assertNotIn("indicator_status", names)

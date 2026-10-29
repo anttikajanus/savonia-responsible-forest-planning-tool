@@ -85,8 +85,30 @@ represented sawlog m³. A nonempty eligible group has the supplied price;
 without eligible volume it is null. Coverage retains valid/unknown hectares
 and exact weighting statistics. Run metadata and calculation notes identify
 the input as a user assumption and the stand sawlog field as its applicability
-source. This prices sawlogs only, without pulpwood derivation or total valuation.
+source. This prices sawlogs only, without pulpwood derivation or whole-forest valuation.
 [ADR-0014](adr/0014-user-supplied-sawlog-price.md) records the scope decision.
+
+## Calculated sawlog value
+
+`sawlog_value_eur = original_piece_area_ha × stand.sawlogvolume × supplied_price_eur_m3`.
+Both area and density are unrounded. The supplied price is per cubic metre,
+not per square metre. For 1.4772514669427148 ha at 342.71 m³/ha and 10 €/m³,
+represented stock is 506.26885023593775 m³ and the amount is
+5062.688502359378 €, published as **5062.69 €**. Multiplying the rounded
+1.48 ha and 343 m³/ha would give a different, incorrect amount.
+
+Known nonnegative stand sawlog density and valid price give a known value;
+zero density gives zero euros, even though its unit-price result is null.
+Missing, invalid, negative or non-finite sawlog values give null value.
+Coverage retains independent valid/unknown hectares, represented sawlog m³
+and `weighted_sum` as the unrounded known euro subtotal. Complete tier/class
+totals sum those amounts before half-up rounding to cents. With unknown area,
+the total remains null and coverage exposes the known subtotal; an empty group
+also has null value. A total is never derived from rounded polygon amounts.
+
+This sawlog-only amount retains duplicate contributions from overlapping
+stands. It is not a whole-forest value or an income/harvest forecast.
+[ADR-0016](adr/0016-calculated-sawlog-value.md) extends the previous price-only scope.
 
 ## Grid ages and categorical area totals
 
@@ -129,6 +151,8 @@ Combine full-precision sufficient statistics separately per tier/class:
   after division. Age coverage uses full group reporting area.
 - Peat/mire total: summed matching hectares only when the entire group reporting
   area has known classification; otherwise disclose lower bound and unknown area.
+- Sawlog value: sum exact known euro amounts when the entire group has known
+  sawlog stock; otherwise keep the total null and disclose the known subtotal.
 - Area: summed actual result-piece hectares regardless of metric coverage.
   Feature count counts pieces. Empty groups have zero area/count and null
   density/age values.

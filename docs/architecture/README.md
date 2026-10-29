@@ -68,3 +68,4 @@ establish implementation or provider/desktop acceptance.
 | [0013](adr/0013-nonfatal-stand-overlaps.md) | Retain overlapping stands with warnings; supersede ADR-0004's stand-overlap limit |
 | [0014](adr/0014-user-supplied-sawlog-price.md) | Apply one explicit user price to represented sawlogs |
 | [0015](adr/0015-metric-coverage-as-indicator-interface.md) | Remove independent indicator status/diagnostics while retaining metric coverage |
+| [0016](adr/0016-calculated-sawlog-value.md) | Publish a calculated sawlog euro amount; partially supersede ADR-0014's price-only scope |

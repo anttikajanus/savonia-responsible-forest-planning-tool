@@ -52,7 +52,9 @@ class ResponsibleForestPlanningInputsAlgorithm(QgsProcessingAlgorithm):
 
     def shortHelpString(self):
         language = selected_language()
-        return tr(language, "prototype_notice") + "\n\n" + tr(language, "algorithm_help")
+        return "\n\n".join(tr(language, key) for key in (
+            "prototype_notice", "algorithm_help", "note_sawlog_value",
+        ))
 
     def helpUrl(self):
         language = selected_language()

@@ -10,7 +10,7 @@ METRIC_GROUPS = (
     ("grid_volume", ("grid_total_volume_m3_ha", "pine_volume_m3_ha", "spruce_volume_m3_ha", "deciduous_volume_m3_ha")),
     ("grid_age", ("share_under_20", "share_20_80", "share_over_80")),
     ("grid_area", ("peatland_area_ha", "natural_mire_area_ha")),
-    ("price", ("stumpage_price_eur_m3",)),
+    ("price", ("stumpage_price_eur_m3", "sawlog_value_eur")),
 )
 METRIC_FIELDS = tuple(metric for _group, metrics in METRIC_GROUPS for metric in metrics)
 STAND_SCHEMA_FIELD_CANDIDATES = frozenset((

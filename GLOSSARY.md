@@ -209,6 +209,9 @@ A timber unit price averaged over represented timber volume. In this analysis, t
 The planner's assumed standing sawlog unit price in euros per cubic metre, applicable where positive sawlog stock is represented. It is distinct from a price for all standing timber or a total monetary value.
 _Avoid_: all-timber average price, total forest value
 
+**Calculated sawlog value (tukkipuun laskennallinen arvo)**:
+The represented standing sawlog volume multiplied by the planner's assumed sawlog unit price, expressed in euros. It is a sawlog-only amount rather than the value of the whole forest or a forecast of harvested income.
+
 **Parent stand overlap**:
 A positive-area intersection between two source stands inside the analysis area. All pieces of an affected parent share this context even if an individual piece contains none of the overlapping land.
 

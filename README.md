@@ -149,6 +149,8 @@ areas are planar hectares.
 Stand overlaps remain untrimmed and can duplicate area and timber contributions;
 a completion warning points to technical details. The supplied price applies
 only to positive valid stand sawlog volume and is not a total forest valuation.
+A separate calculated sawlog value (€) multiplies unrounded represented sawlog
+volume by the supplied €/m³, with known/unknown coverage preserved in totals.
 
 See the [output examples](docs/examples/classified-forest-polygons.md) and
 [output schema](docs/architecture/output-schema.md).

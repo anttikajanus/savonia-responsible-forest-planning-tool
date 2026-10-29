@@ -53,9 +53,9 @@ def prepare_publication(inputs, retrieved, classified, run_id):
         name for name in stand_fields
         if name.lower() in STAND_SCHEMA_FIELD_CANDIDATES
     })
-    retained_stand_metrics = {*STAND_VOLUME_FIELDS, "growth_percent", "basal_area_m2_ha", "stumpage_price_eur_m3"}
+    retained_stand_metrics = {*STAND_VOLUME_FIELDS, "growth_percent", "basal_area_m2_ha", "stumpage_price_eur_m3", "sawlog_value_eur"}
     mapped_metrics = sorted((set(mapped_metric_ids(confirmed_stand_fields)) & retained_stand_metrics)
-                            | {"stumpage_price_eur_m3"})
+                            | {"stumpage_price_eur_m3", "sawlog_value_eur"})
     coverage.append({
         "service_id": "forest_centre_stand_indicators",
         "status": "AVAILABLE",
@@ -84,6 +84,7 @@ def prepare_publication(inputs, retrieved, classified, run_id):
         tr(language, "note_partial_values"),
         tr(language, "note_source_dates"),
         tr(language, "note_deferred_metrics"),
+        tr(language, "note_sawlog_value"),
     ]
     grid_fields = {
         name.lower(): name for name in source_metadata["forest_centre_gridcell"]["provider_fields"]
@@ -136,7 +137,14 @@ def prepare_publication(inputs, retrieved, classified, run_id):
                 "origin": "USER_SUPPLIED", "input_eur_m3": inputs["sawlog_price_eur_m3"],
                 "applies_to": "positive_finite_stand_sawlogvolume_only",
                 "group_mean": "sum(unrounded_represented_sawlog_m3 * price) / sum(unrounded_represented_sawlog_m3)",
-                "excludes": ["pulpwood_price", "all_standing_timber_price", "total_monetary_value"],
+                "excludes": ["pulpwood_price", "all_standing_timber_price", "whole_forest_value"],
+            },
+            "sawlog_value_eur": {
+                "formula": "unrounded_piece_hectares * stand.sawlogvolume * user_supplied_sawlog_price_eur_m3",
+                "unit": "EUR", "source": "forest_centre_stand.sawlogvolume",
+                "group_total": "sum(unrounded_known_euros) only if complete; otherwise null with known weighted_sum subtotal",
+                "known_zero": "zero sawlogvolume gives zero euros",
+                "excludes": ["pulpwood_value", "whole_forest_value", "scenario_income"],
             },
         },
         "parameters": {

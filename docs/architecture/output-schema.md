@@ -148,13 +148,16 @@ indicators, separate from the sensitivity classifications.
 
 <a id="unavailable-indicators--tunnusluvut-jotka-eivät-ole-käytettävissä"></a>
 
-### Sawlog price / Tukkipuun kantohinta
+<a id="sawlog-price--tukkipuun-kantohinta"></a>
 
-This field is retained at the end of the indicators.
+### Sawlog price and value / Tukkipuun hinta ja arvo
+
+These fields occur at the end of the indicators, with unit price before value.
 
 | Field | Display label | Meaning of stored value |
 | --- | --- | --- |
 | `stumpage_price_eur_m3` | Tukkipuun kantohinta / Sawlog stumpage price (€/m³) | Explicit user-supplied unit price when original stand sawlog volume is valid and positive; otherwise null. Group price is weighted by represented sawlog m³. |
+| `sawlog_value_eur` | Tukkipuun laskennallinen arvo / Calculated sawlog value (€) | Original piece hectares × valid nonnegative stand sawlog m³/ha × supplied €/m³. Zero stock gives zero euros; unknown stock gives null. Complete groups sum exact amounts; partial and empty totals are null with known subtotals in coverage. |
 
 ### Stored precision
 
@@ -163,6 +166,8 @@ precision. Age shares are whole percentages and can sum to 99% or 101% after
 rounding. Growth and basal-area values display two decimals. Coverage JSON
 retains full precision, so its hectares can differ from the rounded `area_ha`
 field. Reporting precision does not establish measurement accuracy.
+Calculated sawlog value is stored to cents using half-up rounding after
+calculation or group summation. Its coverage euro subtotal remains unrounded.
 
 ## Metric coverage
 
@@ -175,7 +180,7 @@ comes directly from valid result geometry.
 | Status | Meaning | Numeric result |
 | --- | --- | --- |
 | `AVAILABLE` | The metric has valid evidence over the whole result piece, within numerical tolerance. | A value, including a valid zero. This status does not certify measurement accuracy. |
-| `PARTIAL` | Some hectares have valid evidence and some are unknown for this metric. | Volume means and age shares describe valid hectares only. Peatland/natural-mire totals remain null; their observed matching hectares are a lower bound in coverage JSON. |
+| `PARTIAL` | Some hectares have valid evidence and some are unknown for this metric. | Volume means and age shares describe valid hectares only. Peatland/natural-mire and calculated sawlog-value totals remain null; their known quantities remain in coverage JSON. |
 | `UNKNOWN_FIELD_OR_VALUE` | No valid area is available for the metric, for example because values are missing/invalid or no grid cells cover the piece. | Null, never an assumed zero. |
 | `OUT_OF_SCOPE` | An intentionally excluded metric in the retained coverage vocabulary. | Null; sawlog price is now in scope. |
 
@@ -192,12 +197,12 @@ its own source, availability, valid/unknown hectares and supporting quantities.
 
 | Coverage member | Meaning / unit |
 | --- | --- |
-| `source_id` | Dataset identifier: `forest_centre_stand` for stand metrics and sawlog-price applicability, or `forest_centre_gridcell` for grid metrics. Unlike `source_ids`, this identifies a dataset rather than matched feature records. |
+| `source_id` | Dataset identifier: `forest_centre_stand` for stand metrics, sawlog-price applicability and calculated sawlog value, or `forest_centre_gridcell` for grid metrics. Unlike `source_ids`, this identifies a dataset rather than matched feature records. |
 | `status` | The metric availability code defined above. |
 | `valid_area_ha` | Hectares with valid evidence for this particular metric. |
 | `unknown_area_ha` | Reporting hectares without valid metric evidence; not assumed zero or allocated to a matching category. |
-| `represented_volume_m3` | Timber volume represented over this metric's valid area, in m³. Present for volume metrics and the sawlog-price denominator. |
-| `weighted_sum` | Accumulator retained for growth, basal area or sawlog price. Growth/basal area use hectares; price uses represented sawlog m³. A supporting statistic rather than the reported value. |
+| `represented_volume_m3` | Timber volume represented over this metric's valid area, in m³. Present for volume metrics, the sawlog-price denominator and calculated sawlog value. |
+| `weighted_sum` | Accumulator retained for growth, basal area, sawlog price or calculated sawlog value. Growth/basal area use hectares; price uses represented sawlog m³. For sawlog value this is the exact known euro subtotal, retained even when the complete total is null. |
 | `matching_area_ha` | Valid hectares matching the age band, peat soil or natural-mire category. For partial area totals this is the observed lower bound. |
 | `coverage_percent_exact` | Percentage of the result piece with valid age evidence, at full precision. |
 | `coverage_percent` | The same age coverage rounded to a whole percent. This is coverage of the polygon, not its share in an age band. |

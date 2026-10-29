@@ -8,6 +8,16 @@ belong to [development](development.md), and current behavior belongs to
 
 ## Automated regression verification
 
+On 29 October 2026, calculated sawlog value passed 25 tooling tests, 43 unit/
+resource tests, full Pylint and 113 QGIS 4.2.3 integration/offscreen tests against
+both source and the extracted current-version ZIP. Regressions cover the
+5062.69 € example from unrounded stock, unchanged €/m³ price, known zero versus
+invalid/missing stock, complete sums versus partial/null totals, cent rounding
+after aggregation, bilingual field/form/workbook presentation and durable
+formula/coverage metadata. The rebuilt ZIP preserves version 1.0.0, with all
+35 packaged Python files matching source and both updated manuals included.
+Desktop, live-provider and Microsoft Excel acceptance remain separate below.
+
 On 29 October 2026, nonfatal stand overlaps, explicit sawlog pricing, ordinary
 criterion checks, indicator interface cleanup and wizard readiness/visibility
 passed the complete QGIS 4.2.3 check runner: 25 tooling tests, 40 unit/resource
@@ -273,6 +283,15 @@ requires a specification change and reconsideration of ADR-0004.
 ## Acceptance and distribution
 
 ### Interactive acceptance
+
+For calculated sawlog value (29 October 2026), inspect the rebuilt ZIP in
+Finnish and English: unit price remains €/m³ while the separate calculated
+amount is euros, known zero stock shows zero, unavailable stock stays blank,
+and complete workbook totals sum exact values before rounding to cents.
+Incomplete totals must remain blank with their known subtotal in metric
+coverage. Verify the new field/form group and four-sheet workbook in desktop
+QGIS and Microsoft Excel. Automated/offscreen evidence does not close these
+desktop checks or establish live-provider/market valuation accuracy.
 
 For the overlap, sawlog-price and inspection changes (29 October 2026), install
 the rebuilt current-version ZIP in QGIS 4.2.3 and repeat in Finnish and English.

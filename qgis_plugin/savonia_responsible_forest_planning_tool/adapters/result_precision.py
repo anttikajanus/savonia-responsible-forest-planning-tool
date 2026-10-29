@@ -8,6 +8,7 @@ from ..analysis.grid_indicators import AREA_METRICS, GRID_VOLUME_FIELDS, STAND_V
 RESULT_DECIMALS = {
     **dict.fromkeys((*GRID_VOLUME_FIELDS, *STAND_VOLUME_FIELDS), 0),
     **dict.fromkeys((*AREA_METRICS, "area_ha"), 2),
+    "sawlog_value_eur": 2,
 }
 
 

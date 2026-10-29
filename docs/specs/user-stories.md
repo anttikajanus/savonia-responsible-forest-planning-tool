@@ -114,6 +114,7 @@ Unless explicitly marked partial or deferred, stories describe implemented proto
 | US-072 | As a planner, I want Run enabled only when my current area, selection, sources, price and destination are ready, so incomplete choices cannot start an analysis. | [WF-05](workflow.md#wf-05-wizard-interaction) |
 | US-073 | As a planner, I want ordinary source-criterion checks alongside retained detailed reasons, so I can inspect sensitivity decisions and distinguish Section 10 parent promotion from a direct footprint. | [CL-03](classification.md#cl-03-classes-and-evidence-policy), [IO-05](indicators-and-outputs.md#io-05-files-and-publication) |
 | US-074 | As a planner, I want checked class and snapshot children within initially hidden groups, so one group toggle reveals the views while only All out starts visible. | [IO-06](indicators-and-outputs.md#io-06-map-review-and-run-retention) |
+| US-075 | As a planner, I want represented sawlog volume multiplied by my supplied unit price into a separate euro amount, with complete totals and unknown coverage distinguished, so I can inspect calculated sawlog value alongside the €/m³ assumption. | [IO-01](indicators-and-outputs.md#io-01-indicator-catalogue), [IO-02](indicators-and-outputs.md#io-02-weighting-and-aggregation), [IO-03](indicators-and-outputs.md#io-03-unavailable-and-partial-values), [IO-04](indicators-and-outputs.md#io-04-labels-order-and-precision) |
 
 Technical design, module boundaries and verification belong in
 [architecture](../architecture/README.md).

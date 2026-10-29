@@ -18,3 +18,9 @@ assumption instead of an assortment/species model or external price retrieval.
 Pulpwood pricing and total monetary valuation remain outside scope. See
 [calculations](../indicator-calculations.md#sawlog-stumpage-price) and
 [IO-01](../../specs/indicators-and-outputs.md#io-01-indicator-catalogue).
+
+## Current contract
+
+[ADR-0016](0016-calculated-sawlog-value.md) supersedes only the exclusion of
+sawlog monetary amounts. The recorded context above is retained; the unit-price
+decision remains in force alongside a separate calculated sawlog euro value.

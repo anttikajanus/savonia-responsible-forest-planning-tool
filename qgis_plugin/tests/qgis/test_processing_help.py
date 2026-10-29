@@ -97,6 +97,8 @@ class ProcessingHelpTests(unittest.TestCase):
                     self.assertIn(parameter, help_text)
                 self.assertIn("GeoPackage", help_text)
                 self.assertIn(limit, help_text)
+                self.assertIn("Tukkipuun laskennallinen arvo" if language == "fi"
+                              else "Calculated sawlog value", help_text)
                 self.assertTrue(help_text.startswith(self.i18n.tr(language, "prototype_notice")))
 
 

@@ -29,6 +29,13 @@ composition-dependent all-timber average or total valuation. See
 [ADR-0014](adr/0014-user-supplied-sawlog-price.md) and the
 [calculation contract](indicator-calculations.md#sawlog-stumpage-price).
 
+A separate calculated euro amount multiplies original represented sawlog stock
+by that assumption. It describes sawlogs only; it does not establish a market
+valuation of the whole forest or predict harvested income. Zero and unknown
+stock remain distinct, and partial coverage leaves totals null with the known
+subtotal disclosed. [Value contract](indicator-calculations.md#calculated-sawlog-value),
+[ADR-0016](adr/0016-calculated-sawlog-value.md).
+
 ## Growth percentage
 
 The [growth formula](indicator-calculations.md#exact-intersections-and-volume-means) uses stand increment and stock. The saved [Metsäkeskus 2.1.3 workbook](../references/service-metadata/metsakeskus/tiedosto-tietomallikaavio-mv_ey_2-1-3-metsakeskuksen-tietomallin-uudistus.xlsx), **MV GeoServer** A33:B33 and A36:B36, defines m³/ha and m³/ha/year, supporting a percentage-per-year interpretation. [Saved stand XSD](../references/service-metadata/metsakeskus/stands/describe-feature-type.xsd).
