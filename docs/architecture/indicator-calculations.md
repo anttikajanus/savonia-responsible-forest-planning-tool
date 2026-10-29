@@ -59,8 +59,8 @@ Volume and age validity follows
 Missing species values are independent of total volume and are not inferred by
 subtraction. No valid area gives null and `UNKNOWN_FIELD_OR_VALUE`. Some valid
 area gives its mean with `PARTIAL` status and unknown hectares disclosed. Complete
-valid coverage gives `AVAILABLE`. Detailed reasons and source/cell IDs remain
-diagnostics. Tiny unknown-area differences within tolerance are clamped to zero;
+valid coverage gives `AVAILABLE`. These statuses belong to metric coverage.
+Tiny unknown-area differences within tolerance are clamped to zero;
 larger negative unknown areas are invariant failures that stop publication.
 
 For stand density values, valid area is the actual result-piece area and the
@@ -69,6 +69,24 @@ Do not use original uncut stand area or grid-covered area as the stand weight.
 Growth is `100 × stand.volumegrowth / stand.volume`, requiring positive
 stand volume and a valid increment. Zero growth with positive volume is valid. Provider definitions do not settle the estimate's exact period,
 gross/net basis or timing; see [growth design and evidence](indicators.md#growth-percentage).
+
+## Sawlog stumpage price
+
+Require a finite positive user-supplied price `p` (€/m³) before retrieval or
+output mutation. Use the original stand `sawlogvolume` (m³/ha) for eligibility,
+not its rounded exported field. For a result piece of `A` hectares with valid
+positive sawlog density `v`, publish `p`, retain represented sawlogs `A × v`
+in m³ and the price accumulator `p × A × v`. Invalid, missing, negative,
+non-finite or known-zero sawlog volume gives null price. The required source
+schema remains fatal if absent.
+
+For a tier/class group, divide summed price accumulators by summed eligible
+represented sawlog m³. A nonempty eligible group has the supplied price;
+without eligible volume it is null. Coverage retains valid/unknown hectares
+and exact weighting statistics. Run metadata and calculation notes identify
+the input as a user assumption and the stand sawlog field as its applicability
+source. This prices sawlogs only, without pulpwood derivation or total valuation.
+[ADR-0014](adr/0014-user-supplied-sawlog-price.md) records the scope decision.
 
 ## Grid ages and categorical area totals
 
@@ -84,7 +102,7 @@ decimals; never aggregate rounded shares.
 Accepted soil/drainage codes and matching categories are defined in the
 [input contract](source-layer-requirements.md#accepted-indicator-categories).
 Recognized nonmatching codes contribute known zero. Soil and drainage have
-independent coverage; contradictory classifications are diagnostics.
+independent coverage; neither classification overrides the other.
 
 Complete classification coverage permits matching-hectare totals, including a
 known zero. Any unknown hectares leave the requested total null/blank with

@@ -1,6 +1,10 @@
 # Example classified forest polygon outputs
 
 These two attribute records were supplied for documentation on 2026-10-27.
+They are historical captures from before the 29 October 2026 price and result
+inspection changes. New outputs use the current schema linked below. In
+particular, the captures contain removed independent status/diagnostic fields
+and an excluded price placeholder; no migration of these files is provided.
 They illustrate individual features of `classified_forest_polygons` in the
 GeoPackage, rather than workbook summary rows. A result feature is a classified
 piece of a source stand; it need not represent the whole original stand.
@@ -93,7 +97,7 @@ establishes legal harvesting permission or a harvesting prohibition.
 
 ## Indicator values and statuses
 
-Each status below comes from the supplied `indicator_status`. An `AVAILABLE`
+The statuses below describe the supplied metric coverage. An `AVAILABLE`
 value has complete valid metric coverage under the calculation contract; it
 does not certify measurement accuracy. A `PARTIAL` density or age share describes
 only the hectares with valid evidence for that metric.
@@ -189,23 +193,8 @@ deciduous: 248.01148288538676 m³ / 2.2222035197117065 ha
 ```
 
 The unknown deciduous area is 0.012177090710306704 ha, about 0.55% of the piece.
-Its diagnostic identifies the missing source value:
-
-```json
-[
-  {
-    "area_ha": 0.012177090710307025,
-    "field": "volumedeciduous",
-    "reason_code": "MISSING_VALUE",
-    "source_id": "741814728"
-  }
-]
-```
-
-Feature 64's full record contains many `MISSING_VALUE` diagnostics for grid
-volume, species and age fields. Diagnostic areas are associated with individual
-fields: summing entries across different metrics would count the same land
-repeatedly. Use `indicator_coverage` for each metric's valid and unknown hectares.
+Use `indicator_coverage` for each metric's valid and unknown hectares. Current
+outputs retain those statistics without per-value diagnostic records.
 
 Feature 60's natural-mire `matching_area_ha` is exactly zero with complete
 drainage coverage. Its displayed 0.00 ha therefore represents a known zero in

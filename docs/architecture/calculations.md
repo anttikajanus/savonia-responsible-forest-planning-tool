@@ -30,10 +30,16 @@ are applied.
 
 Source candidates that
 do not overlap the AOI are counted and excluded. Overlapping AOI features are
-dissolved. Stand overlaps follow the acceptance boundary in
+dissolved. Stand overlaps follow the warning policy in
 [CL-01](../specs/classification.md#cl-01-reporting-domain-and-geometry).
-Tolerated overlaps are retained without trimming and may contribute to both
-stands' areas and indicators. Identical
+Every stand overlap above `1e-8` m² is retained without trimming, with no maximum
+accepted overlap. It may contribute to both stands' areas and indicators. Flag
+every derived piece of either parent, regardless of the individual piece's
+location. Each unordered pair is logged once at DEBUG with run/source/stand IDs
+and intersection m²; one WARNING reports pair count, affected-parent count and
+a capped ID sample. Pairwise areas must not be summed as unique ground area.
+[ADR-0013](adr/0013-nonfatal-stand-overlaps.md) supersedes the previous limit.
+Identical
 repeated grid IDs/records are deduplicated; conflicting records of one ID or
 overlaps between distinct cells stop publication. Shared edges are allowed.
 Apply the direct-hit threshold in

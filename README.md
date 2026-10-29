@@ -100,7 +100,8 @@ To build a ZIP from source or set up a development environment, use the
    project. Wait for all **eight required source layers** to report ready.
 3. Start with a small area: draw a polygon, select polygon features from a
    project layer, or use the current map extent.
-4. Choose a writable output folder and run the analysis. Resolve any reported
+4. Enter a positive sawlog stumpage price (€/m³), choose a writable output folder
+   and run the analysis. Resolve any reported
    source, geometry or validation error before retrying.
 5. Inspect the classified layer in **Results**, then open the GeoPackage and
    workbook described below. Check source and metric coverage alongside the
@@ -111,8 +112,8 @@ The full manuals are available in [English](docs/help/manual_en.html) and
 
 ### Screenshots
 
-These examples show the Finnish interface. Open the images to inspect them at
-full resolution.
+These captures show the Finnish interface before the sawlog price control was
+added. Open the images to inspect them at full resolution.
 
 ![QGIS with 67 forest stands highlighted in yellow and the plugin set to analyze only selected features.](docs/screenshots/selected-stands.png)
 
@@ -137,13 +138,17 @@ choose an output basename. Existing output files are never overwritten.
 
 | Output | Contents | What to inspect first |
 | --- | --- | --- |
-| `<basename>.gpkg` | `classified_forest_polygons`, clipped source snapshots, `source_coverage` and `run_metadata` | The six tier classifications, source/rule identifiers, indicator statuses and coverage |
+| `<basename>.gpkg` | `classified_forest_polygons`, clipped source snapshots, `source_coverage` and `run_metadata` | Six tier classes, criterion checks, parent-overlap flags, source/rule identifiers and metric coverage |
 | `<basename>.xlsx` | Tier/class summaries, source coverage, metric coverage and calculation notes | Sensitive/economic areas, valid and unknown hectares, source dates and limitations |
 
 Both files retain data-source attribution and run provenance. The reporting
 area is the forest represented by the classified stand polygons; land outside
 those stands is not automatically included. Spatial outputs use EPSG:3067;
 areas are planar hectares.
+
+Stand overlaps remain untrimmed and can duplicate area and timber contributions;
+a completion warning points to technical details. The supplied price applies
+only to positive valid stand sawlog volume and is not a total forest valuation.
 
 See the [output examples](docs/examples/classified-forest-polygons.md) and
 [output schema](docs/architecture/output-schema.md).

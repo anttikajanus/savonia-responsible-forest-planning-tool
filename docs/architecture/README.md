@@ -65,3 +65,6 @@ establish implementation or provider/desktop acceptance.
 | [0010](adr/0010-wfs-2-only.md) | Support only WFS 2.0; exclude legacy WFS 1.x compatibility |
 | [0011](adr/0011-deciduous-volume-instead-of-birch.md) | Use deciduous volume instead of supporting birch-specific volume |
 | [0012](adr/0012-local-reference-downloads.md) | Download provider references locally and keep the cache out of Git |
+| [0013](adr/0013-nonfatal-stand-overlaps.md) | Retain overlapping stands with warnings; supersede ADR-0004's stand-overlap limit |
+| [0014](adr/0014-user-supplied-sawlog-price.md) | Apply one explicit user price to represented sawlogs |
+| [0015](adr/0015-metric-coverage-as-indicator-interface.md) | Remove independent indicator status/diagnostics while retaining metric coverage |

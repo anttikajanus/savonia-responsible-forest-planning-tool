@@ -203,7 +203,14 @@ The analyzed-forest hectares in the grid source's natural-mire drainage category
 _Avoid_: verified pristine mire area, whole-AOI mire area
 
 **Average stumpage price (keskimääräinen kantohinta)**:
-A timber-price indicator expressed in euros per cubic metre. It is excluded from the agreed analysis and has no inferred price estimate.
+A timber unit price averaged over represented timber volume. In this analysis, the priced assortment is sawlogs only.
+
+**Sawlog stumpage price (tukkipuun kantohinta)**:
+The planner's assumed standing sawlog unit price in euros per cubic metre, applicable where positive sawlog stock is represented. It is distinct from a price for all standing timber or a total monetary value.
+_Avoid_: all-timber average price, total forest value
+
+**Parent stand overlap**:
+A positive-area intersection between two source stands inside the analysis area. All pieces of an affected parent share this context even if an individual piece contains none of the overlapping land.
 
 **Represented volume**:
 The cubic metres attributed to the valid intersection of a reporting polygon and source evidence, using volume per hectare and intersected hectares. It is the quantity underlying a volume-density summary, rather than another per-hectare estimate.

@@ -53,7 +53,7 @@ Unless explicitly marked partial or deferred, stories describe implemented proto
 | US-029 | As a planner, I want a qualifying Section 10 hit to promote the entire clipped parent stand in applicable tiers, so this conservative planning assumption is applied consistently and traceably. | [CL-01](classification.md#cl-01-reporting-domain-and-geometry) |
 | US-030 | As a planner, I want groundwater footprints included in Balance and higher tiers, so those intersections inform the agreed sensitivity rules. | [CL-02](classification.md#cl-02-six-cumulative-tiers) |
 | US-031 | As a planner, I want programme areas distinguished from established protection, so programme context is retained without asserting legal protection. | [CL-02](classification.md#cl-02-six-cumulative-tiers), [CL-04](classification.md#cl-04-exclusions-and-interpretation) |
-| US-032 | As a planner, I want small stand-edge overlaps tolerated and larger conflicts reported with identifiers, so I can handle source discrepancies without hidden area trimming. | [CL-01](classification.md#cl-01-reporting-domain-and-geometry) |
+| US-032 | As a planner, I want stand overlaps of any size retained with parent flags, technical identifiers and a completion warning, so I can obtain results while understanding duplicate area/timber contributions. | [CL-01](classification.md#cl-01-reporting-domain-and-geometry), [WF-07](workflow.md#wf-07-failure-cancellation-and-observability) |
 | US-033 | As a downstream model user, I want spatial inputs kept separate from impact calculations, so the separate value-table model remains responsible for scenario effects. | [CL-04](classification.md#cl-04-exclusions-and-interpretation) |
 
 ## Calculating and interpreting indicators
@@ -62,7 +62,7 @@ Unless explicitly marked partial or deferred, stories describe implemented proto
 | --- | --- | --- |
 | US-034 | As a planner, I want the specified forest indicators summarized separately per tier and class, so I can transfer comparable inputs to the value-table model. | [IO-01](indicators-and-outputs.md#io-01-indicator-catalogue), [IO-02](indicators-and-outputs.md#io-02-weighting-and-aggregation) |
 | US-035 | As a planner, I want source-classified peatland and natural-mire hectares within analyzed forest with coverage disclosed, so these indicators are available without adding peat/mire sensitivity rules. | [IO-01](indicators-and-outputs.md#io-01-indicator-catalogue), [IO-03](indicators-and-outputs.md#io-03-unavailable-and-partial-values) |
-| US-036 | As a planner, I want unavailable and partial metrics shown with explicit statuses and blanks, so downstream users can distinguish missing evidence from zero. | [IO-03](indicators-and-outputs.md#io-03-unavailable-and-partial-values) |
+| US-036 | As a planner, I want unavailable and partial metrics shown with coverage statuses and blanks, so downstream users can distinguish missing evidence from zero without a separate status or per-value diagnostic interface. | [IO-03](indicators-and-outputs.md#io-03-unavailable-and-partial-values) |
 | US-037 | As a planner, I want stand and grid totals as independent estimates, so I can compare them without hidden blending or fallback. | [IO-01](indicators-and-outputs.md#io-01-indicator-catalogue), [IO-02](indicators-and-outputs.md#io-02-weighting-and-aggregation) |
 | US-038 | As a planner, I want grid pine, spruce and deciduous volumes weighted by actual valid intersected area, so clipped cells and missing species values are represented correctly. | [IO-02](indicators-and-outputs.md#io-02-weighting-and-aggregation) |
 | US-039 | As a planner, I want age-band shares based on grid mean age with their valid-area denominator and unknown hectares visible, so I can interpret their coverage. | [IO-02](indicators-and-outputs.md#io-02-weighting-and-aggregation), [IO-03](indicators-and-outputs.md#io-03-unavailable-and-partial-values) |
@@ -71,7 +71,7 @@ Unless explicitly marked partial or deferred, stories describe implemented proto
 | US-042 | As a planner, I want land area distinguished from tree basal area in both languages, so unlike measurements cannot be mistaken for one another. | [IO-01](indicators-and-outputs.md#io-01-indicator-catalogue), [IO-04](indicators-and-outputs.md#io-04-labels-order-and-precision) |
 | US-043 | As a planner, I want readable rounded results with full-precision aggregation and coverage retained, so reporting choices do not distort summaries. | [IO-04](indicators-and-outputs.md#io-04-labels-order-and-precision) |
 | US-044 | As a planner, I want explanations for differences between species means, grid total and stand total, so I can compare estimates without treating missing data as zero. | [IO-02](indicators-and-outputs.md#io-02-weighting-and-aggregation), [IO-04](indicators-and-outputs.md#io-04-labels-order-and-precision) |
-| US-045 | As a downstream model user, I want the decision to use deciduous volume instead of supporting birch-specific volume and the price exclusion stated clearly, so I can distinguish the adopted scope from the original bid/project requirements and interpret deciduous volume correctly. | [IO-01](indicators-and-outputs.md#io-01-indicator-catalogue), [IO-03](indicators-and-outputs.md#io-03-unavailable-and-partial-values) |
+| US-045 | As a downstream model user, I want the deciduous-volume and sawlog-only pricing scope stated clearly, so I can distinguish the adopted behavior from the original bid/project requirements. | [IO-01](indicators-and-outputs.md#io-01-indicator-catalogue), [IO-03](indicators-and-outputs.md#io-03-unavailable-and-partial-values) |
 
 ## Exporting, auditing and repeatable runs
 
@@ -105,6 +105,15 @@ Unless explicitly marked partial or deferred, stories describe implemented proto
 | US-066 | As a QGIS user, I want an installable ZIP downloadable from GitHub Releases, so I can install the plugin without building it. | [WF-01](workflow.md#wf-01-installation-and-runtime) |
 | US-067 | As a maintainer, I want each push to main to test, build and publish the next minor release, so distribution is automatic and retains the major version. | [WF-01](workflow.md#wf-01-installation-and-runtime) |
 | US-070 | As a maintainer, I want one command for checks with isolated QGIS settings/cache, correct runtimes and complete logs with test timings, so I can identify environment faults and slow tests before debugging plugin behavior. | [WF-09](workflow.md#wf-09-isolated-developer-checks) |
+
+## Completing inputs and inspecting results
+
+| ID | User story | Acceptance |
+| --- | --- | --- |
+| US-071 | As a planner, I want a required remembered sawlog unit price and an explicit Processing price, so my own repeatable assumption appears only where positive sawlog stock is represented. | [WF-04](workflow.md#wf-04-analysis-area-and-destination), [WF-06](workflow.md#wf-06-processing-and-repeatability), [IO-01](indicators-and-outputs.md#io-01-indicator-catalogue), [IO-02](indicators-and-outputs.md#io-02-weighting-and-aggregation) |
+| US-072 | As a planner, I want Run enabled only when my current area, selection, sources, price and destination are ready, so incomplete choices cannot start an analysis. | [WF-05](workflow.md#wf-05-wizard-interaction) |
+| US-073 | As a planner, I want ordinary source-criterion checks alongside retained detailed reasons, so I can inspect sensitivity decisions and distinguish Section 10 parent promotion from a direct footprint. | [CL-03](classification.md#cl-03-classes-and-evidence-policy), [IO-05](indicators-and-outputs.md#io-05-files-and-publication) |
+| US-074 | As a planner, I want checked class and snapshot children within initially hidden groups, so one group toggle reveals the views while only All out starts visible. | [IO-06](indicators-and-outputs.md#io-06-map-review-and-run-retention) |
 
 Technical design, module boundaries and verification belong in
 [architecture](../architecture/README.md).
