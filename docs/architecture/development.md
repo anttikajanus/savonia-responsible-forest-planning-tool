@@ -256,10 +256,15 @@ iterator without reading features. Empty IDs and a zero limit alone do not guara
 will avoid starting a download, so priming must also carry spatial bounds.
 Setup must not assume an unrestricted first read is empty: hosted QGIS returned
 configured records where the local runtime returned none. Keep feature-content
-assertions in workflow/output tests. The regressions in
+assertions in workflow/output tests. Production retrieval uses one AOI-bounded
+iterator per source; it does not prime the cache first. Opening and closing a
+preliminary zero-limit iterator intermittently duplicated provider records on
+QGIS 4.2.3, including WFS 2.0. Explicit priming above is limited to fixture cases
+that need an already initialized provider. The regressions in
 `test_workflow_contracts.py` and `test_source_field_workflow.py` reproduce the
-populated-read behavior, assert bounded initial requests and check that source
-values reach published outputs, including Finnish/English source-field runs.
+populated-read behavior and check that source values reach published outputs.
+The bilingual source-field runs require exactly one bounded, unlimited analysis
+request per source and retain exact observed category and snapshot counts.
 
 ### Regression seams
 

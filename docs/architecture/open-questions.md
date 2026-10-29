@@ -8,6 +8,18 @@ belong to [development](development.md), and current behavior belongs to
 
 ## Automated regression verification
 
+On 29 October 2026, the intermittent doubled source-category count was reproduced
+on QGIS 4.2.3: a preliminary zero-limit WFS iterator followed by the analysis read
+could emit the same provider feature ID twice, including with WFS 2.0. Shared
+retrieval now uses the bounded analysis iterator to initialize the cache. The
+bilingual regression requires one unlimited AOI-bounded read per source and
+preserves exact category/snapshot counts; it failed on both languages before the
+fix. All 25 tooling tests, full Pylint, and 37 unit/resource plus 102 integration/
+offscreen tests passed against source and the extracted current-version ZIP.
+Thirty further bilingual regression repetitions (60 Processing runs) passed.
+All 35 packaged Python files match source. Hosted CI rerun and interactive/live
+provider acceptance remain pending; these local checks do not establish them.
+
 On 29 October 2026, shorter loopback fixture shutdown polling passed all 25
 tooling tests, full Pylint, and 37 unit/resource plus 102 QGIS 4.2.3 tests against
 both source and the extracted current-version ZIP. On the same Windows/Python

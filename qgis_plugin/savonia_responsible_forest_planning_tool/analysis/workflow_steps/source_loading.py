@@ -114,16 +114,9 @@ def _source_feature_iterator(context, filter_rect, selected_feature_id_set,
         )
         return iter(snapshot_features), ""
 
-    if layer.providerType().lower() == "wfs":
-        # Initialize the local feature cache with zero requested results. Keep
-        # the same AOI bbox even here: QGIS WFS can ignore an empty FID filter
-        # once initialized, so it is not sufficient to prevent unbounded reads.
-        initial_request = QgsFeatureRequest().setFilterFids([]).setFilterRect(filter_rect).setLimit(0)
-        if initial_request.filterType() != Qgis.FeatureRequestFilterType.Fids or initial_request.filterFids():
-            raise QgsProcessingException(tr(language, "source_request_failed",
-                                            detail=service_id + ": SOURCE_INITIALIZATION_FILTER_INVALID"))
-        initial_iterator = layer.getFeatures(initial_request)
-        initial_iterator.close()
+    # The bounded analysis request also initializes a fresh WFS cache. Opening
+    # and immediately closing a preliminary zero-limit iterator can leave its
+    # downloader racing this read, returning the same provider feature twice.
     request = QgsFeatureRequest()
     if selected_feature_id_set is not None:
         request.setFilterFids(sorted(selected_feature_id_set))

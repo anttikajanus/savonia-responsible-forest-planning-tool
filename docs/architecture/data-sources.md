@@ -133,6 +133,15 @@ Only WFS 2.0 is supported, with managed sources configured as WFS 2.0.0.
 [ADR-0010](adr/0010-wfs-2-only.md) records why WFS 1.x compatibility, downgrade
 fallback and legacy exception handling are outside the planned scope.
 
+Use the AOI-bounded analysis iterator itself to initialize a fresh WFS cache.
+Do not open and immediately close a preliminary empty-FID/zero-limit iterator:
+on QGIS 4.2.3, that sequence intermittently emitted the same provider feature ID
+twice during the subsequent read, including with managed WFS 2.0 connections.
+The duplicate inflated observed category counts and retained snapshots. Removing
+the preliminary iterator preserves one source read without merging distinct
+records by their business identifiers. Selected-feature snapshots still bypass
+provider retrieval as specified in the [source-layer contract](source-layer-requirements.md).
+
 An exhausted iterator alone cannot establish successful retrieval. In the QGIS 4.2.3 HTTP-503 fixture, provider errors became visible only after queued provider `MetaCall` events were delivered. Before reusing a provider, drain earlier queued errors and clear the error list; after consuming/closing its iterator, dispatch only that provider's queued `MetaCall` events in its owning thread and inspect errors before accepting coverage. The current implementation is in [source_loading.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/source_loading.py).
 
 This is a version-specific application policy supported by the local regression and QGIS's signal path, not a guarantee for arbitrary providers. It avoids a duplicate query, global event processing or relying on unrelated panel messages. [QGIS WFS provider](https://github.com/qgis/QGIS/blob/release-4_2/src/providers/wfs/qgswfsprovider.cpp), [shared data](https://github.com/qgis/QGIS/blob/release-4_2/src/providers/wfs/qgswfsshareddata.cpp), [Qt targeted event dispatch](https://doc.qt.io/qt-6/qcoreapplication.html#sendPostedEvents).

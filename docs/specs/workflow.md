@@ -41,6 +41,7 @@ Scope and status follow the [specification index](README.md). These requirements
 - Setup discovers/verifies configured feature types and schema information. Before analysis, all eight sources must be valid polygon layers with usable coordinate systems, the expected provider/source identity and required provider fields. Report all source-readiness failures together where preflight can collect them.
 - Current provider fields determine readiness and interpretation. Match accepted names case-insensitively, ignore extra fields/order and apply the documented alias priority independently for each source. Saved discovery schemas are provenance and cannot override usable provider fields. Exact aliases, fields and value sets belong to [source-layer requirements](../architecture/source-layer-requirements.md).
 - Retrieve AOI-bounded evidence and clip it exactly. Reuse the retrieved grid for all result pieces rather than requesting each piece separately or downloading the national grid.
+- Cache initialization must not duplicate source evidence in observed counts or retained snapshots.
 - Retain original source attributes, identifiers, dates, source identity and clipped snapshots. Distinguish measurement dates from database update dates.
 - A successful empty response is different from a request failure. Counts and observed mapped overlaps do not prove complete inventory coverage or absence of an unmapped habitat.
 

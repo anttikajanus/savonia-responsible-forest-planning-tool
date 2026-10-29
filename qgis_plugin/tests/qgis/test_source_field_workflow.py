@@ -155,7 +155,7 @@ class SourceFieldFixtureTest(unittest.TestCase):
     def test_populated_initial_reads_preserve_processing_outputs_in_both_languages(self):
         vector_layer = QgsVectorLayer
         for test_class in (SourceFieldWorkflowEnglishTest, SourceFieldWorkflowFinnishTest):
-            initial_requests = {}
+            source_requests = {}
 
             def source_layer(*args, **kwargs):
                 layer = vector_layer(*args, **kwargs)
@@ -163,18 +163,17 @@ class SourceFieldFixtureTest(unittest.TestCase):
                     return layer
                 get_features = layer.getFeatures
 
-                def first_read(request=None):
-                    layer.getFeatures = get_features
+                def read_features(request=None):
                     if request is None:
                         # Return real fixture records even on local runtimes
                         # whose unrestricted first read happens to be empty.
                         list(get_features())
                         return get_features(QgsFeatureRequest().setFilterRect(
                             QgsRectangle(350000, 6900000, 350100, 6900100)))
-                    initial_requests[layer.name()] = request
+                    source_requests.setdefault(layer.name(), []).append(request)
                     return get_features(request)
 
-                layer.getFeatures = first_read
+                layer.getFeatures = read_features
                 return layer
 
             with self.subTest(language=test_class.language), patch.object(
@@ -184,12 +183,14 @@ class SourceFieldFixtureTest(unittest.TestCase):
                 case.run(outcome)
                 self.assertTrue(outcome.wasSuccessful(), "\n".join(
                     traceback for _, traceback in outcome.errors + outcome.failures))
-                self.assertEqual(set(initial_requests), set(SERVICE_DEFINITIONS))
-                for request in initial_requests.values():
-                    self.assertEqual(request.filterType(), Qgis.FeatureRequestFilterType.Fids)
-                    self.assertFalse(request.filterFids())
-                    self.assertEqual(request.limit(), 0)
+                self.assertEqual(set(source_requests), set(SERVICE_DEFINITIONS))
+                for requests in source_requests.values():
+                    self.assertEqual(len(requests), 1, "A preliminary iterator can race the analysis read")
+                    request, = requests
+                    self.assertEqual(request.filterType(), Qgis.FeatureRequestFilterType.NoFilter)
+                    self.assertEqual(request.limit(), -1)
                     self.assertEqual(request.filterRect(), case.aoi.extent())
+                    self.assertTrue(request.flags() & Qgis.FeatureRequestFlag.ExactIntersect)
 
 
 class TranslationTest(unittest.TestCase):
