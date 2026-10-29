@@ -262,6 +262,18 @@ requires a specification change and reconsideration of ADR-0004.
 
 ### Interactive acceptance
 
+For the overlap, sawlog-price and inspection changes (29 October 2026), install
+the rebuilt current-version ZIP in QGIS 4.2.3 and repeat in Finnish and English.
+Check decimal-comma entry, blank/remembered/cleared price across dock reopen and
+profile restart, Run readiness across all area modes and changing selections,
+source removal and output destinations, completion warning readability and log
+location, ordinary criterion fields, and checked children revealed by tier and
+snapshot group toggles. Inspect the four-sheet workbook in Microsoft Excel and
+reopen GeoPackage forms. Deterministic/offscreen verification does not establish
+these desktop checks. Representative live stand sawlog values and provider
+overlap behavior remain subject to this register's provider-evidence checks; the
+overlap policy makes no assertion about the cause of provider discrepancies.
+
 For the MML basemap addition (28 October 2026), use a valid saved MML API key
 and repeat setup in Finnish and English. Check Ortokuva, Maastokartta and
 OpenStreetMap order, only Maastokartta initially visible (also in OSM-only

@@ -197,7 +197,7 @@ class GridWorkflowTest(WorkflowFixtureMixin, unittest.TestCase):
                 self.assertNotIn("birch_volume_m3_ha", statuses)
                 self.assertEqual(statuses["stumpage_price_eur_m3"], "AVAILABLE")
 
-    def test_duplicate_records_deduplicate_and_conflicts_or_overlaps_publish_nothing(self):
+    def test_duplicate_grid_records_deduplicate_and_grid_conflicts_or_overlaps_publish_nothing(self):
         schemas = fixture_sources()
         first = source_record(schemas["forest_centre_gridcell"])
         with self.scenario([first, first]) as (_, layers, aoi):
@@ -206,9 +206,7 @@ class GridWorkflowTest(WorkflowFixtureMixin, unittest.TestCase):
             snapshot = QgsVectorLayer(gpkg + "|layername=forest_centre_gridcell", "grid", "ogr")
             self.assertEqual(snapshot.featureCount(), 1)
         variants = [([first, source_record({**schemas["forest_centre_gridcell"], "VOLUME": 999})], None, ["cell-1"]),
-                    ([first, source_record({**schemas["forest_centre_gridcell"], "GRIDCELLID": "cell-2"}, x=350050)], None, ["cell-1", "cell-2"]),
-                    ([], [source_record({**schemas["forest_centre_stand"], "standid": "stand-1"}),
-                          source_record({**schemas["forest_centre_stand"], "standid": "stand-2"}, x=350050)], ["stand-1", "stand-2"])]
+                    ([first, source_record({**schemas["forest_centre_gridcell"], "GRIDCELLID": "cell-2"}, x=350050)], None, ["cell-1", "cell-2"])]
         for language in ("en", "fi"):
             for index, (grid, stands, identifiers) in enumerate(variants):
                 name = "fatal-%s-%d" % (language, index)
