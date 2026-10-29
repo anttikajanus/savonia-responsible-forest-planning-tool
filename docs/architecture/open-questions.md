@@ -8,6 +8,17 @@ belong to [development](development.md), and current behavior belongs to
 
 ## Automated regression verification
 
+On 29 October 2026, shorter loopback fixture shutdown polling passed all 25
+tooling tests, full Pylint, and 37 unit/resource plus 102 QGIS 4.2.3 tests against
+both source and the extracted current-version ZIP. On the same Windows/Python
+3.12 runtime, source integration including startup fell from 80.4s to 62.7s;
+packaged integration fell from 81.7s to 63.4s. Ten real WFS request/shutdown
+cycles fell from 5.150s to 0.357s. These are local comparisons, not hosted timing
+guarantees. Slowest-test reporting is enabled on Python 3.12+.
+The new CI MSI cache passed local cache-hit, cache-miss and corrupt-file checks;
+hosted cache restoration and net performance savings still require a run of the
+updated workflow. Planner behavior and interactive acceptance are unchanged.
+
 On 29 October 2026, removal of backward-compatibility paths passed 25 tooling
 tests, full Pylint, and 37 unit/resource plus 102 QGIS 4.2.3 integration/offscreen
 tests against both source and the extracted current-version ZIP. Checks include
@@ -323,12 +334,20 @@ also checked. These checks leave the interactive acceptance items below pending.
   Local source verification passed Pylint, 36 pure tests and 81 integration
   tests; both suites also passed against the built and extracted 1.0.0 ZIP.
   Hosted artifact download and packaged integration were skipped, and
-  release publication was correctly skipped after the source failure. A hosted
-  rerun must verify the fix and complete those remaining steps; interactive
-  acceptance remains separate.
+  release publication was correctly skipped after the source failure. A
+  [successful hosted run on 29 October 2026](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/actions/runs/40818055010)
+  subsequently passed source and packaged integration, artifact transfer and
+  release publication. The installer-cache changes above still need their own
+  hosted verification; interactive acceptance remains separate.
   Optional merge blocking also requires administrator activation of the
   checked-in ruleset; it is independent of CI execution and release gating. See
   [required merge checks](development.md#required-merge-checks).
-- Automatic GitHub releases (26 October 2026): the build/release workflow is implemented; its first hosted execution, token/tag policy and downloadable asset still require verification after pushing it to main. Local tooling/package checks, upload-recovery simulation and QGIS 4.2.3 suites against source and the extracted release ZIP passed; they do not establish hosted publication or interactive acceptance. See the [release contract](distribution.md#github-builds-and-releases).
+- Automatic GitHub releases (implemented 26 October 2026; hosted evidence checked
+  29 October 2026): the successful run above completed version preparation,
+  release ZIP checks, tagging and publication. Earlier local tooling/package
+  checks, upload-recovery simulation and QGIS 4.2.3 source/extracted-ZIP checks
+  passed. Installing a downloaded release and interactive desktop acceptance
+  remain separate checks. See the
+  [release contract](distribution.md#github-builds-and-releases).
 - Arrange explicit map-visible OpenStreetMap attribution for the basemap and shared maps/screenshots; the reviewed setup and About credits do not establish that display. Separately review tile-client usage-policy behavior if preparing distribution.
 - A full ownership and host/transitive licence-compatibility audit remains outstanding. Recheck inventory and dataset-specific terms when adding copied material, runtime bundles, custom data or a public distribution destination. [Distribution boundaries](distribution.md).

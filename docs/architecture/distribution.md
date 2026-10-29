@@ -32,6 +32,15 @@ commands fail the job. Installer logs are retained on failure when available.
 The versioned installer and checksum are listed in the
 [official QGIS downloads](https://qgis.org/downloads-list/).
 
+The official MSI is cached with `actions/cache@v5` under an exact OS/checksum
+key, without fallback keys. A cache miss downloads it from QGIS; both restored
+and downloaded files must pass the same SHA-256 check before installation.
+Each job still installs QGIS and verifies its runtime; installed libraries and
+user profiles are not cached. Cache hits avoid the repeated installer download,
+while hosted timing must establish the net saving after cache transfer costs.
+Source and packaged integration logs report the ten slowest test cases.
+See the [cache action](https://github.com/actions/cache).
+
 Checkout, Python setup and artifact transfer use Node 24 actions; artifact
 upload uses `actions/upload-artifact@v7` with its default ZIP archive behavior
 and download uses `actions/download-artifact@v8`. Interactive desktop acceptance

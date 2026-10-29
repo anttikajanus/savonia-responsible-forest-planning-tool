@@ -40,7 +40,7 @@ class DownloadTests(unittest.TestCase):
                 pass
 
         cls.server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-        cls.thread = Thread(target=cls.server.serve_forever, daemon=True)
+        cls.thread = Thread(target=cls.server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True)
         cls.thread.start()
 
     @classmethod

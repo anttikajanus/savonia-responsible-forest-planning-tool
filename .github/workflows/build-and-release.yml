@@ -53,21 +53,28 @@ jobs:
     timeout-minutes: 40
     env:
       QGIS_PYTHON: C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat
+      QGIS_INSTALLER_NAME: QGIS-OSGeo4W-4.2.3-2.msi
+      # Published at https://download.qgis.org/downloads/QGIS-OSGeo4W-4.2.3-2.sha256sum
+      QGIS_INSTALLER_SHA256: c9b4b837350d00eecb77ae5c965219b3f74776e1921f7460b3859c898f38b1cf
       QT_QPA_PLATFORM: offscreen
       PYTHONUTF8: '1'
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Cache verified QGIS installer
+        uses: actions/cache@v5
+        with:
+          path: ${{ runner.temp }}/${{ env.QGIS_INSTALLER_NAME }}
+          key: ${{ runner.os }}-qgis-installer-${{ env.QGIS_INSTALLER_SHA256 }}
       - name: Install QGIS 4.2.3
         run: |
-          $installerName = 'QGIS-OSGeo4W-4.2.3-2.msi'
-          $installer = Join-Path $env:RUNNER_TEMP $installerName
+          $installer = Join-Path $env:RUNNER_TEMP $env:QGIS_INSTALLER_NAME
           $baseUrl = 'https://download.qgis.org/downloads'
-          # Published in QGIS-OSGeo4W-4.2.3-2.sha256sum at the same official URL.
-          $expectedHash = 'c9b4b837350d00eecb77ae5c965219b3f74776e1921f7460b3859c898f38b1cf'
-          Invoke-WebRequest "$baseUrl/$installerName" -OutFile $installer -MaximumRetryCount 3
-          if ((Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash -ne $expectedHash) {
+          if (-not (Test-Path -LiteralPath $installer)) {
+            Invoke-WebRequest "$baseUrl/$env:QGIS_INSTALLER_NAME" -OutFile $installer -MaximumRetryCount 3
+          }
+          if ((Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash -ne $env:QGIS_INSTALLER_SHA256) {
             throw 'QGIS installer checksum mismatch'
           }
           $installLog = Join-Path $env:RUNNER_TEMP 'qgis-install.log'
@@ -94,7 +101,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Pylint failed' }
       - name: Test QGIS integration against source
         run: |
-          & $env:QGIS_PYTHON -m unittest discover -s qgis_plugin/tests/qgis -v
+          & $env:QGIS_PYTHON -m unittest discover -s qgis_plugin/tests/qgis -v --durations 10
           if ($LASTEXITCODE -ne 0) { throw 'Source QGIS integration tests failed' }
       - uses: actions/download-artifact@v8
         with:
@@ -106,7 +113,7 @@ jobs:
           if (@($archive).Count -ne 1) { throw 'Expected one plugin ZIP' }
           $env:RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT = Join-Path $env:RUNNER_TEMP 'qgis-installed-plugin'
           Expand-Archive -LiteralPath $archive.FullName -DestinationPath $env:RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT
-          & $env:QGIS_PYTHON -m unittest discover -s qgis_plugin/tests/qgis -v
+          & $env:QGIS_PYTHON -m unittest discover -s qgis_plugin/tests/qgis -v --durations 10
           if ($LASTEXITCODE -ne 0) { throw 'Packaged QGIS integration tests failed' }
       - name: Upload QGIS installation diagnostics
         if: failure()

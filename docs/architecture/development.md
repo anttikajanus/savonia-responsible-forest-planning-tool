@@ -52,6 +52,14 @@ that installation. It preserves the metadata version. The same QGIS pattern
 applies to source and installed checks. The runner also works as
 `python scripts/check.py --help`; detailed/direct commands remain below.
 
+For a short development loop, select the affected checks or QGIS test file with
+`-Checks` and `-QgisPattern` as above; use the complete `-Package` run for final
+verification. Integration logs include the ten slowest test cases on Python
+3.12+, including setup and cleanup, to help identify expensive scenarios.
+Older Python versions retain the same checks without duration reporting.
+For direct `unittest` commands on Python 3.12+, append `--durations 10` to obtain
+the same report ([Python documentation](https://docs.python.org/3.12/library/unittest.html#command-line-options)).
+
 ## Shared QGIS test environment
 
 `RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT` is the sole plugin-root override
@@ -233,6 +241,12 @@ layers through the production URI builder with fresh unprimed providers, verify
 paged retrieval and successful empty responses, and fail a later page. Analysis
 pages carry AOI bounds. Managed WFS providers skip the initial sample-feature
 request; caller-supplied legacy test connections may still probe with `COUNT=1`. No live provider is required.
+
+The loopback WFS, OAPIF, WMTS and reference-downloader servers poll for shutdown
+every 10 ms, avoiding the standard server's default half-second wait per fixture.
+They still shut down, close the socket and join the serving thread; request
+handling and fixture isolation are unchanged. See
+[Python's server lifecycle](https://docs.python.org/3.12/library/socketserver.html#socketserver.BaseServer.serve_forever).
 
 Shared scenarios and source-field setup leave WFS providers fresh by default;
 the shared production workflow owns AOI-bounded initialization and retrieval.

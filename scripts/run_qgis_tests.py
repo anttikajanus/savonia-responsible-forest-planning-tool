@@ -30,7 +30,9 @@ def main(argv=None):
     if suite.countTestCases() == 0:
         print(f"No QGIS tests matched {arguments.pattern!r}.", file=sys.stderr)
         return 1
-    return 0 if unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful() else 1
+    # unittest added duration reporting in Python 3.12; retain older runtimes.
+    timing = {"durations": 10} if sys.version_info >= (3, 12) else {}
+    return 0 if unittest.TextTestRunner(verbosity=2, **timing).run(suite).wasSuccessful() else 1
 
 
 if __name__ == "__main__":

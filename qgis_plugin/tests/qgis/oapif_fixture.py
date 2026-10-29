@@ -59,7 +59,7 @@ class LocalOapif:
 
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         self.endpoint = "http://127.0.0.1:{0}/".format(self.server.server_port)
-        self.thread = Thread(target=self.server.serve_forever, daemon=True)
+        self.thread = Thread(target=self.server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True)
 
     def __enter__(self):
         self.thread.start()

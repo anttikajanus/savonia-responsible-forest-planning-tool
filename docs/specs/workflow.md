@@ -124,6 +124,8 @@ This requirement covers maintainer tooling; planner behavior is unchanged.
   stage summary. Full stdout/stderr remains in unique ignored local logs.
   Keep generated logs and extracted packages separate from working tickets and specs.
   Focused QGIS runs fail if no tests match their pattern.
+- Integration logs report the slowest test cases on Python 3.12+ so maintainers
+  can identify performance bottlenecks without changing the selected coverage.
 - Package validation preserves the plugin version and repeats selected unit
   and QGIS suites against the extracted ZIP. Source checks always use the
   checkout even if installed-plugin overrides were inherited.
