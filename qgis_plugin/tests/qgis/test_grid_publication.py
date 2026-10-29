@@ -107,7 +107,7 @@ class GridPublicationTests(unittest.TestCase):
                     self.assertNotIn("birch_volume_m3_ha", statuses)
                     self.assertNotIn("birch_volume_m3_ha", coverage)
                     self.assertNotIn("birch_volume_m3_ha", reopened.fields().names())
-                    self.assertEqual(statuses["stumpage_price_eur_m3"], "OUT_OF_SCOPE")
+                    self.assertEqual(statuses["stumpage_price_eur_m3"], "UNKNOWN_FIELD_OR_VALUE")
                 finally:
                     del feature, iterator, reopened, layer
                 metadata = QgsVectorLayer(path + "|layername=run_metadata", "metadata", "ogr")
@@ -123,6 +123,7 @@ class GridPublicationTests(unittest.TestCase):
                 for row in rows:
                     row["classes"] = {tier: "ECONOMIC" for tier, _ in TIERS}
                 inputs = {"language": language, "output_folder": folder, "base_name": "test",
+                          "sawlog_price_eur_m3": 75.25,
                     "gpkg_path": str(Path(folder) / "test.gpkg"), "xlsx_path": str(Path(folder) / "test.xlsx"),
                     "transform_context": QgsCoordinateTransformContext(), "aoi_crs": "EPSG:3067",
                     "aoi_name": "AOI", "selected_only": False,

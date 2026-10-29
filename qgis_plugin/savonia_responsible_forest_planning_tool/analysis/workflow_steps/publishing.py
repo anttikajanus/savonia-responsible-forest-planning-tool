@@ -53,8 +53,9 @@ def prepare_publication(inputs, retrieved, classified, run_id):
         name for name in stand_fields
         if name.lower() in STAND_SCHEMA_FIELD_CANDIDATES
     })
-    retained_stand_metrics = {*STAND_VOLUME_FIELDS, "growth_percent", "basal_area_m2_ha"}
-    mapped_metrics = sorted(set(mapped_metric_ids(confirmed_stand_fields)) & retained_stand_metrics)
+    retained_stand_metrics = {*STAND_VOLUME_FIELDS, "growth_percent", "basal_area_m2_ha", "stumpage_price_eur_m3"}
+    mapped_metrics = sorted((set(mapped_metric_ids(confirmed_stand_fields)) & retained_stand_metrics)
+                            | {"stumpage_price_eur_m3"})
     coverage.append({
         "service_id": "forest_centre_stand_indicators",
         "status": "AVAILABLE",
@@ -131,13 +132,22 @@ def prepare_publication(inputs, retrieved, classified, run_id):
             "area_totals": "sum(matching_ha) only if all reporting area known; otherwise null with observed lower bound",
             "grid_metrics": [*GRID_VOLUME_FIELDS, *AGE_METRICS, *AREA_METRICS],
             "stand_metrics": sorted(retained_stand_metrics),
-            "stumpage_price_eur_m3": "OUT_OF_SCOPE",
+            "stumpage_price_eur_m3": {
+                "origin": "USER_SUPPLIED", "input_eur_m3": inputs["sawlog_price_eur_m3"],
+                "applies_to": "positive_finite_stand_sawlogvolume_only",
+                "group_mean": "sum(unrounded_represented_sawlog_m3 * price) / sum(unrounded_represented_sawlog_m3)",
+                "excludes": ["pulpwood_price", "all_standing_timber_price", "total_monetary_value"],
+            },
         },
         "parameters": {
             "aoi_layer": inputs["aoi_name"],
             "selected_features_only": inputs["selected_only"],
             "source_ids": list(inputs["service_ids"]),
             "output_name": inputs["base_name"],
+            "sawlog_price_eur_m3": inputs["sawlog_price_eur_m3"],
+            "sawlog_price_origin": "USER_SUPPLIED",
+            "sawlog_price_source": "forest_centre_stand.sawlogvolume",
+            "sawlog_price_weight": "unrounded_piece_hectares_times_sawlog_m3_per_hectare",
         },
         "limitations": limitations,
     }]

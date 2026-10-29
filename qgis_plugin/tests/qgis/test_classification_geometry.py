@@ -31,7 +31,7 @@ def classify(stands, evidence, language):
     source_features["forest_centre_stand"] = stands
     for item in evidence:
         source_features[item["service_id"]].append(item)
-    return classify_source_features({"language": language, "source_display_names": {
+    return classify_source_features({"sawlog_price_eur_m3": 75.25, "language": language, "source_display_names": {
         source: source for source in SERVICE_DEFINITIONS}}, {
             "source_features": source_features, "protected_areas_status": "AVAILABLE",
             "coverage": [{"service_id": source, "status": "AVAILABLE"} for source in SERVICE_DEFINITIONS],

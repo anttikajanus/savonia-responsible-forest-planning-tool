@@ -1,5 +1,6 @@
 """Validate the AOI, output destination, and configured source layers."""
 
+import math
 import os
 import re
 
@@ -76,6 +77,14 @@ def _source_layer(parameters, service_id):
 def validate_inputs(parameters, run_id):
     """Validate run inputs and return the explicit values later steps need."""
     language = parameters.get("language", "en")
+    try:
+        sawlog_price = float(parameters.get("sawlog_price_eur_m3"))
+    except (TypeError, ValueError, OverflowError):
+        sawlog_price = None
+    if (sawlog_price is None or not math.isfinite(sawlog_price) or sawlog_price <= 0
+            or isinstance(parameters.get("sawlog_price_eur_m3"), bool)
+            or round(sawlog_price, 2) != sawlog_price):
+        raise QgsProcessingException(tr(language, "error_sawlog_price"))
     transform_context = parameters.get("transform_context")
     if transform_context is None:
         raise QgsProcessingException(tr(language, "error_transform_context"))
@@ -130,6 +139,7 @@ def validate_inputs(parameters, run_id):
         raise QgsProcessingException(tr(language, "error_sources_invalid", details=details))
     return {
         "run_id": run_id,
+        "sawlog_price_eur_m3": sawlog_price,
         "transform_context": transform_context,
         "aoi_crs": aoi_layer.crs().authid(),
         "aoi_name": aoi_layer.name(),

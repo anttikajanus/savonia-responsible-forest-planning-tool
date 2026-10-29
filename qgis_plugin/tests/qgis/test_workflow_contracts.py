@@ -81,7 +81,7 @@ class WorkflowContractTests(WorkflowFixtureMixin, unittest.TestCase):
                         uri = result["RESULT"]
                     else:
                         snapshot = capture_worker_inputs(stand, layers, True, QgsProject.instance().transformContext(),
-                                                         language, self.temp.name, "selected-worker-" + language)
+                                                         language, self.temp.name, "selected-worker-" + language, sawlog_price_eur_m3=75.25)
                         self.assertEqual(len(snapshot["selected_source_feature_snapshots"]["forest_centre_stand"]), 1)
                         stand.selectByIds([feature.id() for feature in features if feature.id() != selected.id()])
                         # Captured attributes and geometry must survive remote changes too.
@@ -117,7 +117,7 @@ class WorkflowContractTests(WorkflowFixtureMixin, unittest.TestCase):
             for language in ("en", "fi"):
                 base = {"language": language, "sources": layers, "aoi_layer": aoi,
                         "transform_context": QgsProject.instance().transformContext(),
-                        "output_folder": self.temp.name, "output_name": "preflight"}
+                        "output_folder": self.temp.name, "output_name": "preflight", "sawlog_price_eur_m3": 75.25}
                 cases = (
                     ({"aoi_layer": empty}, "error_aoi_empty", {}),
                     ({"aoi_layer": aoi, "selected_only": True}, "error_aoi_empty", {}),

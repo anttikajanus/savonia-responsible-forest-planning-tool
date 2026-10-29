@@ -139,7 +139,7 @@ class GridIndicatorsTest(unittest.TestCase):
         self.assertIsNone(values["stumpage_price_eur_m3"])
         self.assertNotIn("indicator_status", row)
         self.assertNotIn("birch_volume_m3_ha", row["indicator_coverage"])
-        self.assertEqual(row["indicator_coverage"]["stumpage_price_eur_m3"]["status"], "OUT_OF_SCOPE")
+        self.assertEqual(row["indicator_coverage"]["stumpage_price_eur_m3"]["status"], "UNKNOWN_FIELD_OR_VALUE")
         self.assertEqual(row["indicator_coverage"]["total_volume_m3_ha"]["source_id"], "forest_centre_stand")
         self.assertEqual(row["indicator_coverage"]["grid_total_volume_m3_ha"]["source_id"], "forest_centre_gridcell")
         without_grid = assemble_classified_piece("stand-1", {"volume": 200}, 1, {},

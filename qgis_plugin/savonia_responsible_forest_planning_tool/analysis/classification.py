@@ -215,7 +215,7 @@ def classify_tiers(evidence, source_states):
 
 
 def assemble_classified_piece(stand_id, stand_attributes, area_ha, evidence, source_states,
-                              grid_intersections=None):
+                              grid_intersections=None, sawlog_price_eur_m3=None):
     """Turn normalized piece evidence into a complete, QGIS-independent result row."""
     classes, rules = classify_tiers(evidence, source_states)
     for tier in rules:
@@ -223,6 +223,7 @@ def assemble_classified_piece(stand_id, stand_attributes, area_ha, evidence, sou
 
     stand = calculate_stand_indicators(
         area_ha, stand_attributes, source_states.get("forest_centre_stand", "NOT_AVAILABLE"),
+        sawlog_price_eur_m3=sawlog_price_eur_m3,
     )
     grid = calculate_grid_indicators(area_ha, grid_intersections or ())
     values = {**stand["indicators"], **grid["indicators"], "area_ha": area_ha}

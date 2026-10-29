@@ -84,10 +84,10 @@ class GridSourceTest(unittest.TestCase):
                 self.assertEqual(source_identifier_field(layer, GRID_ID), "GridCellId")
                 aoi = QgsVectorLayer("Polygon?crs=EPSG:3067", "AOI", "memory")
                 capture_args = (aoi, {GRID_ID: layer}, False, QgsProject.instance().transformContext(), "en", "unused")
-                before = capture_worker_inputs(*capture_args)
+                before = capture_worker_inputs(*capture_args, sawlog_price_eur_m3=75.25)
                 layer.setMinimumScale(300.000001)
                 layer.setScaleBasedVisibility(True)
-                after = capture_worker_inputs(*capture_args)
+                after = capture_worker_inputs(*capture_args, sawlog_price_eur_m3=75.25)
                 self.assertEqual(before["sources"], after["sources"])
                 self.assertEqual(after["sources"][GRID_ID]["properties"]["savonia/feature_type"], typename)
 

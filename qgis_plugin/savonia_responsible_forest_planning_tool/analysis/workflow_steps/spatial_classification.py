@@ -247,6 +247,7 @@ def classify_source_features(inputs, retrieved, feedback=None):
                 result_row = assemble_classified_piece(
                     stand_id, stand_record["attributes"], reporting_area_m2 / 10000.0,
                     evidence, source_states, grid_intersections=intersections,
+                    sawlog_price_eur_m3=inputs["sawlog_price_eur_m3"],
                 )
             except ValueError as exc:
                 intersected_area_m2 = math.fsum(item["area_ha"] for item in intersections) * 10000

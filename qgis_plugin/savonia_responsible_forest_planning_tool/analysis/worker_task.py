@@ -27,7 +27,7 @@ SOURCE_LAYER_PROPERTIES = (
 
 
 def capture_worker_inputs(aoi, sources, selected_only, transform_context,
-                          language, output_folder, output_name=None):
+                          language, output_folder, output_name=None, sawlog_price_eur_m3=None):
     """Copy wizard inputs to Python/QGIS value data on the UI thread.
 
     No layer or project QObject is retained by the returned structure. Source
@@ -84,6 +84,7 @@ def capture_worker_inputs(aoi, sources, selected_only, transform_context,
         "transform_context": QgsCoordinateTransformContext(transform_context),
         "language": str(language),
         "output_folder": str(output_folder),
+        "sawlog_price_eur_m3": sawlog_price_eur_m3,
         "output_name": str(output_name or ""),
     }
 
@@ -187,6 +188,7 @@ class ResponsibleForestPlanningAnalysisTask(QgsTask):
                 ],
                 "sources": sources,
                 "output_folder": self._worker_inputs["output_folder"],
+                "sawlog_price_eur_m3": self._worker_inputs["sawlog_price_eur_m3"],
                 "output_name": self._worker_inputs["output_name"] or None,
                 "entry_point": "wizard",
             }, feedback)

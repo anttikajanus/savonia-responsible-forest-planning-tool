@@ -5,7 +5,7 @@ import logging
 from qgis.core import (
     Qgis, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingException,
     QgsProcessingParameterBoolean, QgsProcessingParameterFolderDestination,
-    QgsProcessingParameterString, QgsProcessingParameterVectorLayer,
+    QgsProcessingParameterString, QgsProcessingParameterVectorLayer, QgsProcessingParameterNumber,
     QgsProcessingOutputFile, QgsProcessingOutputVectorLayer,
     QgsProcessingProvider, QgsMessageLog,
 )
@@ -32,6 +32,7 @@ class ResponsibleForestPlanningInputsAlgorithm(QgsProcessingAlgorithm):
     PROTECTED_WILDERNESS = "PROTECTED_WILDERNESS"
     PROGRAMME = "PROGRAMME"
     GROUNDWATER = "GROUNDWATER"
+    SAWLOG_PRICE_EUR_M3 = "SAWLOG_PRICE_EUR_M3"
     OUTPUT_FOLDER = "OUTPUT_FOLDER"
     OUTPUT_NAME = "OUTPUT_NAME"
     RESULT = "RESULT"
@@ -104,6 +105,10 @@ class ResponsibleForestPlanningInputsAlgorithm(QgsProcessingAlgorithm):
         self.addParameter(QgsProcessingParameterVectorLayer(
             self.GROUNDWATER, tr(language, "groundwater_layer"), types=[QgsProcessing.TypeVectorPolygon]
         ))
+        self.addParameter(QgsProcessingParameterNumber(
+            self.SAWLOG_PRICE_EUR_M3, tr(language, "sawlog_price"),
+            type=QgsProcessingParameterNumber.Double, optional=False, minValue=0.0,
+        ))
         self.addParameter(QgsProcessingParameterFolderDestination(
             self.OUTPUT_FOLDER, tr(language, "output_folder")
         ))
@@ -132,6 +137,8 @@ class ResponsibleForestPlanningInputsAlgorithm(QgsProcessingAlgorithm):
             "aoi_layer": self.parameterAsVectorLayer(parameters, self.AOI, context),
             "selected_only": self.parameterAsBool(parameters, self.SELECTED_ONLY, context),
             "sources": sources,
+            "sawlog_price_eur_m3": (self.parameterAsDouble(parameters, self.SAWLOG_PRICE_EUR_M3, context)
+                                     if parameters.get(self.SAWLOG_PRICE_EUR_M3) is not None else None),
             "output_folder": self.parameterAsString(parameters, self.OUTPUT_FOLDER, context),
             "output_name": self.parameterAsString(parameters, self.OUTPUT_NAME, context).strip() or None,
             "entry_point": "processing",
