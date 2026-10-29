@@ -57,7 +57,7 @@ class StandOverlapTests(WorkflowFixtureMixin, unittest.TestCase):
                 self.assertTrue(Path(result["EXCEL"]).is_file())
 
                 snapshot = capture_worker_inputs(aoi, layers, False, QgsProject.instance().transformContext(),
-                                                 language, self.temp.name, "worker-overlap-" + language)
+                                                 language, self.temp.name, "worker-overlap-" + language, sawlog_price_eur_m3=75.25)
                 completed = []
                 task = ResponsibleForestPlanningAnalysisTask("overlap fixture", snapshot,
                     lambda finished, success: completed.append(success))
