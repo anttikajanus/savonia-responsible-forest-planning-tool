@@ -2,6 +2,7 @@
 
 TEXT = {
     "en": {
+        "parameters_incomplete": "Complete the analysis area, required sources, sawlog price and output folder before running.",
         "sawlog_price": "Sawlog stumpage price (€/m³)",
         "error_sawlog_price": "Enter a finite, positive sawlog stumpage price (€/m³) with at most two decimal places.",
         "field_stand_has_overlap": "Parent stand overlaps another stand within the analysis area",
@@ -265,6 +266,7 @@ TEXT = {
         "source_schema_fields_missing": "Required fields are missing: {fields}. Choose a layer containing these fields, then try again.",
     },
     "fi": {
+        "parameters_incomplete": "Täydennä analyysialue, pakolliset lähteet, tukkipuun kantohinta ja tuloskansio ennen ajoa.",
         "sawlog_price": "Tukkipuun kantohinta (€/m³)",
         "error_sawlog_price": "Anna äärellinen, positiivinen tukkipuun kantohinta (€/m³) enintään kahdella desimaalilla.",
         "field_stand_has_overlap": "Emokuvio on päällekkäinen toisen kuvion kanssa analyysialueella",
