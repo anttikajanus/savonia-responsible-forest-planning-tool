@@ -41,110 +41,41 @@ layer with a usable CRS and matching source identity. Required attributes are:
 
 ## Configured layer behavior
 
-Managed WFS connections use explicit `version=2.0.0`, `pagingEnabled=true`,
-`pageSize=1000`, `restrictToRequestBBOX=1`, `skipInitialGetFeature=true` and
-`forceInitialGetFeature=false`. Metadata discovery also requests WFS 2.0.0.
-QGIS still reads capabilities and the feature schema, but skips its startup
-sample-feature request. Schema-declared polygon geometry, CRS and provider
-fields remain the readiness evidence; no feature count is requested by setup.
-The discovered CRS becomes `srsname` unless an existing connection chose a CRS.
-Page size limits individual responses; managed connections have no
-`maxNumFeatures` total cap. Later map reads use view bounds; shared workflow
-reads retain AOI bounds and exact clipping across every page. Worker-owned
-providers inherit these options. Setup remains synchronous, so slow metadata
-responses can still delay the UI.
+Managed WFS sources use WFS 2.0.0 with paging and view/AOI-bounded requests,
+without a total feature cap. Setup discovers metadata and provider fields
+without downloading sample features or counting records. Analysis retrieves
+each source once for the AOI and clips it exactly; the grid is reused locally
+across result polygons. Rendering visibility never controls analysis readiness
+or retrieval. Setup remains synchronous, so metadata waits can delay the UI.
+See the [connection adapter](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py)
+for provider URI options.
 
-Repeated setup updates older connection options in place with `setDataSource`
-only when the URI changes. It disables any forced startup sample request and
-removes old total feature caps while preserving layer ID, endpoint, filters,
-authentication, existing CRS, tree position and visibility choices. Schema
-discovery/readiness remains fresh; an unavailable service or invalid reopened
-provider leaves setup incomplete under the existing failure policy.
-The options are implemented by
-[QGIS 4.2.3 WFS URI parsing](https://github.com/qgis/QGIS/blob/final-4_2_3/src/providers/wfs/qgswfsdatasourceuri.cpp)
-and [provider initialization](https://github.com/qgis/QGIS/blob/final-4_2_3/src/providers/wfs/qgswfsprovider.cpp).
+Repeated setup reuses managed layer identities and refreshes connection options
+and credentials while preserving user layers, filters, existing CRS and visibility
+choices. Failed provider/schema checks leave setup incomplete. Stable service
+IDs identify sources independently of translated labels and layer-tree position.
+Reference grouping, rendering and scale visibility are presentation behavior;
+[WF-02](../specs/workflow.md#wf-02-project-setup) and the
+[manuals](../help/manual_en.html) describe the user-facing organization.
 
-The display-only MML layers have managed service IDs `mml_parcels` (polygon
-collection `PalstanSijaintitiedot`) and `mml_property_identifiers` (point collection
-`KiinteistotunnuksenSijaintitiedot`). Setup requires a saved MML API key before
-any project mutation. Both `oapif` layers must have the expected geometry and a
-valid saved API key in the connection username with an empty password, so all
-discovery and feature requests use HTTP Basic authentication. Neither landing
-page nor linked URLs need an `api-key` query parameter. Both layers require a
-valid CRS; the point layer also requires the exact provider field
-`kiinteistotunnuksenEsitysmuoto`. Unavailable connections or invalid schemas
-leave setup incomplete. Both are outside the eight-source analysis registry and
-Processing inputs, readiness, classification and export snapshots.
-
-References has four managed subgroups, in order: `properties` (Kiinteistörajat),
-`forest` (Metsävara), `protected` (Suojelualueet), `water` (Vesistö). Names are
-localized; IDs remain stable. Properties contains Kiinteistörajat followed by
-Kiinteistötunnukset. Polygons have no fill, solid red (`#ff0000`) outlines
-1 mm wide and no labeling. Points use `QgsNullSymbolRenderer` with red 20-point
-Arial field labels placed over the points, with a white 2 mm text buffer
-(rounded joins, full opacity, no interior fill). Boundaries render at **1:25,000 or closer** and identifiers at **1:10,000 or closer**,
-including the boundary using the same `1e-6` denominator margin as the grid.
-Setup reapplies presentation, reuses layer identity, reconnects invalid layers
-or changed credentials, and restores managed group/child order. User layers and
-visibility choices survive node moves.
-
-Tree moves insert a cloned node before removing the original, including group
-moves. QGIS 4.2 queues deletion of project layers when their last node disappears;
-disabling the registry bridge does not suppress its tree-removal slots. Never
-detach/remove first and reinsert later. Tests must process queued GUI events
-before asserting registry membership and tree completeness. See the
-[QGIS registry bridge implementation](https://github.com/qgis/QGIS/blob/release-4_2/src/core/layertree/qgslayertreeregistrybridge.cpp).
-
-The provider uses its advertised/default CRS
-(CRS84 by default); QGIS handles map reprojection. No parcel area or distance
-calculations are performed. Requests are restricted to the view bounding box
-with a page size of 1,000; provider schema probes may request a small unbounded
-sample. The endpoint, collection and access evidence are in
-[data sources](data-sources.md#mml-parcel-map-context).
-
-Project setup applies scale-based visibility to the Forest Centre stands and habitats reference layers: they are visible at **1:7,763 or closer** and hidden farther out. Setup restores these limits on both new and reused managed layers. A `1e-6` denominator margin includes the exact boundary despite QGIS comparison tolerance; there is no closer-zoom cutoff. Saved projects retain the settings. The limit affects map rendering only; analysis still requests features within the AOI bounding box and intersects them with the AOI.
-
-The grid source is `forest_centre_gridcell`; its endpoint/type is in the
-[source inventory](data-sources.md#required-sources). Setup verifies that type,
-retains discovery metadata, and puts
-exactly one managed grid after habitats and stands inside Forest inventory.
-Protected areas contains programmes, wilderness, state-owned and private-land
-layers in that order; Water contains groundwater. All four protected layers use
-the same fill RGBA `210,95,125,95` and outline `155,55,85,220`, 0.35 mm wide.
-This matches groundwater's fill/outline alpha and width while retaining a
-separate rose hue. Setup gives the grid a solid dark green (`#006400`, RGBA
-`0,100,0,255`) outline, 0.25 mm wide, with no fill (`style=no`). Repeated setup
-restores this symbol on existing layers; saved projects retain it. Grid rendering is restricted to **1:300 or closer** (visible at 1:200
-and 1:300; hidden at 1:500). QGIS 4.2.3 uses a tiny comparison margin to include
-the boundary scale. Rendering never controls source availability or calculations.
-Processing requires an explicit polygon-layer `GRIDCELLS` parameter; the wizard
-looks up the configured source by its stable service ID and captures worker-owned
-inputs before analysis.
-
-One AOI-bounded grid retrieval is clipped exactly and reused with a local spatial
-index across the classified result polygons. Provider names, original attributes,
-cell IDs, endpoint/type, retrieval time and any measurement/update dates remain
-traceable in snapshots and metadata. A refreshed service is not a newer measurement.
+The MML parcel polygons and property-identifier points are display context,
+outside the analysis registry and exports. Setup requires a saved MML key before
+project mutation and validates provider geometry/CRS; identifier points also
+require `kiinteistotunnuksenEsitysmuoto`. Connections authenticate discovery and
+feature requests using the key as the HTTP Basic username with an empty
+password. QGIS handles map reprojection; these layers supply no analysis area or
+distance calculations. [Access and source evidence](data-sources.md#mml-parcel-map-context).
 
 ## Basemap stack
 
-Managed raster IDs use the `savonia/layer_id` property: `mml_ortokuva`,
-`mml_maastokartta`, `osm_xyz`, in that tree order. Finnish labels are Ortokuva,
-Maastokartta and OpenStreetMap; English labels are Orthophoto, Topographic map
-and OpenStreetMap. The MML WMTS connection contract is in
-[data sources](data-sources.md#mml-basemap-context).
-
-Setup creates/reconnects invalid MML raster providers and refreshes changed
-connection credentials in place. It restores managed tree order ahead of user
-layers without replacing existing layer IDs or losing check states. When
-Maastokartta is first added, setup enables the Basemaps group and checks only
-Maastokartta among managed basemaps, including upgrades from OSM-only projects.
-Later runs preserve user visibility choices. Newly recreated Ortokuva is hidden.
-An invalid WMTS layer produces a localized `WMTS_LAYER_INVALID` setup diagnostic;
-new invalid layers are not published. Existing invalid layers remain for retry.
-OSM creation failures retain `XYZ_LAYER_INVALID` with a localized diagnostic.
-Basemap errors do not change analysis readiness or substitute another source
-as valid analysis evidence. The existing MML-key preflight remains in force.
+MML orthophoto/topographic WMTS and OpenStreetMap XYZ are display-only adapters,
+separate from the eight required analysis sources. Repeated setup refreshes
+credentials and reuses layer identities while preserving user visibility choices.
+Invalid basemap providers produce localized setup diagnostics; they neither
+satisfy analysis readiness nor substitute for failed evidence sources.
+The [workflow spec](../specs/workflow.md#wf-02-project-setup) owns initial
+visibility and ordering; [data sources](data-sources.md#mml-basemap-context)
+owns the connection and access evidence.
 
 ## Validation boundaries
 
@@ -159,7 +90,7 @@ Geometry repair, clipping, duplicate records and overlap tolerances belong to th
 [geometry contract](calculations.md#area-and-geometry); field readiness does not
 certify any of those conditions.
 
-When selected-feature-only mode is enabled and the layer-based analysis area is also a configured source layer, both the wizard and Processing copy the selected features' geometries and attributes into a local snapshot instead of requesting those same features again from WFS. Processing captures selected features once during validation and uses that same set to build the AOI and source snapshot; provider FIDs/cache contents must not determine a second read. Validation forwards wizard snapshots unchanged to retrieval. The copied geometries are still transformed and intersected with the analysis area before use. Other sources are retrieved using the analysis-area bounding box and are also intersected exactly with the analysis area. Unchecking selected-feature-only mode uses the full analysis-area layer and retrieves matching source features through the provider.
+When selected-feature-only mode is enabled and the layer-based analysis area is also a configured source layer, both the wizard and Processing copy the selected features' geometries and attributes into a local snapshot instead of requesting those same features again from WFS. The same captured selection supplies both the AOI and source snapshot, so later selection or service changes cannot alter that run. The copied geometries are still transformed and intersected with the analysis area before use. Other sources are retrieved using the analysis-area bounding box and are also intersected exactly with the analysis area. Unchecking selected-feature-only mode uses the full analysis-area layer and retrieves matching source features through the provider.
 
 The field contract is provider-neutral. An adapter for a future local or custom source should pass its provider's field names and the corresponding semantic source ID to the shared readiness check. The current analysis workflow still configures its online WFS sources through project setup; this document does not itself add local/custom source selection.
 

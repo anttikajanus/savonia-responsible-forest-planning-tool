@@ -7,7 +7,7 @@ explains why provider fields, rather than saved XSD contents, determine readines
 
 ## Required sources
 
-Eight WFS layers are required. The three protected-area layers form one interpretation group but remain separate required inputs. The exact registry is [sources.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py); field requirements, accepted aliases, identifier fallbacks, display scales and selected-feature snapshot handling are maintained in [source-layer requirements](source-layer-requirements.md).
+Eight WFS layers are required. The three protected-area layers form one interpretation group but remain separate required inputs. The exact registry is [sources.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py); field requirements, accepted aliases, identifier fallbacks and selected-feature snapshot handling are maintained in [source-layer requirements](source-layer-requirements.md).
 
 | Product | Endpoint | Feature type / selection | Contribution |
 | --- | --- | --- | --- |
@@ -44,7 +44,7 @@ optional `MML_API_KEY` for this download. These are display-only rasters outside
 the eight-source analysis registry and exports. Preserve MML attribution in
 shared maps under the provider's open-data licence and interface terms.
 The [source-layer contract](source-layer-requirements.md#basemap-stack)
-owns identity, visibility, reuse and failures.
+owns reuse and failure behavior; the workflow spec owns map presentation.
 
 ## MML parcel map context
 
@@ -62,36 +62,30 @@ These are older model evidence, not live service schema checks. Reviewed 28 Octo
 credentialed/schema and desktop verification remain in the
 [verification register](open-questions.md#provider-evidence).
 
-Setup stores the mandatory key under QGIS setting
-`savonia-forest-planning/mml-api-key`, separate from SYKE. Blank/cancelled input
-stops setup before project changes. The provider URI uses the API key as its
-username (`QgsDataSourceUri.setUsername`) and an empty password. QGIS sends HTTP
-Basic credentials on discovery, conformance, collection and feature requests,
-including links which have no query parameters. This follows
-[MML's authentication instructions](https://www.maanmittauslaitos.fi/rajapinnat/api-avaimen-ohje).
-Query-only authentication omitted the key on QGIS 4.2.3 conformance probes,
-triggering MML's Basic challenge and a second credential dialog even when
-collection access succeeded. Do not treat that failed probe as harmless.
-The key is retained as the username in saved project layer connections. Review
-those connections before sharing projects; plugin source errors redact raw,
-URL/URI-escaped and Basic-encoded keys, credential fields and `api-key` parameters.
-To replace a rejected key, change or clear the setting
-in QGIS's Advanced Settings Editor, then run setup again. See
-[MML key instructions](https://www.maanmittauslaitos.fi/rajapinnat/api-avaimen-ohje).
-The [source-layer contract](source-layer-requirements.md#configured-layer-behavior)
-owns presentation, field checks, retry and ordering.
+The mandatory MML key is stored in QGIS settings, separately from SYKE access.
+Blank/cancelled input stops setup before project mutation. Connections use the
+key as the HTTP Basic username with an empty password so authentication reaches
+both discovery and feature requests, including linked URLs. Saved projects
+retain that username; review connections before sharing them. Plugin errors
+redact credentials. See [MML authentication instructions](https://www.maanmittauslaitos.fi/rajapinnat/api-avaimen-ohje)
+and the [setup instructions](../../qgis_plugin/README.md#requirements-and-syke-setup)
+for key replacement. The [source-layer contract](source-layer-requirements.md#configured-layer-behavior)
+owns validation and reuse.
 
 ## Readiness and normalization
 
 WFS setup discovers schemas without downloading sample features or counting
 records. Managed connections use explicit WFS 2.0, view/AOI-bounded reads and
-1,000-feature pages with no total feature cap. Repeated setup upgrades older
+paged responses with no total feature cap. Repeated setup upgrades older
 connection options; the [source-layer contract](source-layer-requirements.md#configured-layer-behavior)
-owns exact initialization parameters and preservation behavior.
+owns initialization and preservation guarantees.
 
 The [source-layer contract](source-layer-requirements.md) owns field readiness, alias priority, source identity and normalization. Setup and analysis use the same provider-field contract; schema readiness remains distinct from valid feature values and complete metric coverage. [Contract implementation](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/source_readiness.py), [QGIS-facing checks](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/source_layers.py).
 
-Saved XSD metadata is provenance rather than a readiness authority. Its parser includes global feature declarations among properties, so it cannot define the required provider fields. That metadata defect remains separate from provider-field readiness. [ADR-0003](adr/0003-provider-field-source-contracts.md), [OGC DescribeFeatureType response semantics](https://docs.ogc.org/is/09-025r2/09-025r2.html#_describe_feature_type_operation), [QGIS provider API](https://api.qgis.org/api/4.2/classQgsVectorDataProvider.html).
+Saved XSD metadata is provenance rather than a readiness authority. Its known
+parser limitation is tracked separately in the
+[gap register](open-questions.md#known-implementation-gaps).
+[ADR-0003](adr/0003-provider-field-source-contracts.md).
 
 ## Provider evidence
 
@@ -133,20 +127,18 @@ Only WFS 2.0 is supported, with managed sources configured as WFS 2.0.0.
 [ADR-0010](adr/0010-wfs-2-only.md) records why WFS 1.x compatibility, downgrade
 fallback and legacy exception handling are outside the planned scope.
 
-Use the AOI-bounded analysis iterator itself to initialize a fresh WFS cache.
-Do not open and immediately close a preliminary empty-FID/zero-limit iterator:
-on QGIS 4.2.3, that sequence intermittently emitted the same provider feature ID
-twice during the subsequent read, including with managed WFS 2.0 connections.
-The duplicate inflated observed category counts and retained snapshots. Removing
-the preliminary iterator preserves one source read without merging distinct
-records by their business identifiers. Selected-feature snapshots still bypass
-provider retrieval as specified in the [source-layer contract](source-layer-requirements.md).
+A single AOI-bounded read retrieves each source; selected-feature snapshots
+bypass that provider read. Accepting retrieval requires both iterator completion
+and a provider-error check. QGIS can deliver request errors asynchronously, so
+the adapter must collect pending errors in the provider's owning thread before
+reporting coverage. This keeps failed requests distinct from successful empty
+responses without a second query. HTTP failures and HTTP-200 OWS exception
+responses stop publication.
 
-An exhausted iterator alone cannot establish successful retrieval. In the QGIS 4.2.3 HTTP-503 fixture, provider errors became visible only after queued provider `MetaCall` events were delivered. Before reusing a provider, drain earlier queued errors and clear the error list; after consuming/closing its iterator, dispatch only that provider's queued `MetaCall` events in its owning thread and inspect errors before accepting coverage. The current implementation is in [source_loading.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/source_loading.py).
-
-This is a version-specific application policy supported by the local regression and QGIS's signal path, not a guarantee for arbitrary providers. It avoids a duplicate query, global event processing or relying on unrelated panel messages. [QGIS WFS provider](https://github.com/qgis/QGIS/blob/release-4_2/src/providers/wfs/qgswfsprovider.cpp), [shared data](https://github.com/qgis/QGIS/blob/release-4_2/src/providers/wfs/qgswfsshareddata.cpp), [Qt targeted event dispatch](https://doc.qt.io/qt-6/qcoreapplication.html#sendPostedEvents).
-
-Managed sources use WFS 2.0.0. HTTP failures and HTTP-200 OWS `ExceptionReport` responses stop publication. QGIS 4.2's parser does not similarly recognize WFS 1.0 `ServiceExceptionReport`; provider error draining cannot fix that compatibility limit. Preserve successful-empty, 503, OWS-exception and unrelated-provider regression cases. [QGIS GML parser](https://github.com/qgis/QGIS/blob/release-4_2/src/core/qgsgml.cpp), [WFS downloader](https://github.com/qgis/QGIS/blob/release-4_2/src/providers/wfs/qgswfsfeaturedownloaderimpl.cpp), [OGC WFS 2 exception reporting](https://docs.ogc.org/is/09-025r2/09-025r2.html#_exception_reporting).
+The [retrieval adapter](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/source_loading.py)
+and its [workflow regressions](../../qgis_plugin/tests/qgis/test_workflow_contracts.py)
+own the QGIS-specific cache and event handling. Verification covers the QGIS
+4.2.3 WFS boundary; it is not a guarantee for arbitrary providers.
 
 Successful empty retrieval is `AVAILABLE` but is not certification of complete geographic coverage. Source request/iteration failures stop the run. Metric nulls are handled independently as documented in [indicators](indicators.md).
 

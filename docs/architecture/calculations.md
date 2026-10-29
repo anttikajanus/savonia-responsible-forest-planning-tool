@@ -35,9 +35,9 @@ dissolved. Stand overlaps follow the warning policy in
 Every stand overlap above `1e-8` m² is retained without trimming, with no maximum
 accepted overlap. It may contribute to both stands' areas and indicators. Flag
 every derived piece of either parent, regardless of the individual piece's
-location. Each unordered pair is logged once at DEBUG with run/source/stand IDs
-and intersection m²; one WARNING reports pair count, affected-parent count and
-a capped ID sample. Pairwise areas must not be summed as unique ground area.
+location. Technical logs retain pair evidence and an aggregate completion warning
+discloses possible duplicate contributions. Pairwise areas must not be summed
+as unique ground area.
 [ADR-0013](adr/0013-nonfatal-stand-overlaps.md) supersedes the previous limit.
 Identical
 repeated grid IDs/records are deduplicated; conflicting records of one ID or
@@ -50,9 +50,8 @@ Section 10 uses the same overlap threshold, then promotes every output piece
 from the original stand. The hit threshold avoids tiny edge discrepancies
 between source datasets. The separate `1e-8` m² output-geometry
 tolerance only discards negligible fragments when retaining split polygons; it
-does not determine whether a criterion hit occurs. Clipped numerical
-fragments at or below this tolerance are skipped before snapshot/index
-construction rather than treated as invalid partitions.
+does not determine whether a criterion hit occurs. Clipped numerical fragments
+at or below this tolerance are excluded.
 
 ## Classification
 
@@ -93,11 +92,8 @@ Excluded criteria follow [CL-04](../specs/classification.md#cl-04-exclusions-and
 
 The [input contract](source-layer-requirements.md#accepted-classification-values)
 owns accepted statuses, categories, habitat codes and programme identifiers.
-Classification consumes their normalized criteria. The interpreter can build a
-programme criterion for a recognized class without an identifier, but also reports
-that record as uninterpretable; the workflow therefore stops before publication
-under [WF-07](../specs/workflow.md#wf-07-failure-cancellation-and-observability).
-Optional subtype and original programme context remain available for the
+Classification consumes their normalized criteria. Optional subtype and original
+programme context remain available for the
 [output fields](output-schema.md#outputs-and-coverage).
 
 Section 10 stand promotion follows
@@ -105,10 +101,9 @@ Section 10 stand promotion follows
 planning assumption, distinct from a legal determination. Provider definitions
 and their limits remain in [source evidence](data-sources.md#interpretation-and-geographic-limits).
 
-Each split branch owns independent source-ID sets. Adding a matching record to
-one branch cannot mutate the provenance of its siblings; normalized output IDs
-remain sorted and unique. Spatial regressions exercise overlapping protected
-records in both orders, alongside the stand-wide Section 10 exception.
+Provenance is local to each result piece: matching one piece must not alter
+sibling source identifiers. Section 10 stand-wide promotion is the explicit
+exception. Output identifiers are sorted and unique.
 
 ## Previous calculation-reference sections
 

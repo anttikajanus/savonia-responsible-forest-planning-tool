@@ -2,6 +2,11 @@
 
 These documents describe the implemented architecture and adopted design decisions of **Savonia - Responsible Forest Planning**. User stories and functional requirements live in [specifications](../specs/README.md); outstanding validation and release work is listed in [open questions](open-questions.md).
 
+The overview explains boundaries and trade-offs; technical references retain
+the contracts needed to interpret inputs and outputs. For documentation edits,
+follow the [architecture scope](../agents/specifications.md#architecture-scope).
+Implementation mechanics remain discoverable in the linked code and tests.
+
 The [agent guidance and documentation map](../agents/README.md) identifies the
 other documentation owners and task instructions. For provider metadata and
 documents, inspect the [local reference cache](../references/service-metadata/README.md) before

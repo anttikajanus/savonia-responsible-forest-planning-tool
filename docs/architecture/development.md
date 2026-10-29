@@ -76,29 +76,12 @@ separate from the user's QGIS profile. File and SQLite write/read probes,
 settings persistence/containment, the supported QGIS range and required
 provider availability are checked before product tests.
 
-QGIS 4.2 external applications resolve their profile during `initQgis()`;
-the bootstrap sets `QGIS_CUSTOM_CONFIG_PATH` before construction and applies
-the cache setting after profile initialization. It checks that both the active
-settings file and QGIS profile stay inside the test root. See the
-[QGIS initialization implementation](https://github.com/qgis/QGIS/blob/release-4_2/src/core/qgsapplication.cpp)
-and [Qt settings paths](https://doc.qt.io/qt-6/qsettings.html#setPath).
-
 [run_qgis_tests.py](../../scripts/run_qgis_tests.py) supports `--preflight-only`
-and `--pattern`; the check runner uses it for integration checks. Direct
-`unittest` commands and existing CI jobs get the same bootstrap through the
-test imports. The runner owns each child's temporary environment and removes it
-after the process releases Windows file handles. Direct unittest runs allocate
-their own temporary environment with best-effort cleanup on process exit.
-`RESPONSIBLE_FOREST_PLANNING_TEST_ENV_ROOT` is reserved for a caller-owned
-temporary directory when using the bootstrap directly; the local check runner
-always allocates a fresh directory and ignores inherited values.
-
-[Bootstrap guard checks](../../scripts/tests/test_qgis_test_bootstrap.py) in the
-existing tooling suite enforce shared initialization before QGIS/plugin imports.
-[Environment checks](../../qgis_plugin/tests/qgis/test_qgis_environment.py) cover
-settings containment, reuse, writable SQLite and failure before discovery.
-The shared environment replaces the former per-module application construction
-and per-class cache-directory overrides. It changes test wiring only.
+and `--pattern`; direct unittest and CI use the same bootstrap. The runner
+allocates a fresh temporary environment for each child and cleans it up after
+process exit. Direct runs use best-effort exit cleanup.
+`RESPONSIBLE_FOREST_PLANNING_TEST_ENV_ROOT` is available for a caller-owned
+temporary directory when using the bootstrap directly.
 
 ## Python linting
 
@@ -112,28 +95,12 @@ environment's user site, then run from the repository root:
 & 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' -m pylint qgis_plugin scripts
 ```
 
-Use the configured QGIS launcher rather than a plain Python installation so
-PyQGIS and Qt imports resolve. Pylint may inspect the known `qgis` and `PyQt6`
-compiled extensions, as described in its
-[extension guidance](https://pylint.pycqa.org/en/latest/user_guide/messages/error/no-member.html).
-Missing imports and member errors remain enabled. The configuration adds the
-plugin and test-fixture import roots and accounts for the existing unittest
-mixin and dynamically assigned HTTP fixture attributes.
-
-The initial policy enables fatal/error diagnostics and selected correctness
-warnings, including mutable defaults, duplicate keys, bare exception handlers
-and unreachable code. Formatting, naming, complexity and the remaining warning
-checks are outside this initial policy. Any enabled diagnostic fails the command;
-no numeric score threshold or successful-exit override is used. Recursive
-discovery covers tests without `__init__.py`; generated archives, bytecode,
-virtual environments and local scratch work are excluded. To lint one file,
-replace `qgis_plugin scripts` with its path. Editor integrations must use the
-same QGIS runtime and repository working directory. Development dependencies
-remain outside the plugin package.
-
-CI uses this same policy and QGIS 4.2.3 launcher. Any enabled diagnostic fails
-the quality job and prevents its dependent release job from running. No extra
-warning/style rules are introduced by CI enforcement.
+Use the QGIS launcher so PyQGIS and Qt imports resolve. The repository
+configuration enables fatal/error diagnostics and selected correctness warnings;
+any enabled diagnostic fails the command. It covers plugin code, tests and
+scripts; development dependencies remain outside the installation ZIP. For a
+focused check, replace `qgis_plugin scripts` with a file path. Editors and CI
+must use the same runtime and repository working directory.
 
 ## Local provider references
 
@@ -230,53 +197,26 @@ For QGIS integration, use the declared runtime's configured Python launcher:
 & 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' -m unittest discover -s qgis_plugin/tests/qgis -v
 ```
 
-The integration suite runs headlessly with generated polygon data and a tiny WFS
-fixture bound to a random loopback port. It calls the shared Processing algorithm
-with real WFS providers and checks GeoPackage/workbook results and failure messages
-in Finnish and English. It requires local loopback access but no online services.
-The fixture implements only the WFS operations needed by these tests. Existing
-small GML2 scenarios use WFS 1.0 as test transport; they do not establish support
-for legacy production services. Dedicated WFS 2.0/GML 3.2 scenarios construct
-layers through the production URI builder with fresh unprimed providers, verify
-paged retrieval and successful empty responses, and fail a later page. Analysis
-pages carry AOI bounds. Managed WFS providers skip the initial sample-feature
-request; caller-supplied legacy test connections may still probe with `COUNT=1`. No live provider is required.
-
-The loopback WFS, OAPIF, WMTS and reference-downloader servers poll for shutdown
-every 10 ms, avoiding the standard server's default half-second wait per fixture.
-They still shut down, close the socket and join the serving thread; request
-handling and fixture isolation are unchanged. See
-[Python's server lifecycle](https://docs.python.org/3.12/library/socketserver.html#socketserver.BaseServer.serve_forever).
-
-Shared scenarios and source-field setup leave WFS providers fresh by default;
-the shared production workflow owns AOI-bounded initialization and retrieval.
-The explicit `prime=True` cache and selected-feature scenarios use an empty
-feature-ID filter, the AOI rectangle and a zero-result limit, then close that
-iterator without reading features. Empty IDs and a zero limit alone do not guarantee that QGIS
-will avoid starting a download, so priming must also carry spatial bounds.
-Setup must not assume an unrestricted first read is empty: hosted QGIS returned
-configured records where the local runtime returned none. Keep feature-content
-assertions in workflow/output tests. Production retrieval uses one AOI-bounded
-iterator per source; it does not prime the cache first. Opening and closing a
-preliminary zero-limit iterator intermittently duplicated provider records on
-QGIS 4.2.3, including WFS 2.0. Explicit priming above is limited to fixture cases
-that need an already initialized provider. The regressions in
-`test_workflow_contracts.py` and `test_source_field_workflow.py` reproduce the
-populated-read behavior and check that source values reach published outputs.
-The bilingual source-field runs require exactly one bounded, unlimited analysis
-request per source and retain exact observed category and snapshot counts.
+The integration suite uses generated local data and loopback WFS/OAPIF/WMTS
+fixtures with real QGIS providers. It checks the shared Processing workflow,
+GeoPackage/workbook outputs and Finnish/English failures without online services.
+Loopback network access is required. WFS 2.0 cases cover production connection
+construction, paging, successful-empty responses and later-page failures;
+legacy WFS 1.0 fixture transport does not establish production support.
 
 ### Regression seams
 
-| Contract | Tests and assertions |
+| Boundary | Regression entry points |
 | --- | --- |
-| Pure tier policy, CL-02/03 | `tests/test_classification.py`: all 32 trigger combinations, exact matched rules/IDs, missing dependencies, positive-match precedence and uninterpretable records. |
-| Spatial classification, CL-01/03 | `tests/qgis/test_classification_geometry.py`: below/at/above 1 m², shared edges/points, protected strips, Section 10 parent promotion, neighboring stands, piece-local IDs in both source orders and conserved geometry. |
-| Selection/preflight/protocol, WF-03/04/06/07 | `tests/qgis/test_workflow_contracts.py`: captured source geometry/attributes despite later selection/service changes, equivalent worker/Processing values, selection metadata, invalid inputs and aggregate readiness errors before retrieval, untouched existing output bytes, WFS 2.0 paging and later-page failures. |
-| Paired publication, WF-07 | `tests/qgis/test_publication_failures.py`: later GeoPackage-layer and required-style failures, cancellation after workbook creation, paired cleanup, and original error preservation when deletion fails. Existing grid workflow checks cover cancellation after GeoPackage writing and workbook-write failure. |
-| Wizard, WF-01/05 and IO-06 | `tests/qgis/test_wizard_completion.py`: localized failure/cancellation recovery, reopening failure, exact readable counts and feature iteration for 18 filtered views plus eight snapshots, visibility, prior-run retention, and cancellation/detachment on unload. |
-| Logging, WF-07 | `tests/qgis/test_logging_contract.py`: owned handler reload/unload, root preservation, rotation settings, aggregate JSON events correlated by run ID, technical-only tracebacks, and directory/file-open failures. |
-| WFS initialization, WF-02/03 | `tests/qgis/test_wfs_initialization.py`: zero feature/count requests during managed setup, reconnect, project reopen and worker construction; generic Surface schema readiness; first/cached map rendering bounded to the view; complete 1,001-record retrieval in 1,000-record pages; retained IDs, filters and visibility during connection upgrades. |
+| Pure classification and indicator policy | `qgis_plugin/tests/` |
+| Geometry, provenance and source/selection contracts | `test_classification_geometry.py`, `test_workflow_contracts.py`, `test_source_field_workflow.py` |
+| Coordinated publication and readable saved outputs | `test_publication_failures.py`, `test_wizard_completion.py` |
+| Provider initialization and project-layer lifecycle | `test_wfs_initialization.py`, `test_project_tree.py`, parcel/basemap integration tests |
+| Operational isolation and logging | `test_qgis_environment.py`, `test_logging_contract.py` |
+
+Integration entry points are under `qgis_plugin/tests/qgis/`. Tests own the
+individual scenarios and assertions; use the linked contracts to identify which
+boundary a change affects.
 
 `workflow_fixture.py` owns shared source records and Processing scenarios;
 `ui_fixture.py` supplies real Qt widgets behind a small QGIS interface adapter.
@@ -284,55 +224,11 @@ These helper modules contain no discoverable tests. Inject failures at provider,
 writer, filesystem or UI seams; keep numerical expectations independent of
 implementation constants. Headless checks do not establish desktop acceptance.
 
-Grid setup checks use the same local WFS boundary and real QGIS 4.2.3 layer trees
-and rendering APIs. They cover the eighth required source, provider-backed fields
-and stable cell IDs, explicit `GRIDCELLS` Processing input, repeated setup and
-Finnish/English relabeling, preservation of unmanaged references and check states,
-group/child order, shared protected-area styling and last grid placement inside
-Forest inventory. Scale checks include visible 1:200/1:300 and hidden 1:300.001/1:500.
-After setup and node moves, tests process Qt events before asserting layer-tree
-and registry completeness. `test_project_tree.py` reproduces delayed removal
-during sorting and covers moves between groups and populated-group reordering.
-Disabling `QgsLayerTreeRegistryBridge` does not prevent its tree-removal slots
-from queuing project-layer deletions. Insert cloned nodes before removing their
-originals, as native drag/drop does. The full setup test also recreates missing
-habitat, programme and wilderness layers and checks them after event processing.
-QGIS excludes an exactly equal minimum scale; setup uses a `1e-6` denominator
-margin for inclusive 1:300 and 1:7,763. Stand/habitat checks cover visible 1:1,000/1:7,763, hidden 1:7,763.001/1:500,000, restoration of changed limits during repeated Finnish/English setup, and saved-project persistence. This is display only and is absent from worker inputs.
-
-Parcel setup checks use an authenticated local OGC API Features fixture and
-real `oapif` providers. They cover a missing-key stop before project changes,
-Finnish/English masked prompts, saved-key reuse and redaction, polygon/point/field
-validation, rejected-key recovery, first/cached rendered red point labels without
-point symbols, disabled polygon labeling, inclusive 1:25,000 boundary and 1:10,000 identifier visibility, repeated
-setup order and saved-project connection/style persistence. The parcel tests
-also require HTTP Basic credentials (key as username, empty password) on all
-requests, including conformance and reopened-project feature reads. A dedicated
-fixture returns MML-style `WWW-Authenticate: Basic` challenges; a valid saved
-key must produce no rejected requests. Check URI-escaped usernames and Basic
-authorization values are redacted from plugin errors. The shared test
-environment isolates the SpatiaLite provider cache; a read-only profile cache
-can otherwise prevent feature and label rendering in a sandbox. Live MML access
-and desktop map acceptance remain separate checks.
-
-Basemap checks use an authenticated local WMTS with PNG/JPEG tiles. They verify
-EPSG:3067 and `ETRS-TM35FIN`, successful raster rendering, credentials on both
-capabilities and tile requests, Finnish/English names, the Ortokuva/Maastokartta/
-OpenStreetMap order, initial Maastokartta visibility, OSM-only project upgrades,
-retained user layers/check states/IDs, key replacement, missing-layer recreation,
-saved-project connections and localized unavailable-service diagnostics. These
-checks do not require a live MML key. For desktop acceptance, repeat setup in
-both languages with a valid key, switch between the three maps, pan/zoom and
-save/reopen; verify ordering, visibility and no extra credential prompt.
-
-Calculation/workflow acceptance covers exact boundary intersections (including
-0.5 m²), projected CRS transforms, cell duplicates/conflicts, stand overlaps
-(shared edges without warnings; 0.5 m², exactly 1 m² and larger intersections
-retained with inherited parent flags and completion/log warnings),
-AOI dissolution, empty/partial coverage, metric-specific sufficient statistics,
-integer half-up age rounding and null preservation. Compare reopened artifacts
-by semantic values with tolerances rather than GeoPackage bytes. Keep grid and
-stand volume denominators separate; never aggregate rounded age percentages.
+Use real provider and event-loop boundaries for project setup and worker
+changes, and compare reopened artifacts by semantic values with tolerances.
+Keep source estimates and per-metric denominators independent. Local fixtures
+verify adapter behavior; live MML credentials, provider coverage and desktop
+map acceptance require separate checks.
 
 To check an extracted plugin ZIP, set `RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT` to the directory
 containing the extracted `savonia_responsible_forest_planning_tool` folder and run
@@ -340,27 +236,12 @@ the integration command in a new Python process. The test code remains outside
 the distributable plugin. GUI acceptance and live-source smoke checks remain
 separate from these deterministic checks.
 
-Tests also accept `SAVONIA_TEST_PLUGIN_ROOT` for existing local commands. The
-`RESPONSIBLE_FOREST_PLANNING_` variable takes precedence when both are set. CI
-uses the preferred variable. Plugin folders and archive names remain unchanged.
-
 ## Check packaging separately
 
-Wizard spacing procedure: in Finnish and English,
-open the wizard both docked and floating, then resize it taller and narrower.
-The heading, description, analysis-area choices and output folder should stay
-together at the top with normal spacing; extra height should appear below the
-output folder, with the action buttons at the bottom. Check each analysis-area
-mode and wrapped status text. The offscreen regression is
-`tests/qgis/test_wizard_layout.py`, included in the integration suite above.
-
-Wizard toolbar icon procedure: in Finnish and English,
-compare setup, redock, Help and About with QGIS's native panel toolbars, such as
-Identify Results. They use QGIS's dock toolbar icon size (`iface.iconSize(True)`)
-in both docked and floating mode. Change QGIS's toolbar icon size and reopen the
-plugin after a reload to verify the new size is used. Automated checks exercise
-16, 24 and 32 pixel dock icons and both dock modes. This is a presentation-only
-change; analysis inputs, outputs, CRS, units and error behavior are unaffected.
+For wizard desktop acceptance, test Finnish and English in docked and floating
+modes, resizing and reopening the panel. Verify readable spacing, accessible
+controls and toolbar sizing consistent with QGIS. Compare against the maintained
+workflow/manual requirements rather than copying widget settings into this guide.
 
 The linked development checkout is for fast iteration. Use a ZIP install when checking the distributable package:
 
@@ -396,15 +277,12 @@ separately; this list is the reusable procedure.
 
 - Install the current-version ZIP in a separate QGIS 4.2.3 profile; load,
   open/reopen the wizard, check Processing registration, reload and unload.
-- In Finnish and English, run setup repeatedly and after a language change;
-  confirm References contains Property boundaries, Forest inventory, Protected
-  areas and Water in that order; verify child order from WF-02, one grid last in
-  Forest inventory, and Results above References above Basemaps. Check that
-  protected layers share a rose fill and outlines matching groundwater's treatment.
-- Inspect the grid at 1:200, 1:300 and 1:500; confirm the first two render
-  and the last does not. Confirm solid dark green grid borders with no fill,
-  including after repeated setup and project reopen. Run the same local fixture at near/far canvas scales
-  through wizard and Processing and compare calculations and captured snapshots.
+- In Finnish and English, run setup repeatedly and after a language change.
+  Check managed groups, ordering and scale visibility against
+  [WF-02](../specs/workflow.md#wf-02-project-setup) and the manuals. Save/reopen
+  the project and confirm presentation and user visibility choices persist.
+- Run the same local fixture at near/far canvas scales through wizard and
+  Processing; compare calculations and captured snapshots.
 - Inspect both total-volume aliases/columns, deciduous volume,
   integer age shares/coverage, partial metric denominators/lower bounds,
   and source dates/reporting-area notes in the result and workbook in both languages.
@@ -431,17 +309,12 @@ tag/version, completes an unfinished draft, or leaves a published release intact
 If the job cannot push tags or publish, check that repository/organization policy
 permits the release job's `contents: write` token and its release tags.
 
-Hosted CI has two check names: `Test and build installable ZIP` and
-`Pylint and QGIS 4.2.3 integration`. The first runs tooling and pure suites plus
-packaging/extracted-ZIP checks. The second installs the versioned QGIS 4.2.3
-Windows MSI after verifying the published SHA-256, checks the runtime version,
-installs `requirements-dev.txt` into QGIS Python's user site, and runs Pylint
-and the QGIS integration suite. Integration runs use `QT_QPA_PLATFORM=offscreen`
-against both source and the actual ZIP downloaded from the build job. Neither
-suite uses live analysis services. The quality job has read-only permissions;
-only the existing release job can publish. Both jobs must succeed before a
-main release starts. Failed installs retain `qgis-install.log` as a diagnostic
-artifact when the installer created it.
+Hosted CI has two required job names: `Test and build installable ZIP` and
+`Pylint and QGIS 4.2.3 integration`. The first supplies the tested installation
+ZIP; the second runs lint and offscreen QGIS integration against source and that
+ZIP. Both must pass before a main release starts. Workflow failure artifacts
+provide diagnostics; exact installation/tooling configuration lives in the
+[workflow](../../.github/workflows/build-and-release.yml).
 
 Continue Finnish/English desktop acceptance locally as documented here.
 Offscreen CI does not establish interactive acceptance or compatibility with

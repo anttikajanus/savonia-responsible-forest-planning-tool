@@ -23,7 +23,7 @@ tracker, labels and document destinations.
 | External use case and procurement context | [Project context](../project-context.md) | Distinguish source requirements from this personal prototype's adopted behavior. |
 | Domain terminology | [Root glossary](../../GLOSSARY.md) | One shared vocabulary; follow [domain guidance](domain.md) when changing terms or ADRs. |
 | Current user goals and functional requirements | [Specification index](../specs/README.md) | Start with the affected stories and requirement IDs; use [specification maintenance](specifications.md) for changes. |
-| Technical design, fields, formulas and adopted decisions | [Architecture index](../architecture/README.md) | Read the relevant contract and ADRs; link to the owning reference instead of copying its details. |
+| Technical boundaries, contracts and adopted decisions | [Architecture index](../architecture/README.md) | Read the relevant contract and ADRs; apply [architecture scope](specifications.md#architecture-scope) when writing or reviewing them. |
 | Commands for development, tests and packaging | [Development guide](../architecture/development.md) | Use the documented runtime/commands; keep test outcomes in verification records. |
 | Planner instructions | [English manual](../help/manual_en.html) and [Finnish manual](../help/manual_fi.html) | Maintain equivalent user instructions; [QGIS guidance](qgis.md) owns localization and package checks. |
 | Local working proposals, issues and verification records | Ignored `.scratch/<feature-slug>/` | Follow the [local tracker](issue-tracker.md) and [triage mapping](triage-labels.md). Publish current behavior and remaining gaps in maintained documentation. |

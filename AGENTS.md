@@ -17,6 +17,7 @@ Use relevant `mattpocock-skills:*` skills when available, following their
 | --- | --- |
 | Explore domain terms or design decisions | [Domain documentation](docs/agents/domain.md) |
 | Plan a feature, change behavior, complete implementation or reconcile documentation | [Specification workflow](docs/agents/specifications.md) |
+| Write or review architecture documentation | [Architecture scope](docs/agents/specifications.md#architecture-scope) |
 | Create, fetch or update working issues/specs; map a skill's tracker instructions | [Local issue tracker](docs/agents/issue-tracker.md) and [triage labels](docs/agents/triage-labels.md) |
 | Research a question | Use `mattpocock-skills:research` and follow [research guidance](docs/agents/research.md); save findings in `docs/research/` |
 | Inspect provider schemas/documents or set up local references | Read the cached files first; follow [reference instructions](docs/references/service-metadata/README.md) to populate missing files or explicitly refresh them |

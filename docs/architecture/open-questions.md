@@ -8,232 +8,32 @@ belong to [development](development.md), and current behavior belongs to
 
 ## Automated regression verification
 
-On 29 October 2026, calculated sawlog value passed 25 tooling tests, 43 unit/
-resource tests, full Pylint and 113 QGIS 4.2.3 integration/offscreen tests against
-both source and the extracted current-version ZIP. Regressions cover the
-5062.69 € example from unrounded stock, unchanged €/m³ price, known zero versus
-invalid/missing stock, complete sums versus partial/null totals, cent rounding
-after aggregation, bilingual field/form/workbook presentation and durable
-formula/coverage metadata. The rebuilt ZIP preserves version 1.0.0, with all
-35 packaged Python files matching source and both updated manuals included.
-Desktop, live-provider and Microsoft Excel acceptance remain separate below.
+Latest recorded local evidence: 29 October 2026, Windows/QGIS 4.2.3, plugin
+version 1.0.0. The complete check runner passed 25 tooling tests, 43 unit/resource
+tests, Pylint and 113 integration/offscreen tests against source and the
+extracted current-version ZIP. Packaged Python files and both manuals matched
+the reviewed source.
 
-On 29 October 2026, nonfatal stand overlaps, explicit sawlog pricing, ordinary
-criterion checks, indicator interface cleanup and wizard readiness/visibility
-passed the complete QGIS 4.2.3 check runner: 25 tooling tests, 40 unit/resource
-tests, full Pylint and 112 integration/offscreen tests against both source and
-the extracted current-version ZIP. Checks include bilingual price preflight,
-original-volume eligibility and weighting, inherited overlap flags, log/warning
-propagation through Processing and the real task, reopened outputs/forms,
-retained exact coverage, no-download readiness, child/parent visibility and
-plugin lifecycle. All 35 packaged Python files match source; both updated
-manuals are present. The ZIP preserves version 1.0.0. This is deterministic
-local evidence, separate from the interactive/provider acceptance below.
+The checks cover shared workflow and publication, metric coverage and unrounded
+sawlog-value aggregation, selected-source capture, provider failures/paging,
+worker ownership, repeated setup, bilingual presentation and plugin lifecycle.
+Use the [development guide](development.md#regression-seams) for test boundaries
+and commands; detailed execution/debugging history belongs in local working
+verification records.
 
-On 29 October 2026, the intermittent doubled source-category count was reproduced
-on QGIS 4.2.3: a preliminary zero-limit WFS iterator followed by the analysis read
-could emit the same provider feature ID twice, including with WFS 2.0. Shared
-retrieval now uses the bounded analysis iterator to initialize the cache. The
-bilingual regression requires one unlimited AOI-bounded read per source and
-preserves exact category/snapshot counts; it failed on both languages before the
-fix. All 25 tooling tests, full Pylint, and 37 unit/resource plus 102 integration/
-offscreen tests passed against source and the extracted current-version ZIP.
-Thirty further bilingual regression repetitions (60 Processing runs) passed.
-All 35 packaged Python files match source. Hosted CI rerun and interactive/live
-provider acceptance remain pending; these local checks do not establish them.
+A live eight-WFS-source setup check on 28 October 2026 verified the revised
+initialization path, but excluded MML, OSM and desktop rendering. It does not
+establish a guaranteed setup time or resolve slow metadata waits.
 
-On 29 October 2026, shorter loopback fixture shutdown polling passed all 25
-tooling tests, full Pylint, and 37 unit/resource plus 102 QGIS 4.2.3 tests against
-both source and the extracted current-version ZIP. On the same Windows/Python
-3.12 runtime, source integration including startup fell from 80.4s to 62.7s;
-packaged integration fell from 81.7s to 63.4s. Ten real WFS request/shutdown
-cycles fell from 5.150s to 0.357s. These are local comparisons, not hosted timing
-guarantees. Slowest-test reporting is enabled on Python 3.12+.
-The new CI MSI cache passed local cache-hit, cache-miss and corrupt-file checks;
-hosted cache restoration and net performance savings still require a run of the
-updated workflow. Planner behavior and interactive acceptance are unchanged.
-
-On 29 October 2026, removal of backward-compatibility paths passed 25 tooling
-tests, full Pylint, and 37 unit/resource plus 102 QGIS 4.2.3 integration/offscreen
-tests against both source and the extracted current-version ZIP. Checks include
-Finnish/English workflows, Processing, help, project setup and plugin lifecycle.
-Summaries now require current coverage records; retired-layer migration,
-old test-root aliases and obsolete language-setting test fixtures are removed.
-The current development formats are the supported contract under
-[WF-01](../specs/workflow.md#wf-01-installation-and-runtime). Interactive desktop
-and live-provider acceptance remain pending below.
-
-On 28 October 2026, the shared isolated QGIS bootstrap and local check runner
-passed 103 integration/offscreen tests and 36 unit/resource tests against both
-source and the extracted current-version ZIP. All 25 tooling tests passed;
-full Pylint and the final changed-runner lint checks passed. Direct unittest
-environment checks also passed. Checks cover settings/profile/cache isolation,
-SQLite access, failed prerequisites, runtime routing, relative launcher paths,
-complete logs and child-environment cleanup. Planner behavior is unchanged;
-existing provider and interactive acceptance checks remain open below.
-
-On 28 October 2026, property identifiers were restricted to 1:10,000 or closer,
-with boundaries retaining their inclusive 1:25,000 limit. Six source parcel
-checks passed on QGIS 4.2.3, covering both limits, repeated Finnish/English setup
-and saved-project persistence. The rebuilt/extracted 1.0.0 ZIP passed 19 targeted
-parcel, bilingual lifecycle and Processing checks and 36 unit/resource/package
-checks. Pylint passed for the changed implementation/test files. Both manuals
-reflect the separate limits; desktop visual acceptance remains pending.
-
-On 28 October 2026, property identifier labels changed to 20-point red text
-with a white 2 mm buffer (rounded joins, full opacity, no interior fill).
-Six source parcel checks passed on QGIS 4.2.3. The rebuilt/extracted 1.0.0 ZIP
-passed 21 targeted parcel, bilingual lifecycle and Processing help checks,
-plus 36 unit/resource/package checks. Parcel checks verify both languages,
-repeated setup and saved-project persistence of label size and buffer settings.
-Packaged styling matches source and both manuals describe it. Desktop visual
-acceptance remains pending below.
-
-On 28 October 2026, MML Ortokuva and Maastokartta basemaps were added using
-ETRS-TM35FIN and the saved MML key. QGIS 4.2.3 source verification passed the
-98-test integration suite, followed by all four basemap checks after adding
-key-change/recreation coverage. The final rebuilt/extracted 1.0.0 ZIP passed
-all 99 integration/offscreen checks and 36 unit/resource checks; the source
-36-test unit/resource suite also passed. All 17 tooling checks and full
-`qgis_plugin scripts` Pylint passed. Checks confirmed 255 maintained local
-Markdown targets (manifest-listed downloads may be uncached) and parity for
-all 35 packaged Python files, both manuals and notices. Tests cover national-grid
-rendering, credentials on capabilities/tiles, initial stack/visibility, both
-languages, retained identities/check states, key replacement, missing-layer
-recreation, saved-project connections and service failure/retry. Authenticated
-live MML access and desktop visual acceptance remain pending below.
-
-On 28 October 2026, Kiinteistörajat and Kiinteistötunnukset visibility changed
-to 1:25,000 or closer. Six source parcel checks passed on QGIS 4.2.3, covering
-the inclusive boundary, hidden farther-out scales, restoration during repeated
-Finnish/English setup and saved-project persistence for both layers. The
-rebuilt/extracted 1.0.0 ZIP passed 19 targeted checks covering parcels, bilingual
-plugin lifecycle and Processing, plus all 36 unit/resource/package checks.
-Both manuals reflect the new limit. Desktop visual acceptance remains pending.
-
-On 28 October 2026, the managed parcel polygon border changed from 0.3 mm to
-1 mm. Six source parcel checks passed on QGIS 4.2.3, covering Finnish/English
-setup, restoration after user style changes and saved-project persistence.
-The rebuilt/extracted 1.0.0 ZIP passed all 98 integration/offscreen checks,
-including bilingual lifecycle and Processing, and 36 unit/resource checks;
-the same 36 unit/resource checks passed against source. Pylint passed for the
-changed implementation/test files, and packaged styling matches source.
-Both manuals describe the width. Desktop visual acceptance remains pending.
-
-On 28 October 2026, managed WFS initialization was changed to skip startup
-sample-feature requests, explicitly request WFS 2.0 metadata and use bounded
-1,000-feature pages without a total cap. Existing connections are upgraded on
-repeated setup. QGIS 4.2.3 checks cover zero feature/count requests during
-creation, reconnect, reopen and worker reconstruction; preserved layer IDs,
-filters and visibility; first/cached map rendering with view bounds; and complete
-1,001-record retrieval with AOI bounds. All 95 integration/offscreen and 36
-unit/resource tests passed against source and the extracted 1.0.0 ZIP; full
-Pylint passed. All 35 packaged Python files match source, both manuals include
-the updated guidance, 190 local links in affected Markdown documents exist and
-whitespace checks passed.
-
-A separate live eight-WFS-source check took 9.4 seconds, compared with 37.5
-seconds in the earlier check. These runs exclude MML, OSM and desktop rendering
-and do not control for changing network conditions. They do not establish a
-guaranteed speedup or reproduce the original full minute-long desktop stall.
-Metadata waits and interactive acceptance remain open below.
-
-On 28 October 2026, Hila/grid setup styling changed to a solid dark green
-(`#006400`) 0.25 mm outline with no fill. QGIS 4.2.3 checks cover initial setup,
-restoration after style changes during repeated Finnish/English setup, and
-saved-project persistence. All 91 integration/offscreen and 36 unit/resource
-tests passed against source and the extracted 1.0.0 ZIP; full Pylint passed.
-Both manuals describe the symbol. Desktop visual acceptance remains pending.
-
-On 28 October 2026, stand and habitat rendering was restricted to 1:7,763 or
-closer. QGIS 4.2.3 local fixture checks cover the inclusive boundary, hidden
-farther-out scales, restoration of changed limits during repeated Finnish/English
-setup, recreation of missing layers and saved-project persistence. Source
-verification passed 91 integration/offscreen tests, 36 unit/resource tests and
-full Pylint. Both test suites also passed against the rebuilt/extracted 1.0.0
-ZIP, which contains the changed settings and both updated manuals. Interactive
-map acceptance remains pending below.
-
-On 28 October 2026, an MML credential-dialog report exposed another fixture gap:
-QGIS's conformance request omitted the URL API key, while the fixture's 401 lacked
-the Basic challenge that opens QGIS's credential dialog. MML connections now use
-the saved key as username with an empty password. The regression uses a real
-OAPIF provider and a Basic-challenging fixture and requires zero rejected
-discovery requests for both collections/languages. Connection persistence,
-feature reads and raw/escaped/Basic credential redaction are also checked.
-
-The authentication correction passed 91 integration/offscreen tests and 36
-unit/resource tests against source and the rebuilt extracted 1.0.0 ZIP on
-Windows/QGIS 4.2.3. Full Pylint passed; all 35 packaged Python files match source,
-all 280 checked local Markdown targets exist, and whitespace checks pass. The
-local Basic-challenge test establishes credential propagation; a real MML key
-and desktop verification remain pending in the provider/interactive sections.
-
-On 28 October 2026, a desktop report exposed a gap in the reference-presentation
-checks below: they inspected reordered layers before queued Qt events ran. The
-minimal regression reproduced habitat-layer deletion after event processing.
-Tree moves now insert the replacement node before removing the original;
-disabling the registry bridge alone does not prevent queued deletion. New
-regressions cover sorting, moves between groups, populated-group moves and
-recreating missing habitat/programme/wilderness sources after setup. Both
-languages are covered by full local WFS/OAPIF setup checks. Desktop/live-provider
-acceptance remains separate from these deterministic checks.
-
-The correction passed 90 integration/offscreen tests and 36 unit/resource tests
-against source and the rebuilt, extracted 1.0.0 ZIP on Windows/QGIS 4.2.3. Full
-`qgis_plugin scripts` Pylint passed; all 35 packaged Python files match source.
-All 280 checked local Markdown link targets exist and whitespace checks pass.
-
-The reference presentation update on 28 October 2026 passed the same QGIS 4.2.3
-Windows checks: 87 integration/offscreen and 36 unit/resource tests against
-source and the rebuilt, extracted 1.0.0 ZIP, plus 15 tooling tests and full
-Pylint. Tests cover both authenticated MML collections, labels without point
-symbols, polygon labeling disabled, inclusive 1:500,000 visibility, localized
-subgroups/child order, retained layer identities/check states and consistent
-protected-area styling. All 35 packaged Python files match source; 248 local
-Markdown link targets exist and whitespace checks pass. Live MML and interactive
-desktop acceptance remain pending below.
-
-On 28 October 2026, the MML parcel addition passed on Windows with QGIS 4.2.3:
-87 integration/offscreen tests and 36 unit/resource/package tests against both
-the source checkout and the rebuilt, extracted 1.0.0 ZIP; 15 development-tooling
-tests and full `qgis_plugin scripts` Pylint also passed. The five new parcel
-tests cover mandatory-key setup, authenticated OAPIF access, first/cached red
-labels, view bounds, failed-key recovery and project persistence. All 35
-packaged Python files match source. Checks found no missing targets among 246
-local Markdown links; bilingual packaged manuals and whitespace checks passed.
-Live MML and interactive desktop acceptance remain open below.
-
-On 27 October 2026, plugin version 1.0.0 was verified on Windows with QGIS
-4.2.3 (Python 3.12.15). The expanded suite adds 21 test methods across the eight
-reviewed areas; parameterized cases cover both Finnish and English where
-presentation is involved. [Test seams and procedures](development.md#regression-seams).
-
-| Check | Outcome |
-| --- | --- |
-| Ordinary Python unit/resource/package suite | 36 passed against the checkout and the extracted ZIP, using Python without the QGIS launcher. |
-| QGIS integration/offscreen suite | 80 passed against the checkout and the rebuilt, extracted ZIP, including load/Processing/unload and local WFS 2.0 paging. |
-| Development tooling | 15 passed with Git on PATH. |
-| Pylint | Full `qgis_plugin scripts` check passed. |
-| Packaging and documentation | Current-version ZIP built; all 35 packaged Python files matched source; local documentation links/anchors and bilingual packaged manuals passed checks. |
-
-Regressions exposed and now cover selected-source snapshot loss and repeated
-provider reads, source-ID leakage across split pieces, Windows file handles
-preventing style-failure cleanup, active-task callbacks after unload, and
-GeoPackage readers disrupted by applying filters after opening class views.
-Views now open with filters in their initial provider URI; tests verify exact
-row counts and feature iteration rather than only layer validity.
-
-These checks use generated local fixtures and do not establish live-provider
-completeness, hosted QGIS CI, desktop/browser/Excel acceptance or compatibility
-with newer QGIS releases. The outstanding interactive and provider checks below
-remain open.
+These fixtures and bounded observations do not establish live-provider
+completeness, interactive desktop/browser/Excel acceptance or compatibility
+with newer QGIS releases. Hosted evidence is recorded separately below.
 
 ## Provider evidence
 
 | Item | Current limit and next evidence needed |
 | --- | --- |
-| MML property context | Added 28 October 2026 using the provider's API-key technical description and cached 2020 parcel and identifier-point models. Local authenticated OAPIF fixtures verify both collection connections, view bounds, schema/geometry failures and red identifier rendering. A real MML key was not supplied: verify both current live collections/schemas, paging, representative formatted identifiers and network errors with an authorized key. |
+| MML property context | Added 28 October 2026 using the provider's API-key technical description and cached 2020 parcel and identifier-point models. Local authenticated OAPIF fixtures verify connection, retrieval and schema/geometry handling. A real MML key was not supplied: verify both current live collections/schemas, paging, representative formatted identifiers and network errors with an authorized key. |
 | Representative classification values | Saved XSDs are not feature samples. Check sanitized habitat codes, active/inactive protected statuses/categories, programme identifiers/classes and null formats across all three protected sources. Current code rejects unrecognized values; a policy accepting inactive records would require an explicit change. |
 | Groundwater | Capabilities and the exact VHS2022 XSD were downloaded on 26 October 2026; regenerate them with the reference downloader. Check representative identifiers/nulls and service-specific field meanings; the general groundwater PDF alone does not establish those semantics. |
 | Wilderness evidence | Its dedicated XSD and protected-sites capabilities were downloaded on 26 October 2026. Representative statuses/categories and completeness remain unverified. |
@@ -284,125 +84,33 @@ requires a specification change and reconsideration of ADR-0004.
 
 ### Interactive acceptance
 
-For calculated sawlog value (29 October 2026), inspect the rebuilt ZIP in
-Finnish and English: unit price remains €/m³ while the separate calculated
-amount is euros, known zero stock shows zero, unavailable stock stays blank,
-and complete workbook totals sum exact values before rounding to cents.
-Incomplete totals must remain blank with their known subtotal in metric
-coverage. Verify the new field/form group and four-sheet workbook in desktop
-QGIS and Microsoft Excel. Automated/offscreen evidence does not close these
-desktop checks or establish live-provider/market valuation accuracy.
+As of 29 October 2026, Finnish/English desktop, browser, network-disconnected
+help and Microsoft Excel acceptance remain pending. Automated/offscreen checks
+do not close them. Record build/runtime, locale, date and outcome when executing
+the linked procedures.
 
-For the overlap, sawlog-price and inspection changes (29 October 2026), install
-the rebuilt current-version ZIP in QGIS 4.2.3 and repeat in Finnish and English.
-Check decimal-comma entry, blank/remembered/cleared price across dock reopen and
-profile restart, Run readiness across all area modes and changing selections,
-source removal and output destinations, completion warning readability and log
-location, ordinary criterion fields, and checked children revealed by tier and
-snapshot group toggles. Inspect the four-sheet workbook in Microsoft Excel and
-reopen GeoPackage forms. Deterministic/offscreen verification does not establish
-these desktop checks. Representative live stand sawlog values and provider
-overlap behavior remain subject to this register's provider-evidence checks; the
-overlap policy makes no assertion about the cause of provider discrepancies.
-
-For the MML basemap addition (28 October 2026), use a valid saved MML API key
-and repeat setup in Finnish and English. Check Ortokuva, Maastokartta and
-OpenStreetMap order, only Maastokartta initially visible (also in OSM-only
-projects), switching maps, retained choices after repeated setup and saving/
-reopening, and no additional credential dialog while panning/zooming. A live
-authenticated capabilities/tile check remains pending: the unauthenticated
-capabilities endpoint returned HTTP 401. Local authenticated WMTS rendering and
-persistence tests establish adapter behavior, not live-provider availability.
-
-For the parcel border change (28 October 2026), inspect the red 1 mm outlines
-in Finnish and English after repeated setup and saved-project reopen, using
-the rebuilt ZIP. Offscreen symbol checks do not establish desktop visual clarity.
-
-For the property identifier label change (28 October 2026), inspect the red
-20-point text and white 2 mm buffer in Finnish and English after repeated setup
-and saved-project reopen, using the rebuilt ZIP. Desktop visual acceptance
-remains pending.
-
-For the WFS startup optimization (28 October 2026), repeat setup in Finnish and
-English on an existing project and a fresh ZIP installation. Capture requests
-with analysis layers outside their display scales: managed WFS construction
-must not issue GetFeature/count requests. Zoom into stands/habitats/grid and
-confirm bounded drawing, then run analysis and confirm complete paged outputs.
-Check layer identities, filters and visibility choices after reconnect/reopen.
-Setup remains synchronous; slow metadata can still delay it. The original
-minute-long desktop stall has not been reproduced end to end.
-
-For the Hila style change (28 October 2026), inspect dark green borders with no
-fill in Finnish and English at 1:200 and 1:300, after repeated setup and project
-reopen. Confirm the existing hidden state at 1:500. Automated symbol and
-persistence checks do not establish desktop visual acceptance.
-
-For the stand/habitat scale change on 28 October 2026, reload the plugin and
-repeat setup in Finnish and English. Check both layers render at 1:7,763 and
-closer, disappear farther out, and retain that behavior after saving/reopening
-the project. Automated scale-range checks do not establish desktop map acceptance.
-
-For the MML property layers updated on 28 October 2026, repeat setup in Finnish and
-English, cancel/omit the key and verify no project changes, then supply a valid
-key. Confirm there is no additional credential dialog for a valid key, including
-during discovery/conformance and after reopening a saved project. Existing
-connections are refreshed by repeating setup after installing the correction.
-Inspect the Property boundaries group's red polygon outlines without labels
-at 1:25,000 and separate formatted red identifier labels without point symbols at 1:10,000
-and closer, hidden farther out, while panning/zooming and after saving/reopening
-the project. Check the four reference subgroups/child order and consistent rose
-protected-area styling with groundwater's translucent treatment. Check rejected-key
-replacement and that existing analysis inputs remain usable separately from
-this map context. Deterministic offscreen checks do not close this desktop or
-live-provider acceptance.
-
-As of the 26 October 2026 documentation reconciliation, desktop, browser and
-network-disconnected acceptance remains pending. Automated/headless checks do
-not close these items. Use the procedures below and record build/runtime,
-locale, date and outcome when checking them:
-
-On 27 October 2026, the component naming and prefix cleanup passed lint, 15 tooling
-tests, and 33 pure plus 62 offscreen QGIS 4.2.3 tests against source and the extracted
-plugin ZIP, including Finnish/English workflow, help and lifecycle checks.
-Preferred/legacy test-root configuration and persisted project-property keys were
-also checked. These checks leave the interactive acceptance items below pending.
-
-| Pending check | Procedure |
+| Pending check | Acceptance boundary / procedure |
 | --- | --- |
-| Wizard docked/floating layout, resize spacing, toolbar icon sizing, setup and reload/unload | [Package and wizard checks](development.md#check-packaging-separately) |
-| Grid placement/scales, repeated setup/language refresh, cancellation and localized failures | [Grid GUI acceptance](development.md#grid-indicator-manual-gui-acceptance) |
-| Field order/labels/forms, partial coverage, source dates and output inspection in QGIS and Microsoft Excel | [Result fields](development.md#result-field-organization-checks) and [grid GUI acceptance](development.md#grid-indicator-manual-gui-acceptance) |
-| Finnish/English and fallback, Help/About with dock closed, offline links/legal texts and browser failure recovery | [Help and credits verification](development.md#help-and-credits-verification) |
+| Wizard lifecycle and input handling | Docked/floating layout, setup, reload/unload, remembered/cleared price and decimal-comma entry, readiness after selection/source/output changes, understandable completion warnings. [Package and wizard checks](development.md#check-packaging-separately). |
+| Reference and basemap presentation | Repeated bilingual setup/language changes, layer grouping and scale visibility, retained choices/identities after save/reopen, readable map presentation. Use [WF-02](../specs/workflow.md#wf-02-project-setup), the manuals and [grid GUI acceptance](development.md#grid-indicator-manual-gui-acceptance). Visual acceptance of the 28 October changes remains open. |
+| Live authenticated MML context | Both parcel collections and WMTS basemaps, valid/rejected/replaced keys, discovery and pan/zoom without extra credential prompts, persisted connections and service failures. Authenticated local fixtures passed; live access remains unverified. Unauthenticated WMTS capabilities returned HTTP 401 on 28 October. |
+| WFS initialization and responsiveness | On fresh and existing projects, confirm setup avoids feature/count requests, map reads are view-bounded and analysis retrieves complete pages. Check reconnection preserves layer identity and user choices. Setup remains synchronous; the reported minute-long desktop stall has not been reproduced end to end. |
+| Result and workbook interpretation | Inspect field labels/forms, nulls and coverage, source dates, tier/snapshot visibility and GeoPackage reopening. Verify €/m³ versus €, known zero versus unknown, and complete versus partial totals in QGIS and the four-sheet workbook in Microsoft Excel. [Result field checks](development.md#result-field-organization-checks). |
+| Language and offline resources | Finnish/English and unsupported-language fallback, Help/About with dock closed, offline links/legal texts and browser failure recovery. [Help and credits verification](development.md#help-and-credits-verification). |
+| Cancellation and failures | Required-source/geometry failures and cancellation leave actionable localized messages and no apparently complete partial output. [Grid GUI acceptance](development.md#grid-indicator-manual-gui-acceptance). |
 
 ### Release and distribution verification
 
-- CI quality checks (27 October 2026): the workflow includes Pylint
-  and offscreen QGIS 4.2.3 integration against source and the built ZIP, with
-  release publication depending on both build and quality jobs. The
-  [first hosted run](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/actions/runs/40484712894)
-  passed the build job, official MSI installation, runtime verification,
-  development dependency installation and Pylint. Source integration stopped
-  with 36 failures and one downstream error because the shared fixture assumed
-  its first unrestricted feature read was empty; hosted QGIS returned records.
-  Fixture priming now opens and closes a zero-result iterator, with a regression
-  reproducing the populated-read failure and checking successful output values.
-  Local source verification passed Pylint, 36 pure tests and 81 integration
-  tests; both suites also passed against the built and extracted 1.0.0 ZIP.
-  Hosted artifact download and packaged integration were skipped, and
-  release publication was correctly skipped after the source failure. A
-  [successful hosted run on 29 October 2026](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/actions/runs/40818055010)
-  subsequently passed source and packaged integration, artifact transfer and
-  release publication. The installer-cache changes above still need their own
-  hosted verification; interactive acceptance remains separate.
-  Optional merge blocking also requires administrator activation of the
-  checked-in ruleset; it is independent of CI execution and release gating. See
-  [required merge checks](development.md#required-merge-checks).
-- Automatic GitHub releases (implemented 26 October 2026; hosted evidence checked
-  29 October 2026): the successful run above completed version preparation,
-  release ZIP checks, tagging and publication. Earlier local tooling/package
-  checks, upload-recovery simulation and QGIS 4.2.3 source/extracted-ZIP checks
-  passed. Installing a downloaded release and interactive desktop acceptance
-  remain separate checks. See the
-  [release contract](distribution.md#github-builds-and-releases).
+- Hosted CI and release evidence: the [29 October 2026 run](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/actions/runs/40818055010)
+  passed source and packaged QGIS integration, artifact transfer and release
+  publication. It supersedes the failed source-integration evidence from
+  [27 October](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/actions/runs/40484712894).
+  Installer-cache changes passed local hit/miss/corruption checks on 29 October
+  but still need hosted verification and timing. Optional merge blocking needs
+  administrator activation of the checked-in ruleset, separately from CI and
+  release gating. See [required merge checks](development.md#required-merge-checks).
+- Automatic release preparation, tagging and publication have hosted evidence;
+  installing a downloaded release ZIP and interactive desktop acceptance remain
+  separate. See the [release contract](distribution.md#github-builds-and-releases).
 - Arrange explicit map-visible OpenStreetMap attribution for the basemap and shared maps/screenshots; the reviewed setup and About credits do not establish that display. Separately review tile-client usage-policy behavior if preparing distribution.
 - A full ownership and host/transitive licence-compatibility audit remains outstanding. Recheck inventory and dataset-specific terms when adding copied material, runtime bundles, custom data or a public distribution destination. [Distribution boundaries](distribution.md).

@@ -12,29 +12,11 @@ Open the [full-size diagram](technical-architecture.svg), or edit the [Draw.io s
 
 This is a Python plugin running inside QGIS Desktop. QGIS supplies Python, Qt/PyQt, geometry operations, coordinate transformations and vector providers. There is no application server or server-side analysis worker in this repository. The external runtime connections are data-provider services; results and operational logs are written locally. The declared target is QGIS 4.2.3 and newer 4.x releases, as recorded in [metadata.txt](../../qgis_plugin/savonia_responsible_forest_planning_tool/metadata.txt); QGIS 4.2.3 remains the verification baseline.
 
-QGIS loads the plugin through [`classFactory(iface)`](../../qgis_plugin/savonia_responsible_forest_planning_tool/__init__.py). The [plugin lifecycle](../../qgis_plugin/savonia_responsible_forest_planning_tool/ui/plugin.py) registers the Processing provider, menus, dock and logging handlers, and removes its registrations/handlers on unload. Source setup discovers managed WFS products and adds configured layers to the current project through [project_setup.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/project_setup.py).
-
-Main application classes use the `ResponsibleForestPlanning` prefix followed by
-their role: `Plugin`, `Wizard`, `ProcessingProvider`, `InputsAlgorithm`,
-`AnalysisTask` and `AboutDialog`. The plugin owns its Processing provider through
-`self.processing_provider`. Supporting classes retain descriptive role names.
-Use the application prefix where it identifies ownership across a shared boundary:
-main component classes, `RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX` and the test
-environment configuration described in [development](development.md).
-Module-local names such as `ABOUT_LINK_SCHEME`, `LOGGER_NAME`,
-`OUTPUT_FOLDER_SETTING_KEY` and `PROCESSING_PROVIDER_ID` already have clear context
-and do not repeat the application prefix. Ordinary local variables and source/domain
-constants retain descriptive names; QGIS data providers use `data_provider`,
-while a captured provider type uses `source_provider_type`. Shared property namespace
-ownership lives in the existing package `__init__.py`, which imports no QGIS code
-until `classFactory()` is called; other constants stay in their owning modules.
-Processing IDs, settings keys, custom property keys, Qt object names, log paths,
-output prefixes and displayed tool names keep their existing values independently
-of Python identifier names. The `savonia/` property namespace is represented by
-`RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX` for plugin property ownership.
-Only current-development project setup, configuration and output formats are
-supported; there are no migration paths for earlier plugin releases. Setup uses
-the current source registry without renaming or hiding retired source layers.
+Plugin initialization owns Processing, menu/dock and logging registrations;
+unload releases those resources and cancels active analysis. Project setup is
+an adapter that discovers and configures source layers in the current project.
+Only current-development project configuration and output formats are supported;
+earlier plugin formats have no migration guarantee.
 
 ## One execution path
 
@@ -53,7 +35,9 @@ flowchart TD
     O --> U[Return results for project and UI updates]
 ```
 
-The five orchestrated stages are validation, source retrieval, spatial classification, output preparation and output writing. Grid sampling runs inside spatial classification. It intersects inventory cells with each classified forest polygon and retains per-metric sufficient statistics for later aggregation; it does not create a second set of classification boundaries. See [spatial_classification.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/spatial_classification.py) and [grid_sampling.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/grid_sampling.py).
+The workflow validates inputs, retrieves evidence, classifies stand pieces and
+samples indicators, then prepares and writes one publication. Grid intersections
+supply indicator statistics without creating classification boundaries.
 
 ## Module ownership
 
@@ -66,35 +50,22 @@ The five orchestrated stages are validation, source retrieval, spatial classific
 | QGIS adapters | [adapters](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/) owns service discovery, project setup, provider-layer checks, result-layer construction, and separate GeoPackage/XLSX writers. |
 | Presentation | [ui](../../qgis_plugin/savonia_responsible_forest_planning_tool/ui/), [Processing provider](../../qgis_plugin/savonia_responsible_forest_planning_tool/processing/provider.py), and [i18n.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/i18n.py) adapt choices, labels, progress, help and errors. |
 
-Split modules around coherent responsibilities and deliberate public interfaces. Keep closely related helpers local, imports explicit and package initialization light. File length and one-class-per-file rules do not define the boundaries. This is project design guidance informed by [Python modules/packages](https://docs.python.org/3/tutorial/modules.html), [the import system](https://docs.python.org/3/reference/import.html), and [PEP 8 public interfaces](https://peps.python.org/pep-0008/#public-and-internal-interfaces).
-
 ## QGIS and thread boundary
 
-Packaged `metadata.txt` remains authoritative for the installation range. Use the selected QGIS release's bundled Python, Qt and PyQt for runtime checks, starting with the 4.2.3 baseline. The shared workflow is synchronous inside its execution context. The wizard captures worker-safe inputs and constructs worker-owned providers; project and widget changes belong at the UI boundary. A caller must not pass live GUI-owned layers or widgets into a worker. See [wizard implementation](../../qgis_plugin/savonia_responsible_forest_planning_tool/ui/wizard.py), [source retrieval](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/source_loading.py), and [QGIS task guidance](https://docs.qgis.org/4.2/en/docs/pyqgis_developer_cookbook/tasks.html).
+The shared workflow runs synchronously in its caller's execution context.
+The wizard captures AOI geometry, selected-source snapshots, provider connection
+descriptions, parameters and transform context on the main thread. Its task
+reconstructs worker-owned layers; widgets, GUI-owned layers and `QgsProject`
+remain on the main thread. Completion returns saved outputs and warnings for
+project/UI updates. Unload cancels the task and detaches its UI callback without
+blocking the GUI thread.
 
-Specifically, [`capture_worker_inputs`](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/worker_task.py) copies AOI geometries as WKB, source provider descriptions, selected-source feature snapshots when applicable, and the coordinate transform context on the main thread. `ResponsibleForestPlanningAnalysisTask.run()` rebuilds the AOI and source layers in the worker. When the task finishes, the wizard's main-thread callback reopens the saved GeoPackage and adds result views and clipped source snapshots to the project. Processing instead sets `NoThreading` because it receives live layer objects; it calls the same synchronous workflow with an explicit transform context from Processing.
-
-Processing feedback carries progress and cancellation; worker use does not create a second analysis implementation.
-
-The required `sawlog_price_eur_m3` parameter is captured with the worker inputs;
-Processing supplies `SAWLOG_PRICE_EUR_M3` explicitly. Shared preflight rejects
-invalid price before retrieval or output mutation. Wizard profile settings
-remember a valid price, but execution always uses the current captured input.
-Stand-overlap completion warnings are returned through the task boundary and
-presented after successful publication/project insertion; Processing receives
-the same shared warning through feedback.
-
-The capture record also retains the selected-only flag. The worker selects its
-reconstructed AOI features when that flag is set, preserving run metadata while
-retrieval uses the captured source snapshots. Plugin unload cancels its active
-task and detaches the completion callback before disposing of the wizard; it
-does not wait on the GUI thread for a worker to finish.
-
-Result class views include their subset expression in the initial OGR provider
-URI. Applying `setSubsetString()` after opening a shared GeoPackage can disturb
-other readers in the baseline runtime. The wizard tests read exact row counts
-and iterate features from every class view and snapshot while retaining prior
-runs, rather than treating layer validity alone as successful map publication.
+Processing receives live layers and uses `NoThreading`; it calls the same
+workflow with an explicit transform context. Both entry points carry progress,
+cancellation and completion warnings across their boundary. This ownership
+model keeps asynchronous execution from becoming a separate analysis path.
+See the [worker adapter](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/worker_task.py)
+and [QGIS guidance](../agents/qgis.md#architecture-and-qgis-practices).
 
 ## Geometry, evidence and publication boundaries
 
@@ -104,11 +75,11 @@ All eight required sources must pass validation. Request failures, missing requi
 
 One prepared publication record supplies a GeoPackage containing result polygons, source snapshots, coverage and metadata, and a workbook containing tier/class summaries, coverage and notes. Dedicated writers serialize each format; the publishing phase coordinates writes and removes partial outputs on failure. This is application cleanup rather than a filesystem transaction. [Publishing implementation](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/publishing.py).
 
-The GeoPackage writer uses QGIS to write spatial layers and nonspatial metadata tables. The workbook writer builds XLSX XML and ZIP parts using Python's standard library, so it does not require Excel or a separate spreadsheet package. Existing output names are rejected before writing. On a caught write failure or cancellation during publication, cleanup attempts to remove both files; deletion can fail, and a process crash is outside that cleanup guarantee. See [GeoPackage writer](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/geopackage_writer.py), [workbook writer](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/excel_writer.py), and [destination validation](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/validation.py).
-
-The writer releases the reopened presentation layer in a `finally` block before
-paired cleanup. Otherwise an exception traceback can retain its OGR file handle
-and prevent deletion on Windows after required style persistence fails.
+QGIS writes the GeoPackage; the workbook writer uses standard-library ZIP/XML,
+so export requires neither Excel nor an external spreadsheet package. Existing
+output names are rejected before writing. Caught write failures or cancellation
+trigger cleanup of both outputs; deletion can fail and a process crash is
+outside that guarantee. See the [publication coordinator](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/publishing.py).
 
 ## Data flow and policy boundaries
 
