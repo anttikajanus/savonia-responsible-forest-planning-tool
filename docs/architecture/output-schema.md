@@ -196,7 +196,7 @@ its own source, availability, valid/unknown hectares and supporting quantities.
 | `status` | The metric availability code defined above. |
 | `valid_area_ha` | Hectares with valid evidence for this particular metric. |
 | `unknown_area_ha` | Reporting hectares without valid metric evidence; not assumed zero or allocated to a matching category. |
-| `represented_volume_m3` | Timber volume represented over this metric's valid area, in m³. Present for volume metrics. |
+| `represented_volume_m3` | Timber volume represented over this metric's valid area, in m³. Present for volume metrics and the sawlog-price denominator. |
 | `weighted_sum` | Accumulator retained for growth, basal area or sawlog price. Growth/basal area use hectares; price uses represented sawlog m³. A supporting statistic rather than the reported value. |
 | `matching_area_ha` | Valid hectares matching the age band, peat soil or natural-mire category. For partial area totals this is the observed lower bound. |
 | `coverage_percent_exact` | Percentage of the result piece with valid age evidence, at full precision. |
