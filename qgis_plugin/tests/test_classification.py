@@ -12,7 +12,7 @@ sys.path.insert(0, os.environ.get(
     str(Path(__file__).resolve().parents[1]),
 ))
 
-from savonia_responsible_forest_planning_tool.analysis.classification import classify_tiers, interpret_sources
+from savonia_responsible_forest_planning_tool.analysis.classification import assemble_classified_piece, classify_tiers, interpret_sources
 
 
 class ClassificationTests(unittest.TestCase):
@@ -33,7 +33,12 @@ class ClassificationTests(unittest.TestCase):
                                       for _, criterion, _ in triggers}
             before = copy.deepcopy(evidence)
             classes, rules = classify_tiers(evidence, states)
+            row = assemble_classified_piece("stand", {}, 1, {
+                **evidence, "source_ids": {},
+            }, states)
             with self.subTest(enabled=enabled):
+                for (_, criterion, _), value in zip(triggers, enabled):
+                    self.assertEqual(row["check_" + criterion], "MATCH" if value else "NO_MATCH")
                 for index, tier in enumerate(self.tiers):
                     matches = [criterion for (_, criterion, first), value in zip(triggers, enabled)
                                if value and first <= index]
@@ -64,6 +69,33 @@ class ClassificationTests(unittest.TestCase):
                         "source_ids": {"section10": ["habitat-1"]}}, states)
                     self.assertEqual(set(classes.values()), {"SENSITIVE"})
                     self.assertTrue(all(rule["source_ids"] == ["habitat-1"] for rule in rules.values()))
+
+    def test_piece_exposes_criterion_matches_without_redundant_indicator_payloads(self):
+        states = dict.fromkeys(self.sources, "AVAILABLE")
+        states["forest_centre_stand"] = "AVAILABLE"
+        row = assemble_classified_piece("stand-1", {}, 1, {
+            "section10": True, "section10_stand_promoted": True,
+            "programme_area": True, "groundwater_area": True,
+        }, states)
+        self.assertEqual({key: row[key] for key in (
+            "check_protected", "check_section10", "check_programme",
+            "check_groundwater", "check_other_habitat")}, {
+            "check_protected": "NO_MATCH", "check_section10": "MATCH",
+            "check_programme": "MATCH", "check_groundwater": "MATCH",
+            "check_other_habitat": "NO_MATCH",
+        })
+        self.assertNotIn("indicator_status", row)
+        self.assertNotIn("indicator_diagnostics", row)
+        self.assertEqual(row["indicator_coverage"]["grid_total_volume_m3_ha"]["status"],
+                         "UNKNOWN_FIELD_OR_VALUE")
+        unknown = assemble_classified_piece("stand-2", {}, 1, {}, {})
+        self.assertEqual(unknown["check_section10"], "UNKNOWN")
+        self.assertEqual(unknown["check_protected"], "UNKNOWN")
+        self.assertEqual(unknown["check_programme"], "UNKNOWN")
+        self.assertEqual(unknown["check_groundwater"], "UNKNOWN")
+        self.assertEqual(unknown["check_other_habitat"], "UNKNOWN")
+        positive = assemble_classified_piece("stand-3", {}, 1, {"section10": True}, {})
+        self.assertEqual(positive["check_section10"], "MATCH")
 
     def test_unrecognized_classification_records_are_diagnostic_not_no_hits(self):
         cases = (

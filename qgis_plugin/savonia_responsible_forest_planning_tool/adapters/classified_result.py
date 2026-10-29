@@ -9,7 +9,7 @@ from qgis.core import (
     QgsGeometry, QgsVectorLayer,
 )
 
-from ..analysis.classification import TIERS
+from ..analysis.classification import CRITERION_FIELDS, TIERS
 from ..analysis.domain import METRIC_FIELDS, METRIC_GROUPS
 from ..analysis.grid_indicators import AGE_METRICS
 from ..i18n import tr
@@ -36,9 +36,8 @@ def create_classified_result_layer(rows, language="en"):
         for name in METRIC_FIELDS
     ])
     fields.extend([
-        QgsField("indicator_status", QVariant.String, len=2048),
+        *(QgsField(field, QVariant.String, len=16) for field, _, _ in CRITERION_FIELDS),
         QgsField("indicator_coverage", QVariant.String),
-        QgsField("indicator_diagnostics", QVariant.String),
         QgsField("tier_rule_ids", QVariant.String, len=4096),
         QgsField("source_ids", QVariant.String, len=4096),
         QgsField("section10_stand_promoted", QVariant.Bool),
@@ -54,6 +53,14 @@ def create_classified_result_layer(rows, language="en"):
             layer.setEditorWidgetSetup(index, QgsEditorWidgetSetup("Range", {
                 "Precision": RESULT_DECIMALS.get(name, 2), "AllowNull": True,
             }))
+    for field, _, _ in CRITERION_FIELDS:
+        index = layer.fields().indexFromName(field)
+        layer.setFieldAlias(index, tr(language, field))
+        layer.setEditorWidgetSetup(index, QgsEditorWidgetSetup("ValueMap", {"map": [
+            {tr(language, "criterion_match"): "MATCH"},
+            {tr(language, "criterion_no_match"): "NO_MATCH"},
+            {tr(language, "criterion_unknown"): "UNKNOWN"},
+        ]}))
     _configure_result_form(layer, language)
 
     features = []
@@ -67,9 +74,8 @@ def create_classified_result_layer(rows, language="en"):
         attributes.append(published_value("area_ha", row["area_ha"]))
         attributes.extend(published_value(name, row["indicators"].get(name)) for name in METRIC_FIELDS)
         attributes.extend([
-            json.dumps(row["indicator_status"], sort_keys=True, default=json_default),
+            *(row[field] for field, _, _ in CRITERION_FIELDS),
             json.dumps(row.get("indicator_coverage", {}), sort_keys=True, default=json_default),
-            json.dumps(row.get("indicator_diagnostics", []), sort_keys=True, default=json_default),
             json.dumps(row["rules"], sort_keys=True, default=json_default),
             json.dumps(row["source_ids"], sort_keys=True, default=json_default),
             row["section10_stand_promoted"],
@@ -91,9 +97,10 @@ def _configure_result_form(layer, language):
     root.clear()
     fields = layer.fields()
     result_fields = ("source_stand_id", *("class_" + tier for tier, _ in TIERS), "area_ha")
-    metric_fields = set(METRIC_FIELDS) | set(result_fields)
+    checks = tuple(field for field, _, _ in CRITERION_FIELDS)
+    metric_fields = set(METRIC_FIELDS) | set(result_fields) | set(checks)
     provenance = tuple(field.name() for field in fields if field.name() not in metric_fields)
-    for group_id, names in (("result", result_fields), *METRIC_GROUPS, ("provenance", provenance)):
+    for group_id, names in (("result", result_fields), *METRIC_GROUPS, ("checks", checks), ("provenance", provenance)):
         group = QgsAttributeEditorContainer(tr(language, "field_group_" + group_id), root)
         group.setType(Qgis.AttributeEditorContainerType.Tab)
         if group_id in ("result", "stand"):

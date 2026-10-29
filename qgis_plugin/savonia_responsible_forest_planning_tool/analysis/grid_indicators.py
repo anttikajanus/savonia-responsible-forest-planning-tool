@@ -105,15 +105,14 @@ def _coverage(area_ha, valid_area_ha, source_id, **statistics):
 
 def _result(coverage, indicators):
     return {"indicators": indicators,
-            "indicator_status": {metric: item["status"] for metric, item in coverage.items()},
-            "indicator_coverage": coverage, "diagnostics": []}
+            "indicator_coverage": coverage}
 
 
 def calculate_grid_indicators(area_ha, intersections):
     """Calculate grid indicators over a reporting polygon of ``area_ha`` hectares.
 
     Intersections contain ``area_ha``, normalized lowercase ``values`` and an
-    optional cell ``source_id`` for diagnostics. Source field values are not
+    optional cell ``source_id`` for provenance. Source field values are not
     coerced from text. Geometry validity/overlap detection belongs to the edge;
     invalid areas or excessive coverage raise ``ValueError`` before publication.
     """
@@ -158,32 +157,7 @@ def calculate_grid_indicators(area_ha, intersections):
         matching = math.fsum(area for area, code in known if code in matching_codes)
         coverage[metric] = _coverage(area_ha, valid_area, GRID_SOURCE_ID, matching_area_ha=matching)
         indicators[metric] = matching if coverage[metric]["status"] == "AVAILABLE" else None
-    result = _result(coverage, indicators)
-    for part in intersections:
-        if "area_roundoff_adjustment_ha" in part:
-            result["diagnostics"].append({
-                "reason_code": "AREA_ROUNDOFF_ADJUSTMENT", "source_id": part.get("source_id"),
-                "area_ha": part["area_ha"], "adjustment_area_ha": part["area_roundoff_adjustment_ha"],
-            })
-    for area, values, cell_id in parts:
-        if area <= AREA_TOLERANCE_HA:
-            continue
-        for field in (*GRID_VOLUME_FIELDS.values(), "age", "soiltype", "drainagestate"):
-            value = values.get(field)
-            valid = (_code(value, SOIL_CODES) if field == "soiltype" else
-                     _code(value, DRAINAGE_CODES) if field == "drainagestate" else _number(value))
-            if valid is None:
-                result["diagnostics"].append({
-                    "reason_code": "MISSING_VALUE" if value is None else "INVALID_VALUE",
-                    "field": field, "source_id": cell_id, "area_ha": area,
-                })
-        soil = _code(values.get("soiltype"), SOIL_CODES)
-        drainage = _code(values.get("drainagestate"), DRAINAGE_CODES)
-        if soil is not None and soil not in PEAT_CODES and drainage == 6:
-            result["diagnostics"].append({"reason_code": "CONTRADICTORY_SOIL_DRAINAGE",
-                                           "source_id": cell_id, "area_ha": area,
-                                           "soiltype": soil, "drainagestate": drainage})
-    return result
+    return _result(coverage, indicators)
 
 
 def summarize_indicator_rows(rows):
@@ -221,5 +195,4 @@ def summarize_indicator_rows(rows):
     coverage["stumpage_price_eur_m3"] = {**_coverage(area_ha, 0.0, None), "status": "OUT_OF_SCOPE"}
     indicators["stumpage_price_eur_m3"] = None
     return {"area_ha": area_ha, "feature_count": len(rows), **indicators,
-            "indicator_status": {metric: item["status"] for metric, item in coverage.items()},
             "indicator_coverage": coverage}

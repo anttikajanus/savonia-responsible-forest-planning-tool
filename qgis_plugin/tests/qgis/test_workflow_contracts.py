@@ -196,7 +196,7 @@ class WorkflowContractTests(WorkflowFixtureMixin, unittest.TestCase):
                 result = self.run_algorithm(layers, aoi, language, "empty-wfs2-" + language)
                 layer = QgsVectorLayer(result["RESULT"], "empty grid", "ogr")
                 row, = list(layer.getFeatures())
-                self.assertEqual(json.loads(row["indicator_status"])["grid_total_volume_m3_ha"], "UNKNOWN_FIELD_OR_VALUE")
+                self.assertEqual(json.loads(row["indicator_coverage"])["grid_total_volume_m3_ha"]["status"], "UNKNOWN_FIELD_OR_VALUE")
             with self.scenario(grid, version="2.0.0", page_size=2, prime=False) as (fixture, layers, aoi):
                 fixture.page_failures.add(("forest_centre_gridcell", 2))
                 name = "failed-page-" + language

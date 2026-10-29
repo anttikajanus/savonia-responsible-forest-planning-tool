@@ -13,6 +13,13 @@ TIERS = (
 )
 CLASS_FIELDS = tuple("class_" + tier for tier, _label in TIERS)
 CLASS_CODES = ("SENSITIVE", "ECONOMIC", "UNKNOWN")
+CRITERION_FIELDS = (
+    ("check_protected", "active_protected", "syke_protected_areas"),
+    ("check_section10", "section10", "forest_centre_habitat"),
+    ("check_programme", "programme_area", "syke_nature_conservation_programme_areas"),
+    ("check_groundwater", "groundwater_area", "syke_groundwater_areas"),
+    ("check_other_habitat", "other_valuable_habitat", "forest_centre_habitat"),
+)
 SOURCE_STATES = ("AVAILABLE", "NOT_AVAILABLE", "OUT_OF_SCOPE")
 
 # Accept broad and subtype codes because SYKE layers can return either form
@@ -219,7 +226,6 @@ def assemble_classified_piece(stand_id, stand_attributes, area_ha, evidence, sou
     )
     grid = calculate_grid_indicators(area_ha, grid_intersections or ())
     values = {**stand["indicators"], **grid["indicators"], "area_ha": area_ha}
-    metric_status = {**stand["indicator_status"], **grid["indicator_status"], "area_ha": "AVAILABLE"}
 
     normalized_source_ids = {
         key: sorted(set(identifiers))
@@ -227,13 +233,14 @@ def assemble_classified_piece(stand_id, stand_attributes, area_ha, evidence, sou
     }
     return {
         "source_stand_id": stand_id,
+        **{field: "MATCH" if evidence.get(evidence_key) else
+           "NO_MATCH" if source_states.get(source_id) == "AVAILABLE" else "UNKNOWN"
+           for field, evidence_key, source_id in CRITERION_FIELDS},
         "classes": classes,
         "rules": rules,
         "source_ids": normalized_source_ids,
         "indicators": values,
-        "indicator_status": metric_status,
         "indicator_coverage": {**stand["indicator_coverage"], **grid["indicator_coverage"]},
-        "indicator_diagnostics": stand["diagnostics"] + grid["diagnostics"],
         "area_ha": area_ha,
         "section10_stand_promoted": evidence.get("section10_stand_promoted"),
         "programme_info": list(evidence.get("programme_info", ())),
