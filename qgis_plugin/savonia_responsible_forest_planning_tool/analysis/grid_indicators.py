@@ -58,7 +58,7 @@ def _area(value):
     return result
 
 
-def calculate_stand_indicators(area_ha, values, source_status="AVAILABLE"):
+def calculate_stand_indicators(area_ha, values, source_status="AVAILABLE", sawlog_price_eur_m3=None):
     """Retain stand density/rate semantics weighted by actual result-piece area.
 
     Growth is 100 * annual stand volume growth / standing stand volume; it never
@@ -80,8 +80,16 @@ def calculate_stand_indicators(area_ha, values, source_status="AVAILABLE"):
         coverage[metric] = _coverage(area_ha, valid_area, STAND_SOURCE_ID,
                                      **{statistic: area_ha * value if value is not None else 0.0})
         indicators[metric] = value if valid_area else None
-    coverage["stumpage_price_eur_m3"] = {**_coverage(area_ha, 0.0, None), "status": "OUT_OF_SCOPE"}
-    indicators["stumpage_price_eur_m3"] = None
+    sawlogs = _number(values.get("sawlogvolume")) if source_status == "AVAILABLE" else None
+    price = _number(sawlog_price_eur_m3)
+    eligible = sawlogs is not None and sawlogs > 0 and price is not None and price > 0
+    represented = area_ha * sawlogs if eligible else 0.0
+    coverage["stumpage_price_eur_m3"] = _coverage(
+        area_ha, area_ha if eligible else 0.0, STAND_SOURCE_ID,
+        represented_volume_m3=represented,
+        weighted_sum=represented * price if eligible else 0.0,
+    )
+    indicators["stumpage_price_eur_m3"] = price if eligible and area_ha > 0 else None
     return _result(coverage, indicators)
 
 
@@ -218,8 +226,15 @@ def summarize_indicator_rows(rows):
             indicators[metric] = numerator if coverage[metric]["status"] == "AVAILABLE" else None
         else:
             indicators[metric] = numerator / valid_area if valid_area else None
-    coverage["stumpage_price_eur_m3"] = {**_coverage(area_ha, 0.0, None), "status": "OUT_OF_SCOPE"}
-    indicators["stumpage_price_eur_m3"] = None
+    price_parts = [row["indicator_coverage"].get("stumpage_price_eur_m3", {}) for row in rows]
+    price_area = math.fsum(_area(part.get("valid_area_ha", 0.0)) for part in price_parts)
+    price_volume = math.fsum(_area(part.get("represented_volume_m3", 0.0)) for part in price_parts)
+    price_sum = math.fsum(_area(part.get("weighted_sum", 0.0)) for part in price_parts)
+    coverage["stumpage_price_eur_m3"] = _coverage(
+        area_ha, price_area, STAND_SOURCE_ID,
+        represented_volume_m3=price_volume, weighted_sum=price_sum,
+    )
+    indicators["stumpage_price_eur_m3"] = price_sum / price_volume if price_volume else None
     return {"area_ha": area_ha, "feature_count": len(rows), **indicators,
             "indicator_status": {metric: item["status"] for metric, item in coverage.items()},
             "indicator_coverage": coverage}

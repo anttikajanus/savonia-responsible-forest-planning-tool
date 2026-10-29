@@ -70,6 +70,7 @@ class SourceFieldWorkflowChecks:
         parameters = {
             algorithm.AOI: self.aoi, algorithm.SELECTED_ONLY: False,
             algorithm.OUTPUT_FOLDER: self.temp.name, algorithm.OUTPUT_NAME: output_name,
+            algorithm.SAWLOG_PRICE_EUR_M3: 75.25,
         }
         for parameter, source in zip(
             (algorithm.STANDS, algorithm.HABITATS, algorithm.PROTECTED, algorithm.PROTECTED_PRIVATE,

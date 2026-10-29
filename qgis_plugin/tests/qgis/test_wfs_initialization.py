@@ -107,7 +107,7 @@ class WfsInitializationTests(unittest.TestCase):
                 aoi = QgsVectorLayer("Polygon?crs=EPSG:3067", "AOI", "memory")
                 layers = {layer.customProperty("savonia/service_id"): layer
                           for layer in project.mapLayers().values()}
-                captured = capture_worker_inputs(aoi, layers, False, project.transformContext(), "en", "unused")
+                captured = capture_worker_inputs(aoi, layers, False, project.transformContext(), "en", "unused", sawlog_price_eur_m3=75.25)
                 worker_layers = ResponsibleForestPlanningAnalysisTask._construct_sources(captured["sources"])
                 self.assertTrue(all(layer.isValid() for layer in worker_layers.values()))
                 self.assertEqual(feature_requests(fixture), [])

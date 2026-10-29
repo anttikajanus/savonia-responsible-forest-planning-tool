@@ -55,7 +55,7 @@ def grid_layer(records, crs="EPSG:3067"):
 
 def retrieval_inputs(layer, aoi):
     source = "forest_centre_gridcell"
-    return {"run_id": "grid-test", "language": "en", "service_ids": (source,),
+    return {"sawlog_price_eur_m3": 75.25, "run_id": "grid-test", "language": "en", "service_ids": (source,),
             "source_display_names": {source: "Grid"}, "layers": {source: layer}, "aoi": aoi,
             "transform_context": QgsCoordinateTransformContext(), "source_metadata": {source: {
                 "endpoint": "local-fixture", "feature_type": "fixture:gridcell", "properties": None,
@@ -95,7 +95,7 @@ class GridSamplingTest(unittest.TestCase):
                                      for source in SERVICE_DEFINITIONS],
                         "protected_areas_status": "AVAILABLE", "grid_sampler": sampler,
                     }
-                    classified = classify_source_features({
+                    classified = classify_source_features({"sawlog_price_eur_m3": 75.25, 
                         "language": language,
                         "source_display_names": {source: source for source in SERVICE_DEFINITIONS},
                     }, retrieved)
@@ -177,7 +177,7 @@ class GridSamplingTest(unittest.TestCase):
                    "attributes": {"volume": 200}, "values": {"volume": 200}}]
         grid = [record("left", rectangle(0, 0, 16, 16), 100),
                 record("right", rectangle(16, 0, 16, 16), 300)]
-        inputs = {"language": "en", "source_display_names": {source: source for source in SERVICE_DEFINITIONS}}
+        inputs = {"sawlog_price_eur_m3": 75.25, "language": "en", "source_display_names": {source: source for source in SERVICE_DEFINITIONS}}
         retrieved = {"source_features": {"forest_centre_stand": stands, "forest_centre_gridcell": grid},
                      "coverage": [{"service_id": source, "status": "AVAILABLE"} for source in SERVICE_DEFINITIONS],
                      "protected_areas_status": "AVAILABLE", "grid_sampler": GridCellSampler(grid)}
@@ -206,7 +206,7 @@ class GridSamplingTest(unittest.TestCase):
                                   ("stand-2", rectangle(16 - overlap_m2 / 16, 0, 16, 16)),
                               )]
                     grid = [record("grid", rectangle(0, 0, 32, 16))]
-                    inputs = {"language": language,
+                    inputs = {"sawlog_price_eur_m3": 75.25, "language": language,
                               "source_display_names": {source: source for source in SERVICE_DEFINITIONS}}
                     retrieved = {
                         "source_features": {"forest_centre_stand": stands, "forest_centre_gridcell": grid},
@@ -277,7 +277,7 @@ class GridSamplingTest(unittest.TestCase):
         grid = [record("cell-" + str(index), rectangle(index, 0, 1, 1)) for index in range(24)]
         for item in grid:
             item["values"]["volume"] = None
-        inputs = {"language": "en", "source_display_names": {source: source for source in SERVICE_DEFINITIONS}}
+        inputs = {"sawlog_price_eur_m3": 75.25, "language": "en", "source_display_names": {source: source for source in SERVICE_DEFINITIONS}}
         retrieved = {"source_features": {"forest_centre_stand": [{
             "source_id": "stand-1", "geometry": rectangle(0, 0, 24, 1),
             "attributes": {"volume": 200}, "values": {"volume": 200}}], "forest_centre_gridcell": grid},
@@ -305,7 +305,7 @@ class GridSamplingTest(unittest.TestCase):
         layer = grid_layer([])
         inputs = retrieval_inputs(layer, rectangle(0, 0, 16, 16))
         metadata = inputs["source_metadata"]["forest_centre_gridcell"]
-        inputs.update({"service_ids": tuple(SERVICE_DEFINITIONS),
+        inputs.update({"sawlog_price_eur_m3": 75.25, "service_ids": tuple(SERVICE_DEFINITIONS),
                        "source_display_names": {source: source for source in SERVICE_DEFINITIONS},
                        "layers": {source: grid_layer([]) for source in SERVICE_DEFINITIONS},
                        "source_metadata": {source: dict(metadata) for source in SERVICE_DEFINITIONS}})

@@ -35,7 +35,7 @@ class ResultFieldOrganizationTests(unittest.TestCase):
         self.assertEqual(names[7:22], ["area_ha", *EXPECTED_METRICS])
         self.assertEqual(names[22], "indicator_status")
         self.assertNotIn("birch_volume_m3_ha", names)
-        price_label = "Keskimääräinen kantohinta (€/m³)" if language == "fi" else "Average stumpage price (€/m³)"
+        price_label = "Tukkipuun kantohinta (€/m³)" if language == "fi" else "Sawlog stumpage price (€/m³)"
         self.assertEqual(layer.attributeAlias(layer.fields().indexFromName("stumpage_price_eur_m3")), price_label)
         feature = next(layer.getFeatures())
         for name, value in (("area_ha", 1), ("total_volume_m3_ha", 200),
@@ -45,7 +45,7 @@ class ResultFieldOrganizationTests(unittest.TestCase):
                             ("deciduous_volume_m3_ha", 70), ("share_under_20", 100)):
             self.assertEqual(feature[name], value, name)
         for group, metrics in METRIC_GROUPS:
-            if group == "unavailable":
+            if group == "price":
                 continue
             prefix = ("Kuvio" if language == "fi" else "Stand") if group == "stand" else (
                 "Hila" if language == "fi" else "Grid")
@@ -58,7 +58,7 @@ class ResultFieldOrganizationTests(unittest.TestCase):
         groups = config.invisibleRootContainer().children()
         self.assertEqual([group.name() for group in groups], [
             tr(language, "field_group_" + name) for name in (
-                "result", "stand", "grid_volume", "grid_age", "grid_area", "unavailable", "provenance")])
+                "result", "stand", "grid_volume", "grid_age", "grid_area", "price", "provenance")])
         form_fields = []
         for group in groups:
             self.assertEqual(group.type(), Qgis.AttributeEditorContainerType.Tab)

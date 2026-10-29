@@ -120,7 +120,7 @@ class GridWorkflowTest(WorkflowFixtureMixin, unittest.TestCase):
                 near = self.run_algorithm(layers, aoi, language, "near-" + language)
                 canvas.zoomScale(500)
                 snapshot = capture_worker_inputs(aoi, layers, False, QgsProject.instance().transformContext(),
-                                                 language, self.temp.name, "worker-far-" + language)
+                                                 language, self.temp.name, "worker-far-" + language, sawlog_price_eur_m3=75.25)
                 def assert_no_qobjects(value):
                     self.assertNotIsInstance(value, QObject)
                     if isinstance(value, dict):
@@ -195,7 +195,7 @@ class GridWorkflowTest(WorkflowFixtureMixin, unittest.TestCase):
                     self.assertEqual(statuses["pine_volume_m3_ha"], "AVAILABLE")
                 self.assertNotIn("birch_volume_m3_ha", layer.fields().names())
                 self.assertNotIn("birch_volume_m3_ha", statuses)
-                self.assertEqual(statuses["stumpage_price_eur_m3"], "OUT_OF_SCOPE")
+                self.assertEqual(statuses["stumpage_price_eur_m3"], "AVAILABLE")
 
     def test_duplicate_records_deduplicate_and_conflicts_or_overlaps_publish_nothing(self):
         schemas = fixture_sources()
@@ -266,7 +266,7 @@ class GridWorkflowTest(WorkflowFixtureMixin, unittest.TestCase):
         with self.scenario([source_record(fields)]) as (fixture, layers, aoi):
             fixture.feature_failures.add("forest_centre_gridcell")
             snapshot = capture_worker_inputs(aoi, layers, False, QgsProject.instance().transformContext(),
-                                             "fi", self.temp.name, "worker-failed-request")
+                                             "fi", self.temp.name, "worker-failed-request", sawlog_price_eur_m3=75.25)
             completed = []
             task = ResponsibleForestPlanningAnalysisTask("fixture failure", snapshot, lambda finished, success: completed.append(success))
             QgsApplication.taskManager().addTask(task)

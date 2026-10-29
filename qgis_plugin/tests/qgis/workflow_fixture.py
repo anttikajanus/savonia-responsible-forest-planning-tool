@@ -77,11 +77,12 @@ class WorkflowFixtureMixin:
                     layers[source] = layer
                 yield fixture, layers, aoi_layer
 
-    def run_algorithm(self, layers, aoi, language, name, feedback=None, selected_only=False):
+    def run_algorithm(self, layers, aoi, language, name, feedback=None, selected_only=False, sawlog_price=75.25):
         algorithm = ResponsibleForestPlanningInputsAlgorithm()
         algorithm.initAlgorithm()
         parameters = {algorithm.AOI: aoi, algorithm.OUTPUT_FOLDER: self.temp.name,
-                      algorithm.OUTPUT_NAME: name, algorithm.SELECTED_ONLY: selected_only}
+                      algorithm.OUTPUT_NAME: name, algorithm.SELECTED_ONLY: selected_only,
+                      "SAWLOG_PRICE_EUR_M3": sawlog_price}
         for parameter, source in {
             algorithm.STANDS: "forest_centre_stand", algorithm.GRIDCELLS: "forest_centre_gridcell",
             algorithm.HABITATS: "forest_centre_habitat", algorithm.PROTECTED: "syke_protected_areas_state_owned",
