@@ -79,7 +79,7 @@ class GridIndicatorsTest(unittest.TestCase):
         ])
         for metric in ("peatland_area_ha", "natural_mire_area_ha"):
             self.assertIsNone(partial["indicators"][metric])
-            self.assertEqual(partial["indicator_status"][metric], "PARTIAL")
+            self.assertEqual(partial["indicator_coverage"][metric]["status"], "PARTIAL")
             self.assertEqual(partial["indicator_coverage"][metric]["matching_area_ha"], 0.25)
         known_zero = calculate_grid_indicators(1, [
             {"area_ha": 1, "values": {"soiltype": 11, "drainagestate": 7}},
@@ -92,8 +92,7 @@ class GridIndicatorsTest(unittest.TestCase):
         ])
         self.assertEqual(contradiction["indicators"]["peatland_area_ha"], 0)
         self.assertEqual(contradiction["indicators"]["natural_mire_area_ha"], 1)
-        self.assertTrue(any(item["reason_code"] == "CONTRADICTORY_SOIL_DRAINAGE"
-                            for item in contradiction["diagnostics"]))
+        self.assertNotIn("diagnostics", contradiction)
 
     def test_zero_is_valid_but_invalid_and_missing_values_remain_independent(self):
         result = calculate_grid_indicators(1, [
@@ -103,15 +102,13 @@ class GridIndicatorsTest(unittest.TestCase):
                 "drainagestate": "6"}},
         ])
         self.assertEqual(result["indicators"]["grid_total_volume_m3_ha"], 0)
-        self.assertEqual(result["indicator_status"]["grid_total_volume_m3_ha"], "AVAILABLE")
+        self.assertEqual(result["indicator_coverage"]["grid_total_volume_m3_ha"]["status"], "AVAILABLE")
         for metric in ("pine_volume_m3_ha", "spruce_volume_m3_ha", "deciduous_volume_m3_ha",
                        "share_under_20", "peatland_area_ha", "natural_mire_area_ha"):
             self.assertIsNone(result["indicators"][metric])
-            self.assertEqual(result["indicator_status"][metric], "UNKNOWN_FIELD_OR_VALUE")
-        self.assertTrue(any(item["reason_code"] == "MISSING_VALUE"
-                            and item["field"] == "volumepine" for item in result["diagnostics"]))
-        self.assertTrue(any(item["reason_code"] == "INVALID_VALUE"
-                            and item["field"] == "age" for item in result["diagnostics"]))
+            self.assertEqual(result["indicator_coverage"][metric]["status"], "UNKNOWN_FIELD_OR_VALUE")
+        self.assertNotIn("diagnostics", result)
+        self.assertNotIn("indicator_status", result)
         empty = calculate_grid_indicators(1, [])
         self.assertTrue(all(value is None for value in empty["indicators"].values()))
         for invalid in (True, "2", -1, float("inf"), float("nan")):
@@ -140,9 +137,9 @@ class GridIndicatorsTest(unittest.TestCase):
         self.assertIsNone(values["pine_volume_m3_ha"])
         self.assertNotIn("birch_volume_m3_ha", values)
         self.assertIsNone(values["stumpage_price_eur_m3"])
-        self.assertNotIn("birch_volume_m3_ha", row["indicator_status"])
+        self.assertNotIn("indicator_status", row)
         self.assertNotIn("birch_volume_m3_ha", row["indicator_coverage"])
-        self.assertEqual(row["indicator_status"]["stumpage_price_eur_m3"], "OUT_OF_SCOPE")
+        self.assertEqual(row["indicator_coverage"]["stumpage_price_eur_m3"]["status"], "OUT_OF_SCOPE")
         self.assertEqual(row["indicator_coverage"]["total_volume_m3_ha"]["source_id"], "forest_centre_stand")
         self.assertEqual(row["indicator_coverage"]["grid_total_volume_m3_ha"]["source_id"], "forest_centre_gridcell")
         without_grid = assemble_classified_piece("stand-1", {"volume": 200}, 1, {},
@@ -162,6 +159,8 @@ class GridIndicatorsTest(unittest.TestCase):
                                       "soiltype": 11, "drainagestate": 1}},
         ])]
         summary = summarize_indicator_rows(rows)
+        self.assertNotIn("indicator_status", summary)
+        self.assertNotIn("diagnostics", summary)
         self.assertEqual(summary["grid_total_volume_m3_ha"], 260)
         self.assertEqual(summary["total_volume_m3_ha"], 200)
         self.assertEqual(summary["growth_percent"], 5.5)
@@ -188,7 +187,7 @@ class GridIndicatorsTest(unittest.TestCase):
             with self.subTest(soil=soil):
                 result = calculate_grid_indicators(1, [{"area_ha": 1, "values": {"soiltype": soil}}])
                 self.assertEqual(result["indicators"]["peatland_area_ha"], 1 if 60 <= soil <= 67 else 0)
-                self.assertEqual(result["indicator_status"]["peatland_area_ha"], "AVAILABLE")
+                self.assertEqual(result["indicator_coverage"]["peatland_area_ha"]["status"], "AVAILABLE")
         for drainage in (1, 2, 3, 6, 7, 8, 9):
             with self.subTest(drainage=drainage):
                 result = calculate_grid_indicators(1, [{"area_ha": 1, "values": {"drainagestate": drainage}}])
@@ -208,7 +207,7 @@ class GridIndicatorsTest(unittest.TestCase):
         empty_class = weighted_summary([], "SENSITIVE")
         self.assertEqual(empty_class["area_ha"], 0)
         self.assertIsNone(empty_class["share_under_20"])
-        self.assertEqual(empty_class["indicator_status"]["share_under_20"], "UNKNOWN_FIELD_OR_VALUE")
+        self.assertEqual(empty_class["indicator_coverage"]["share_under_20"]["status"], "UNKNOWN_FIELD_OR_VALUE")
 
     def test_area_invariants_stop_invalid_or_double_counted_results(self):
         for area, parts in ((-1, []), (float("nan"), []), (1, [{"area_ha": -1}]),

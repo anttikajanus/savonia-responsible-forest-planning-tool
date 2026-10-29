@@ -144,7 +144,7 @@ class GridWorkflowTest(WorkflowFixtureMixin, unittest.TestCase):
                 far_row, = list(far_layer.getFeatures())
                 self.assertEqual(near_row["area_ha"], 1)
                 for field in ("total_volume_m3_ha", "grid_total_volume_m3_ha", "share_under_20",
-                              "indicator_status", "indicator_coverage"):
+                              "indicator_coverage", "check_section10", "check_protected"):
                     self.assertEqual(near_row[field], far_row[field])
                 self.assertTrue(all("bbox" in request for request in fixture.requests
                                     if request.get("request", "").lower() == "getfeature"))
@@ -185,7 +185,7 @@ class GridWorkflowTest(WorkflowFixtureMixin, unittest.TestCase):
                 layer = QgsVectorLayer(result["RESULT"], "result", "ogr")
                 feature, = list(layer.getFeatures())
                 self.assertEqual(feature["total_volume_m3_ha"], 200)
-                statuses = json.loads(feature["indicator_status"])
+                statuses = {metric: item["status"] for metric, item in json.loads(feature["indicator_coverage"]).items() if "status" in item}
                 for metric in ("grid_total_volume_m3_ha", "spruce_volume_m3_ha", "deciduous_volume_m3_ha",
                                "share_under_20", "share_20_80", "share_over_80", "peatland_area_ha", "natural_mire_area_ha"):
                     self.assertEqual(feature[metric], NULL)

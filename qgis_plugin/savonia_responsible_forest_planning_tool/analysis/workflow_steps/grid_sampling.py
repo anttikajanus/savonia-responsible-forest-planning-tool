@@ -135,10 +135,8 @@ class GridCellSampler:
             if AREA_TOLERANCE_M2 < abs(difference_m2) <= roundoff_m2:
                 # Reconcile only a numerical closure discrepancy. Real partial
                 # coverage remains partial; all adjusted areas retain their
-                # relative weights, and the adjustment is disclosed downstream.
+                # relative weights without producing separate diagnostic records.
                 factor = reporting_area_ha / sampled_area_ha
                 for part in parts:
-                    original_area_ha = part["area_ha"]
                     part["area_ha"] *= factor
-                    part["area_roundoff_adjustment_ha"] = part["area_ha"] - original_area_ha
         return parts

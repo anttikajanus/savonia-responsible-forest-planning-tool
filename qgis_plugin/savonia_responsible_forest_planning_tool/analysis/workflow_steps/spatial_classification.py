@@ -264,26 +264,6 @@ def classify_source_features(inputs, retrieved, feedback=None):
     if not result_rows:
         raise QgsProcessingException(tr(language, "error_no_stands"))
 
-    grid_coverage = next((row for row in coverage if row["service_id"] == "forest_centre_gridcell"), None)
-    if grid_coverage is not None:
-        diagnostic_counts = {}
-        diagnostic_areas = {}
-        samples = []
-        count = 0
-        for row in result_rows:
-            _check_cancelled(feedback, language)
-            for item in row["indicator_diagnostics"]:
-                code = item["reason_code"] + (":" + item["field"] if "field" in item else "")
-                diagnostic_counts[code] = diagnostic_counts.get(code, 0) + 1
-                diagnostic_areas[code] = diagnostic_areas.get(code, 0.0) + item["area_ha"]
-                count += 1
-                if len(samples) < 20:
-                    samples.append(dict(item))
-        grid_coverage.update({"indicator_diagnostic_count": count,
-                              "indicator_diagnostic_counts": diagnostic_counts,
-                              "indicator_diagnostic_area_ha": diagnostic_areas,
-                              "indicator_diagnostic_sample": samples})
-
     _feedback(feedback, "setProgress", 90)
 
     output_layer = create_classified_result_layer(result_rows, language)

@@ -32,8 +32,18 @@ EXPECTED_METRICS = (
 class ResultFieldOrganizationTests(unittest.TestCase):
     def assert_presentation(self, layer, language):
         names = [name for name in layer.fields().names() if name != "fid"]
-        self.assertEqual(names[7:22], ["area_ha", *EXPECTED_METRICS])
-        self.assertEqual(names[22], "indicator_status")
+        self.assertEqual(names[12:27], ["area_ha", *EXPECTED_METRICS])
+        self.assertEqual(names[7], "check_protected")
+        self.assertNotIn("indicator_status", names)
+        self.assertNotIn("indicator_diagnostics", names)
+        for field in ("check_protected", "check_section10", "check_programme",
+                      "check_groundwater", "check_other_habitat"):
+            self.assertEqual(next(layer.getFeatures())[field], "UNKNOWN")
+            index = layer.fields().indexFromName(field)
+            self.assertEqual(layer.attributeAlias(index), tr(language, field))
+            widget = layer.editorWidgetSetup(index)
+            self.assertEqual(widget.type(), "ValueMap")
+            self.assertIn({tr(language, "criterion_match"): "MATCH"}, widget.config()["map"])
         self.assertNotIn("birch_volume_m3_ha", names)
         price_label = "Keskimääräinen kantohinta (€/m³)" if language == "fi" else "Average stumpage price (€/m³)"
         self.assertEqual(layer.attributeAlias(layer.fields().indexFromName("stumpage_price_eur_m3")), price_label)
@@ -97,7 +107,7 @@ class ResultFieldOrganizationTests(unittest.TestCase):
             with self.subTest(language=language), tempfile.TemporaryDirectory() as folder:
                 row = summarize_indicator_rows([classified_row()])
                 self.assertNotIn("birch_volume_m3_ha", row)
-                self.assertNotIn("birch_volume_m3_ha", row["indicator_status"])
+                self.assertNotIn("indicator_status", row)
                 self.assertNotIn("birch_volume_m3_ha", row["indicator_coverage"])
                 row.update({"tier": "BAU", "class": "ECONOMIC"})
                 path = str(Path(folder) / "grouped.xlsx")

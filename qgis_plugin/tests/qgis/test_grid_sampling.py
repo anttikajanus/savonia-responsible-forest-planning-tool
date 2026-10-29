@@ -104,7 +104,7 @@ class GridSamplingTest(unittest.TestCase):
                     self.assertAlmostEqual(row["indicators"]["grid_total_volume_m3_ha"], 100)
                     self.assertEqual(row["indicators"]["share_under_20"], 100)
                     for metric in ("grid_total_volume_m3_ha", "peatland_area_ha", "natural_mire_area_ha"):
-                        self.assertEqual(row["indicator_status"][metric], "AVAILABLE")
+                        self.assertEqual(row["indicator_coverage"][metric]["status"], "AVAILABLE")
                         self.assertEqual(row["indicator_coverage"][metric]["unknown_area_ha"], 0)
                     self.assertAlmostEqual(row["indicators"]["peatland_area_ha"], polygon.area() / 10000)
 
@@ -115,7 +115,7 @@ class GridSamplingTest(unittest.TestCase):
         sampler = GridCellSampler([record("partial", rectangle(350000.03125, 6900000, 16, 16))])
         result = calculate_grid_indicators(0.0256, sampler.sample(polygon))
         for metric in ("grid_total_volume_m3_ha", "peatland_area_ha", "natural_mire_area_ha"):
-            self.assertEqual(result["indicator_status"][metric], "PARTIAL")
+            self.assertEqual(result["indicator_coverage"][metric]["status"], "PARTIAL")
             self.assertAlmostEqual(result["indicator_coverage"][metric]["unknown_area_ha"], 0.00005)
         self.assertIsNone(result["indicators"]["peatland_area_ha"])
         self.assertIsNone(result["indicators"]["natural_mire_area_ha"])
@@ -268,7 +268,7 @@ class GridSamplingTest(unittest.TestCase):
             retrieve_sources(retrieval_inputs(layer, rectangle(0, 0, 16, 16)))
         self.assertIn("forest_centre_gridcell", str(invalid.exception))
 
-    def test_indicator_diagnostics_keep_counts_and_areas_but_cap_samples(self):
+    def test_missing_values_retain_coverage_without_indicator_diagnostic_payloads(self):
         grid = [record("cell-" + str(index), rectangle(index, 0, 1, 1)) for index in range(24)]
         for item in grid:
             item["values"]["volume"] = None
@@ -280,10 +280,11 @@ class GridSamplingTest(unittest.TestCase):
             "protected_areas_status": "AVAILABLE", "grid_sampler": GridCellSampler(grid)}
         classified = classify_source_features(inputs, retrieved)
         coverage = next(row for row in classified["coverage"] if row["service_id"] == "forest_centre_gridcell")
-        self.assertEqual(coverage["indicator_diagnostic_count"], 24)
-        self.assertEqual(coverage["indicator_diagnostic_counts"], {"MISSING_VALUE:volume": 24})
-        self.assertAlmostEqual(coverage["indicator_diagnostic_area_ha"]["MISSING_VALUE:volume"], 0.0024)
-        self.assertEqual(len(coverage["indicator_diagnostic_sample"]), 20)
+        self.assertFalse(any(key.startswith("indicator_diagnostic") for key in coverage))
+        row = classified["result_rows"][0]
+        self.assertNotIn("indicator_diagnostics", row)
+        self.assertNotIn("indicator_status", row)
+        self.assertAlmostEqual(row["indicator_coverage"]["grid_total_volume_m3_ha"]["unknown_area_ha"], 0.0024)
         self.assertIsNone(classified["result_rows"][0]["indicators"]["grid_total_volume_m3_ha"])
         self.assertEqual(classified["result_rows"][0]["indicators"]["total_volume_m3_ha"], 200)
 
