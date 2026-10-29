@@ -8,6 +8,18 @@ belong to [development](development.md), and current behavior belongs to
 
 ## Automated regression verification
 
+On 29 October 2026, nonfatal stand overlaps, explicit sawlog pricing, ordinary
+criterion checks, indicator interface cleanup and wizard readiness/visibility
+passed the complete QGIS 4.2.3 check runner: 25 tooling tests, 40 unit/resource
+tests, full Pylint and 112 integration/offscreen tests against both source and
+the extracted current-version ZIP. Checks include bilingual price preflight,
+original-volume eligibility and weighting, inherited overlap flags, log/warning
+propagation through Processing and the real task, reopened outputs/forms,
+retained exact coverage, no-download readiness, child/parent visibility and
+plugin lifecycle. All 35 packaged Python files match source; both updated
+manuals are present. The ZIP preserves version 1.0.0. This is deterministic
+local evidence, separate from the interactive/provider acceptance below.
+
 On 29 October 2026, the intermittent doubled source-category count was reproduced
 on QGIS 4.2.3: a preliminary zero-limit WFS iterator followed by the analysis read
 could emit the same provider feature ID twice, including with WFS 2.0. Shared
