@@ -32,8 +32,9 @@ EXPECTED_METRICS = (
 class ResultFieldOrganizationTests(unittest.TestCase):
     def assert_presentation(self, layer, language):
         names = [name for name in layer.fields().names() if name != "fid"]
-        self.assertEqual(names[12:27], ["area_ha", *EXPECTED_METRICS])
-        self.assertEqual(names[7], "check_protected")
+        self.assertEqual(names[13:28], ["area_ha", *EXPECTED_METRICS])
+        self.assertEqual(names[7:13], ["check_protected", "check_section10", "check_programme",
+                                     "check_groundwater", "check_other_habitat", "stand_has_overlap"])
         self.assertNotIn("indicator_status", names)
         self.assertNotIn("indicator_diagnostics", names)
         for field in ("check_protected", "check_section10", "check_programme",
@@ -66,6 +67,7 @@ class ResultFieldOrganizationTests(unittest.TestCase):
         config = layer.editFormConfig()
         self.assertEqual(config.layout(), Qgis.AttributeFormLayout.DragAndDrop)
         groups = config.invisibleRootContainer().children()
+        self.assertIn("stand_has_overlap", [child.name() for child in groups[0].children()])
         self.assertEqual([group.name() for group in groups], [
             tr(language, "field_group_" + name) for name in (
                 "result", "stand", "grid_volume", "grid_age", "grid_area", "unavailable", "provenance")])

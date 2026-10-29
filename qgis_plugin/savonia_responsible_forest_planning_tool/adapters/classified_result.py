@@ -30,6 +30,7 @@ def create_classified_result_layer(rows, language="en"):
         QgsField("class_protection", QVariant.String, len=16),
         QgsField("class_superprotection", QVariant.String, len=16),
         *(QgsField(field, QVariant.String, len=16) for field, _, _ in CRITERION_FIELDS),
+        QgsField("stand_has_overlap", QVariant.Bool),
         QgsField("area_ha", QVariant.Double),
     ]
     fields.extend([
@@ -41,7 +42,6 @@ def create_classified_result_layer(rows, language="en"):
         QgsField("tier_rule_ids", QVariant.String, len=4096),
         QgsField("source_ids", QVariant.String, len=4096),
         QgsField("section10_stand_promoted", QVariant.Bool),
-        QgsField("stand_has_overlap", QVariant.Bool),
         QgsField("programme_info", QVariant.String, len=8192),
         QgsField("programme_protected_overlap", QVariant.String, len=16),
     ])
@@ -74,6 +74,7 @@ def create_classified_result_layer(rows, language="en"):
         attributes = [row["source_stand_id"]]
         attributes.extend(row["classes"][tier] for tier, _label in TIERS)
         attributes.extend(row[field] for field, _, _ in CRITERION_FIELDS)
+        attributes.append(row.get("stand_has_overlap", False))
         attributes.append(published_value("area_ha", row["area_ha"]))
         attributes.extend(published_value(name, row["indicators"].get(name)) for name in METRIC_FIELDS)
         attributes.extend([
@@ -81,7 +82,6 @@ def create_classified_result_layer(rows, language="en"):
             json.dumps(row["rules"], sort_keys=True, default=json_default),
             json.dumps(row["source_ids"], sort_keys=True, default=json_default),
             row["section10_stand_promoted"],
-            row.get("stand_has_overlap", False),
             json.dumps(row["programme_info"], ensure_ascii=False, sort_keys=True, default=json_default),
             row["programme_protected_overlap"],
         ])
@@ -100,7 +100,7 @@ def _configure_result_form(layer, language):
     root.clear()
     fields = layer.fields()
     result_fields = ("source_stand_id", *("class_" + tier for tier, _ in TIERS),
-                     *(field for field, _, _ in CRITERION_FIELDS), "area_ha")
+                     *(field for field, _, _ in CRITERION_FIELDS), "stand_has_overlap", "area_ha")
     metric_fields = set(METRIC_FIELDS) | set(result_fields)
     provenance = tuple(field.name() for field in fields if field.name() not in metric_fields)
     for group_id, names in (("result", result_fields), *METRIC_GROUPS, ("provenance", provenance)):
