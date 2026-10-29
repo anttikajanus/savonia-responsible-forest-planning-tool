@@ -22,6 +22,7 @@ from savonia_responsible_forest_planning_tool.analysis.worker_task import (
 from savonia_responsible_forest_planning_tool.analysis import workflow
 from savonia_responsible_forest_planning_tool.i18n import tr
 from workflow_fixture import WorkflowFixtureMixin, fixture_sources, source_record
+from wfs_fixture import request_has_bbox
 
 
 class WorkflowContractTests(WorkflowFixtureMixin, unittest.TestCase):
@@ -184,8 +185,8 @@ class WorkflowContractTests(WorkflowFixtureMixin, unittest.TestCase):
                 self.assertTrue(all(query.get("version") == "2.0.0" for query in requests))
                 # Managed providers skip initial sample reads. Every feature
                 # request, including the first, must carry the AOI bounds.
-                self.assertTrue(all("bbox" in query for query in requests))
-                self.assertTrue(all("bbox" in query for query in pages))
+                self.assertTrue(all(request_has_bbox(query) for query in requests))
+                self.assertTrue(all(request_has_bbox(query) for query in pages))
 
     def test_wfs2_empty_success_differs_from_later_page_failure(self):
         fields = fixture_sources()["forest_centre_gridcell"]

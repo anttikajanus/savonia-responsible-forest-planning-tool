@@ -10,13 +10,17 @@ belong to [development](development.md), and current behavior belongs to
 
 Latest recorded local evidence: 29 October 2026, Windows/QGIS 4.2.3, plugin
 version 1.0.0. The complete check runner passed 25 tooling tests, 43 unit/resource
-tests, Pylint and 113 integration/offscreen tests against source and the
+tests, Pylint and 118 integration/offscreen tests against source and the
 extracted current-version ZIP. Packaged Python files and both manuals matched
 the reviewed source.
 
 The checks cover shared workflow and publication, metric coverage and unrounded
 sawlog-value aggregation, selected-source capture, provider failures/paging,
 worker ownership, repeated setup, bilingual presentation and plugin lifecycle.
+Polygon-query checks cover backend predicates, holes/multipart AOIs, reduced
+transfers with identical clipped evidence, all pages, existing subsets, changed
+AOIs/cache reuse, source-CRS/axis handling, returned invalid-polygon repair and
+the large-filter fallback.
 Use the [development guide](development.md#regression-seams) for test boundaries
 and commands; detailed execution/debugging history belongs in local working
 verification records.
@@ -33,6 +37,7 @@ with newer QGIS releases. Hosted evidence is recorded separately below.
 
 | Item | Current limit and next evidence needed |
 | --- | --- |
+| Analysis polygon queries | Added 29 October 2026. A small live Metsäkeskus grid comparison through shared retrieval inspected 274 candidates instead of 484 and retained the same 210 clipped features with identical attributes/geometries. These single bounded reads are not a performance guarantee. Verify representative AOIs on all eight sources, provider handling of malformed polygons before local repair, and deployment-specific GET limits; large filters currently retain bbox retrieval. |
 | MML property context | Added 28 October 2026 using the provider's API-key technical description and cached 2020 parcel and identifier-point models. Local authenticated OAPIF fixtures verify connection, retrieval and schema/geometry handling. A real MML key was not supplied: verify both current live collections/schemas, paging, representative formatted identifiers and network errors with an authorized key. |
 | Representative classification values | Saved XSDs are not feature samples. Check sanitized habitat codes, active/inactive protected statuses/categories, programme identifiers/classes and null formats across all three protected sources. Current code rejects unrecognized values; a policy accepting inactive records would require an explicit change. |
 | Groundwater | Capabilities and the exact VHS2022 XSD were downloaded on 26 October 2026; regenerate them with the reference downloader. Check representative identifiers/nulls and service-specific field meanings; the general groundwater PDF alone does not establish those semantics. |

@@ -210,6 +210,7 @@ legacy WFS 1.0 fixture transport does not establish production support.
 | --- | --- |
 | Pure classification and indicator policy | `qgis_plugin/tests/` |
 | Geometry, provenance and source/selection contracts | `test_classification_geometry.py`, `test_workflow_contracts.py`, `test_source_field_workflow.py` |
+| Backend polygon filtering, candidate reduction, request-size fallback and changed-AOI caches | `test_analysis_query_filtering.py` |
 | Coordinated publication and readable saved outputs | `test_publication_failures.py`, `test_wizard_completion.py` |
 | Provider initialization and project-layer lifecycle | `test_wfs_initialization.py`, `test_project_tree.py`, parcel/basemap integration tests |
 | Operational isolation and logging | `test_qgis_environment.py`, `test_logging_contract.py` |

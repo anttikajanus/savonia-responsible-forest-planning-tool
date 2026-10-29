@@ -3,13 +3,15 @@
 import datetime
 import logging
 import time
+from urllib.parse import quote
 from dataclasses import dataclass
 
 from qgis.PyQt.QtCore import QCoreApplication, QEvent, QThread
+from qgis.PyQt.QtXml import QDomDocument
 
 from qgis.core import (
-    Qgis, QgsCoordinateTransform, QgsFeature, QgsFeatureRequest, QgsGeometry,
-    QgsProcessingException, QgsVectorLayer, QgsWkbTypes,
+    Qgis, QgsCoordinateTransform, QgsExpression, QgsFeature, QgsFeatureRequest, QgsGeometry,
+    QgsOgcUtils, QgsProcessingException, QgsVectorLayer, QgsWkbTypes,
 )
 
 from ...i18n import tr
@@ -23,6 +25,29 @@ from .grid_sampling import AREA_TOLERANCE_M2, GridCellSampler, deduplicate_grid_
 
 
 logger = logging.getLogger(LOGGER_NAME + ".analysis.source_loading")
+
+# A filter-only GET budget, leaving room for endpoint, subset and paging options.
+# This is our conservative request policy, not a claimed service URL limit.
+MAX_ENCODED_POLYGON_FILTER_BYTES = 6000
+
+
+def _polygon_request_expression(geometry, source_crs):
+    """Return a pushable AOI expression, or a bounded-read fallback for large filters."""
+    expression = "intersects($geometry, geom_from_wkt({0}))".format(
+        QgsExpression.quotedString(geometry.asWkt(17)),
+    )
+    document = QDomDocument()
+    element = QgsOgcUtils.expressionToOgcExpression(
+        QgsExpression(expression), document, QgsOgcUtils.GML_3_2_1,
+        QgsOgcUtils.FILTER_FES_2_0, "geometry", source_crs,
+        False, False, requiresFilterElement=True,
+    )
+    if element.isNull():
+        raise RuntimeError("Could not serialize the analysis polygon filter.")
+    document.appendChild(element)
+    if len(quote(document.toString(), safe="")) > MAX_ENCODED_POLYGON_FILTER_BYTES:
+        return "", "bbox_filter_size"
+    return expression, "aoi_intersects"
 
 
 def _polygonal_geometry(geometry):
@@ -86,7 +111,7 @@ class _SourceReadContext:
 
 
 def _source_feature_iterator(context, filter_rect, selected_feature_id_set,
-                             request_started):
+                             request_started, inverse_transform):
     """Prepare the selected-feature snapshot or provider iterator."""
     layer = context.layer
     service_id = context.service_id
@@ -112,25 +137,43 @@ def _source_feature_iterator(context, filter_rect, selected_feature_id_set,
             "run_id=%s stage=source_retrieval source=%s event=selected_local_snapshot_ready feature_count=%d",
             run_id, service_id, len(snapshot_features),
         )
-        return iter(snapshot_features), ""
+        return iter(snapshot_features), "", "selected_snapshot"
 
     # The bounded analysis request also initializes a fresh WFS cache. Opening
     # and immediately closing a preliminary zero-limit iterator can leave its
     # downloader racing this read, returning the same provider feature twice.
     request = QgsFeatureRequest()
+    spatial_filter = "bbox"
     if selected_feature_id_set is not None:
         request.setFilterFids(sorted(selected_feature_id_set))
+        spatial_filter = "selected_fids"
     else:
         request.setFilterRect(filter_rect)
         request.setFlags(Qgis.FeatureRequestFlag.ExactIntersect)
+        if layer.providerType().lower() == "wfs":
+            source_aoi = QgsGeometry(context.aoi)
+            try:
+                _apply_coordinate_transform(source_aoi, inverse_transform)
+                if not source_aoi.isGeosValid() or source_aoi.isEmpty():
+                    raise ValueError("Invalid transformed analysis polygon.")
+                expression, spatial_filter = _polygon_request_expression(
+                    source_aoi, layer.crs().authid(),
+                )
+            except Exception as exc:
+                raise QgsProcessingException(tr(
+                    language, "error_extent_transform", source=service_id, detail=exc,
+                )) from exc
+            if expression:
+                request.setFilterExpression(expression)
     if feedback is not None:
         request.setFeedback(feedback)
     logger.info(
-        "run_id=%s stage=source_retrieval source=%s event=wfs_request_started feature_type=%s request_bbox_restricted=%s exact_rect_intersection=%s selected_feature_filter=%s selected_feature_count=%s",
+        "run_id=%s stage=source_retrieval source=%s event=wfs_request_started feature_type=%s request_bbox_restricted=%s exact_rect_intersection=%s selected_feature_filter=%s selected_feature_count=%s spatial_filter=%s",
         run_id, service_id, context.metadata["feature_type"],
         selected_feature_id_set is None, selected_feature_id_set is None,
         selected_feature_id_set is not None,
         len(selected_feature_id_set) if selected_feature_id_set is not None else 0,
+        spatial_filter,
     )
     try:
         source_iterator = iter(layer.getFeatures(request))
@@ -138,13 +181,13 @@ def _source_feature_iterator(context, filter_rect, selected_feature_id_set,
             "run_id=%s stage=source_retrieval source=%s event=feature_iterator_created elapsed_seconds=%.3f",
             run_id, service_id, time.perf_counter() - request_started,
         )
-        return source_iterator, ""
+        return source_iterator, "", spatial_filter
     except Exception as exc:
         logger.exception(
             "run_id=%s stage=source_retrieval source=%s event=feature_iterator_failed",
             run_id, service_id,
         )
-        return iter(()), safe_source_error(exc)
+        return iter(()), safe_source_error(exc), spatial_filter
 
 
 def _clip_source_geometry(context, source_feature, transform, filter_rect):
@@ -253,7 +296,7 @@ def _source_coverage(context, source_id_strategy, features,
                      inspected_feature_count, non_overlapping_feature_count,
                      repaired_feature_count, repaired_feature_ids,
                      selected_feature_id_set, source_id_fallback_count,
-                     coverage_message):
+                     coverage_message, spatial_filter):
     """Assemble stable retrieval provenance and coverage fields."""
     layer = context.layer
     metadata = context.metadata
@@ -276,6 +319,7 @@ def _source_coverage(context, source_id_strategy, features,
         "feature_type": metadata["feature_type"],
         "source_crs": layer.crs().authid(),
         "provider": layer.providerType(),
+        "spatial_filter": spatial_filter,
         "source_id_strategy": source_id_strategy,
         "source_id_fallback_count": source_id_fallback_count,
         "query_time": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -356,8 +400,8 @@ def _read_source(context):
     )
     matched_selected_feature_ids = set()
     request_started = time.perf_counter()
-    source_iterator, request_error = _source_feature_iterator(
-        context, filter_rect, selected_feature_id_set, request_started,
+    source_iterator, request_error, spatial_filter = _source_feature_iterator(
+        context, filter_rect, selected_feature_id_set, request_started, inverse_transform,
     )
 
     while True:
@@ -528,7 +572,7 @@ def _read_source(context):
         context, source_id_strategy, features,
         inspected_feature_count, non_overlapping_feature_count,
         repaired_feature_count, repaired_feature_ids,
-        selected_feature_id_set, source_id_fallback_count, coverage_message,
+        selected_feature_id_set, source_id_fallback_count, coverage_message, spatial_filter,
     )
     if service_id == "forest_centre_gridcell":
         coverage["deduplicated_feature_count"] = duplicate_count

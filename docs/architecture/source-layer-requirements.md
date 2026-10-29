@@ -45,7 +45,13 @@ Managed WFS sources use WFS 2.0.0 with paging and view/AOI-bounded requests,
 without a total feature cap. Setup discovers metadata and provider fields
 without downloading sample features or counting records. Analysis retrieves
 each source once for the AOI and clips it exactly; the grid is reused locally
-across result polygons. Rendering visibility never controls analysis readiness
+across result polygons. Ordinary WFS reads combine the bounding rectangle with
+an `Intersects` predicate against the actual AOI in the source CRS. This retains
+holes and multipart geometry, original fields, existing provider subsets and
+authentication. The expression belongs to the feature request, leaving project
+layer connections unchanged. Oversized serialized polygon filters use the
+bounded rectangle alone; no total feature cap or inward simplification is used.
+The selected strategy is retained in source coverage. Rendering visibility never controls analysis readiness
 or retrieval. Setup remains synchronous, so metadata waits can delay the UI.
 See the [connection adapter](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py)
 for provider URI options.
@@ -90,7 +96,7 @@ Geometry repair, clipping, duplicate records and overlap tolerances belong to th
 [geometry contract](calculations.md#area-and-geometry); field readiness does not
 certify any of those conditions.
 
-When selected-feature-only mode is enabled and the layer-based analysis area is also a configured source layer, both the wizard and Processing copy the selected features' geometries and attributes into a local snapshot instead of requesting those same features again from WFS. The same captured selection supplies both the AOI and source snapshot, so later selection or service changes cannot alter that run. The copied geometries are still transformed and intersected with the analysis area before use. Other sources are retrieved using the analysis-area bounding box and are also intersected exactly with the analysis area. Unchecking selected-feature-only mode uses the full analysis-area layer and retrieves matching source features through the provider.
+When selected-feature-only mode is enabled and the layer-based analysis area is also a configured source layer, both the wizard and Processing copy the selected features' geometries and attributes into a local snapshot instead of requesting those same features again from WFS. The same captured selection supplies both the AOI and source snapshot, so later selection or service changes cannot alter that run. The copied geometries are still transformed and intersected with the analysis area before use. Other sources use the AOI spatial-filter policy above and are also intersected exactly with the analysis area. Explicit provider-FID selections retain their ID filter without replacing it with a polygon expression. Unchecking selected-feature-only mode uses the full analysis-area layer and retrieves matching source features through the provider.
 
 The field contract is provider-neutral. An adapter for a future local or custom source should pass its provider's field names and the corresponding semantic source ID to the shared readiness check. The current analysis workflow still configures its online WFS sources through project setup; this document does not itself add local/custom source selection.
 

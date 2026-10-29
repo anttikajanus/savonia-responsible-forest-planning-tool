@@ -112,23 +112,26 @@ The full manuals are available in [English](docs/help/manual_en.html) and
 
 ### Screenshots
 
-These captures show the Finnish interface before the sawlog price control was
-added. Open the images to inspect them at full resolution.
+These captures show the Finnish interface on 29 October 2026. Open the images
+to inspect them at full resolution.
 
-![QGIS with 67 forest stands highlighted in yellow and the plugin set to analyze only selected features.](docs/screenshots/selected-stands.png)
+![QGIS with one property highlighted in yellow and the plugin set to analyze only the selected feature, with a sawlog stumpage price of 72 €/m³.](docs/screenshots/selected-stands.png)
 
-**Selecting the analysis area.** The 67 selected forest stands are highlighted
-in yellow. The dock on the right uses the existing polygon layer with
+**Selecting the analysis area.** One selected property is highlighted in
+yellow. The dock on the right uses the **Kiinteistörajat** (property boundaries)
+polygon layer with
 **Käytä vain valittuja kohteita** (use only selected features) enabled; the
-output folder is set below the area controls.
+sawlog stumpage price is set to **72 €/m³** and the output folder is set below
+the area controls.
 
-![QGIS analysis results with red sensitive polygons, green economic polygons and an identified polygon's attributes on the right.](docs/screenshots/analysis-results.png)
+![QGIS analysis results with red sensitive polygons, green economic polygons, source habitat attributes on the right and a warning about overlapping source stands.](docs/screenshots/analysis-results.png)
 
-**Reviewing the results.** The **Suojelu** (Protection) tier shows sensitive
-polygons in red and economic polygons in green. The Results group on the left
-contains the tier views and source snapshots. The identified polygon is
-highlighted on the map, with its classifications, indicators and source
-identifiers shown in the upper-right panel.
+**Reviewing the results.** Sensitive polygons appear in red and economic
+polygons in green. The **Tulokset** (Results) group on the left contains the
+tier views and source snapshots. The upper-right panel shows attributes of an
+identified forest habitat. The yellow banner reports that the analysis
+completed with overlapping source stands: summary areas and timber volumes
+may count the same land more than once.
 
 ## Expected outputs
 

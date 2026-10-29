@@ -234,6 +234,13 @@ records, operational errors and stand-overlap logs remain separate.
 The file also contains AOI-clipped source snapshots, a `source_coverage` table
 with retrieval/interpretation details and exclusions, and a `run_metadata`
 table with run identity, parameters, source dates, limitations and attribution.
+Each retrieved source's coverage row retains `spatial_filter`: `aoi_intersects` for the
+polygon request, `bbox_filter_size` for its size-budget fallback, `bbox` for
+other rectangle reads, `selected_snapshot` for captured features, or
+`selected_fids` for an explicit ID request. These describe the requested
+retrieval strategy, not a provider coverage certification. Received/skipped
+candidate counts may decrease with polygon filtering; retained snapshots still
+contain the exact AOI-clipped evidence and original attributes.
 Run parameters include the supplied sawlog price; durable metadata identifies
 its user-supplied origin, applicability source and unit-price interpretation.
 The application columns in both tables are text, with objects/lists stored as

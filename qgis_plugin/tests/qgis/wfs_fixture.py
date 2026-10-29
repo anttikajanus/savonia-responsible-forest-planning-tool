@@ -1,22 +1,33 @@
 """Tiny loopback WFS 1.0/2.0 fixture; no external network or source data.
 
-The server returns configured polygons regardless of request filters. The real
-workflow still transforms/clips them. Only the operations used by these tests are
-implemented; this is not a general WFS implementation.
+By default the server returns configured polygons regardless of request filters.
+An optional record predicate can model filtering before paging and record counts.
+The real workflow still transforms/clips them. Only the operations used by these
+tests are implemented; this is not a general WFS implementation.
 """
 
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 from urllib.parse import parse_qs, urlsplit
 from xml.sax.saxutils import escape
+import xml.etree.ElementTree as ET
+
+
+def request_has_bbox(query):
+    """QGIS embeds the rectangle inside FILTER when another predicate is present."""
+    return "bbox" in query or (
+        "filter" in query and ET.fromstring(query["filter"]).find(".//{*}BBOX") is not None
+    )
 
 
 class LocalWfs:
-    def __init__(self, sources, records=None, version="1.0.0", page_size=0):
+    def __init__(self, sources, records=None, version="1.0.0", page_size=0, record_filter=None):
         self.sources = sources
         self.records = records
         self.version = version
         self.page_size = page_size
+        self.record_filter = record_filter
+        self.returned_counts = []
         self.requests = []
         self.feature_failures = set()
         self.page_failures = set()
@@ -143,11 +154,16 @@ class LocalWfs:
             "attributes": self.sources[source],
             "coordinates": "350000,6900000 350100,6900000 350100,6900100 350000,6900100 350000,6900000",
         }]
+        if self.record_filter is not None:
+            # A feature's WFS identity must survive different filters and pages.
+            records = [{**record, "_fixture_id": index} for index, record in enumerate(records, 1)
+                       if self.record_filter(record, query)]
         if self.version == "2.0.0":
             total = len(records)
             start = int(query.get("startindex", 0))
             count = min(int(query.get("count", self.page_size or 1000)), self.page_size or 1000)
             records = records[start:start + count] if query.get("resulttype", "").lower() != "hits" else []
+            self.returned_counts.append((source, len(records)))
             members = []
             for index, record in enumerate(records, start + 1):
                 fields = "".join('<fixture:{0}>{1}</fixture:{0}>'.format(name, escape(str(value)))
@@ -157,7 +173,7 @@ class LocalWfs:
                     '<gml:Polygon srsName="urn:ogc:def:crs:EPSG::3067"><gml:exterior><gml:LinearRing>'
                     '<gml:posList srsDimension="2">{2}</gml:posList></gml:LinearRing></gml:exterior>'
                     '</gml:Polygon></fixture:geometry>{3}</fixture:{0}></wfs:member>'
-                ).format(source, index, record["coordinates"].replace(",", " "), fields))
+                ).format(source, record.get("_fixture_id", index), record["coordinates"].replace(",", " "), fields))
             return (
                 '<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0" '
                 'xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:fixture="urn:responsible-forest-planning:fixture" '
@@ -175,7 +191,7 @@ class LocalWfs:
                 '<gml:Polygon srsName="EPSG:3067"><gml:outerBoundaryIs><gml:LinearRing><gml:coordinates>'
                 '{2}</gml:coordinates></gml:LinearRing></gml:outerBoundaryIs></gml:Polygon>'
                 '</fixture:geometry>{3}</fixture:{0}></gml:featureMember>'
-            ).format(source, index, record["coordinates"], fields))
+            ).format(source, record.get("_fixture_id", index), record["coordinates"], fields))
         return (
             '<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs" '
             'xmlns:gml="http://www.opengis.net/gml" xmlns:fixture="urn:responsible-forest-planning:fixture" numberOfFeatures="{0}">'

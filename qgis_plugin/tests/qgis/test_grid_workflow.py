@@ -21,6 +21,7 @@ from savonia_responsible_forest_planning_tool.analysis.worker_task import captur
 from savonia_responsible_forest_planning_tool.i18n import tr
 from workflow_fixture import WorkflowFixtureMixin, coordinates, fixture_sources, source_record
 from test_grid_publication import workbook_rows
+from wfs_fixture import request_has_bbox
 
 
 class GridWorkflowTest(WorkflowFixtureMixin, unittest.TestCase):
@@ -57,7 +58,7 @@ class GridWorkflowTest(WorkflowFixtureMixin, unittest.TestCase):
                 grid_requests = [query for query in fixture.requests if query.get("request", "").lower() == "getfeature"
                                  and query.get("typename", "").endswith("forest_centre_gridcell")]
                 self.assertEqual(len(grid_requests), 1)
-                self.assertIn("bbox", grid_requests[0])
+                self.assertTrue(request_has_bbox(grid_requests[0]))
 
     def test_partial_summaries_use_valid_hectares_and_keep_observed_area_lower_bounds(self):
         fields = fixture_sources()
@@ -146,7 +147,7 @@ class GridWorkflowTest(WorkflowFixtureMixin, unittest.TestCase):
                 for field in ("total_volume_m3_ha", "grid_total_volume_m3_ha", "share_under_20",
                               "indicator_coverage", "check_section10", "check_protected"):
                     self.assertEqual(near_row[field], far_row[field])
-                self.assertTrue(all("bbox" in request for request in fixture.requests
+                self.assertTrue(all(request_has_bbox(request) for request in fixture.requests
                                     if request.get("request", "").lower() == "getfeature"))
                 canvas.close()
 
@@ -171,7 +172,7 @@ class GridWorkflowTest(WorkflowFixtureMixin, unittest.TestCase):
             feature, = list(layer.getFeatures())
             self.assertEqual(feature["grid_total_volume_m3_ha"], 250)
             self.assertEqual(feature["total_volume_m3_ha"], 200)
-            self.assertTrue(all("bbox" in query for query in fixture.requests
+            self.assertTrue(all(request_has_bbox(query) for query in fixture.requests
                                 if query.get("request", "").lower() == "getfeature"))
 
     def test_empty_and_invalid_grid_values_never_fall_back_to_stands(self):

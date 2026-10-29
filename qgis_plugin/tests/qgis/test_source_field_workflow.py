@@ -188,7 +188,8 @@ class SourceFieldFixtureTest(unittest.TestCase):
                 for requests in source_requests.values():
                     self.assertEqual(len(requests), 1, "A preliminary iterator can race the analysis read")
                     request, = requests
-                    self.assertEqual(request.filterType(), Qgis.FeatureRequestFilterType.NoFilter)
+                    self.assertEqual(request.filterType(), Qgis.FeatureRequestFilterType.Expression)
+                    self.assertIn("intersects($geometry", request.filterExpression().expression())
                     self.assertEqual(request.limit(), -1)
                     self.assertEqual(request.filterRect(), case.aoi.extent())
                     self.assertTrue(request.flags() & Qgis.FeatureRequestFlag.ExactIntersect)

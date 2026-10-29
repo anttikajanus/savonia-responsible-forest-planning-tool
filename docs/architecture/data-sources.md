@@ -1,7 +1,7 @@
 # Data sources and evidence contract
 
 This page defines the prototype's configured sources and evidence limits.
-Provider observations were recorded on 23–26 October 2026; individual checks
+Provider observations were recorded on 23–29 October 2026; individual checks
 retain their evidence dates below. [ADR-0003](adr/0003-provider-field-source-contracts.md)
 explains why provider fields, rather than saved XSD contents, determine readiness.
 
@@ -128,7 +128,24 @@ Only WFS 2.0 is supported, with managed sources configured as WFS 2.0.0.
 fallback and legacy exception handling are outside the planned scope.
 
 A single AOI-bounded read retrieves each source; selected-feature snapshots
-bypass that provider read. Accepting retrieval requires both iterator completion
+bypass that provider read. Ordinary reads use a literal AOI polygon expression
+alongside the bbox; QGIS 4.2.3 translates this to a server-side FES `Intersects`.
+Coordinates are transformed to the source CRS before serialization, and QGIS
+handles WFS axis order. The existing GET transport is retained, including
+connection parameters and subsets. A conservative encoded-filter budget falls
+back to the bbox for large geometries, preserving exact local clipping and all
+pages. This budget is an application policy, not a verified provider URL limit.
+[QGIS expression conversion](https://github.com/qgis/QGIS/blob/final-4_2_3/src/providers/wfs/qgswfsshareddata.cpp#L112),
+[filter composition](https://github.com/qgis/QGIS/blob/final-4_2_3/src/providers/wfs/qgswfsfeaturedownloaderimpl.cpp#L174).
+
+Polygon predicates run before local geometry repair. Returned invalid polygons
+still follow the repair contract, but a malformed feature omitted by a remote
+predicate cannot be recovered locally. Fixture checks of representative invalid
+polygons do not certify provider behavior for all malformed data. Query failures
+remain fatal; they are not retried as successful empty evidence. See
+[provider verification gaps](open-questions.md#provider-evidence).
+
+Accepting retrieval requires both iterator completion
 and a provider-error check. QGIS can deliver request errors asynchronously, so
 the adapter must collect pending errors in the provider's owning thread before
 reporting coverage. This keeps failed requests distinct from successful empty
