@@ -32,13 +32,12 @@ class HelpContentTests(unittest.TestCase):
     def setUp(self):
         root = Path(os.environ.get(
             "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-            os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[1])),
+            str(Path(__file__).resolve().parents[1]),
         ))
         self.package = root / "savonia_responsible_forest_planning_tool"
         self.help = self.package / "docs" / "help"
         self.resource_root = self.package
-        if not any(key in os.environ for key in (
-                "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT", "SAVONIA_TEST_PLUGIN_ROOT")):
+        if "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT" not in os.environ:
             self.resource_root = root.parent
             self.help = root.parent / "docs" / "help"
 

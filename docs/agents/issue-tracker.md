@@ -13,6 +13,19 @@ when planning changes and completing implementation.
 
 ## Conventions
 
+### Local development artifacts
+
+Reserve `.scratch/` for working tickets, specs and their Markdown discussion,
+review and verification records. Put disposable code, debugging scripts, logs,
+screenshots, extracted packages, simulations and local tooling in ignored
+`.local/<feature-slug>/`. The shared check runner uses `.local/checks/`; see the
+[development guide](../architecture/development.md#local-check-runner).
+Keep reusable scripts needed by the repository in versioned `scripts/`.
+Record verification summaries in the working Markdown records and reference
+supporting artifacts in `.local/` when useful.
+
+### Working records
+
 - One feature per directory: `.scratch/<feature-slug>/`
 - The spec is `.scratch/<feature-slug>/spec.md`
 - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`, never a single combined tickets file

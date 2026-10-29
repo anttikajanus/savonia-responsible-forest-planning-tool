@@ -68,19 +68,6 @@ def _managed_layer(project, property_name, property_value):
     ), None)
 
 
-def _disable_legacy_protected_layer(project, language):
-    """Hide the former single protected layer so it cannot be reused by mistake."""
-    layer = _managed_layer(project, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", "syke_protected_areas")
-    if layer is None:
-        return
-    layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "legacy_service_id", "syke_protected_areas")
-    layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", "")
-    layer.setName(tr(language, "legacy_protected_layer"))
-    node = project.layerTreeRoot().findLayer(layer.id())
-    if node is not None:
-        node.setItemVisibilityChecked(False)
-
-
 def _place_layer_in_group(project, group, layer):
     node = project.layerTreeRoot().findLayer(layer.id())
     if node is not None and node.parent() == group:
@@ -276,11 +263,8 @@ def ensure_group_order(project, language):
         _move_tree_node(current, root, index)
     # A custom order can override tree order. Reset it to the layer-tree order
     # so the visible tree and map rendering follow the same documented stack.
-    try:
-        root.setHasCustomLayerOrder(False)
-        root.setCustomLayerOrder(root.layerOrder())
-    except AttributeError:
-        pass
+    root.setHasCustomLayerOrder(False)
+    root.setCustomLayerOrder(root.layerOrder())
     return {
         group_id: _managed_node(root, RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "group_id", group_id)
         for group_id, _label_key in GROUP_IDS
@@ -492,7 +476,6 @@ def setup_project(project=None, language="en"):
         }
     groups = ensure_group_order(project, language)
     references = _reference_groups(project, groups["references"], language)
-    _disable_legacy_protected_layer(project, language)
     statuses = _setup_parcels(project, references["properties"], language)
     for service_id in SERVICE_DEFINITIONS:
         group_id = next(group_id for group_id, _key, ids in REFERENCE_GROUPS if service_id in ids)

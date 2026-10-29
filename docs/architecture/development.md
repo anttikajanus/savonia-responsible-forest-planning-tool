@@ -39,8 +39,10 @@ directly keeps tooling out of the QGIS launcher's modified environment.
 isolated QGIS runtime when lint or integration is selected, before starting
 test suites. Missing dependencies or failed checks return nonzero and identify
 the failed stage. Complete stdout/stderr goes to separate UTF-8 logs under a
-unique `.scratch/checks/<UTC timestamp>-<id>/` directory; the console shows
-elapsed times and a short failure tail. `-LogsDir` changes the parent directory.
+unique ignored `.local/checks/<UTC timestamp>-<id>/` directory; the console shows
+elapsed times and a short failure tail. `-LogsDir` changes the parent directory;
+use `.local/` for repository-local output. Directory ownership is defined in the
+[local artifact guidance](../agents/issue-tracker.md#local-development-artifacts).
 Selected checks run in order: tooling, unit, lint, QGIS. Source checks clear
 inherited installed-plugin overrides so they always exercise this checkout.
 
@@ -51,6 +53,11 @@ applies to source and installed checks. The runner also works as
 `python scripts/check.py --help`; detailed/direct commands remain below.
 
 ## Shared QGIS test environment
+
+`RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT` is the sole plugin-root override
+for pure and integration tests. When unset, tests use this checkout; the package
+check runner sets it to the extracted ZIP. Earlier test-variable aliases are not
+supported.
 
 Every integration module calls `qgis_application()` from
 [qgis_test_environment.py](../../qgis_plugin/tests/qgis/qgis_test_environment.py)

@@ -31,7 +31,10 @@ until `classFactory()` is called; other constants stay in their owning modules.
 Processing IDs, settings keys, custom property keys, Qt object names, log paths,
 output prefixes and displayed tool names keep their existing values independently
 of Python identifier names. The `savonia/` property namespace is represented by
-`RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX` for saved-project compatibility.
+`RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX` for plugin property ownership.
+Only current-development project setup, configuration and output formats are
+supported; there are no migration paths for earlier plugin releases. Setup uses
+the current source registry without renaming or hiding retired source layers.
 
 ## One execution path
 

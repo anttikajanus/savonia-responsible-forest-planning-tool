@@ -15,7 +15,7 @@ from qgis_test_environment import qgis_application
 APP = qgis_application()
 
 from qgis.PyQt.QtCore import QUrl
-from qgis.core import Qgis, QgsApplication, QgsMessageLog, QgsSettings
+from qgis.core import Qgis, QgsApplication, QgsMessageLog
 
 
 class ProcessingHelpTests(unittest.TestCase):
@@ -25,7 +25,7 @@ class ProcessingHelpTests(unittest.TestCase):
         root = Path(self.folder.name)
         source = Path(os.environ.get(
             "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-            os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
+            str(Path(__file__).resolve().parents[2]),
         ))
         package = "savonia_responsible_forest_planning_tool"
         staging = root / "staging" / package
@@ -50,10 +50,6 @@ class ProcessingHelpTests(unittest.TestCase):
         self.processing_module = importlib.import_module(self.processing_package_alias + ".processing.provider")
         self.i18n = importlib.import_module(self.processing_package_alias + ".i18n")
         self.addCleanup(self.remove_modules)
-        settings = QgsSettings()
-        key = "savonia_responsible_forest_planning_tool/language"
-        existed, previous = settings.contains(key), settings.value(key)
-        self.addCleanup(lambda: settings.setValue(key, previous) if existed else settings.remove(key))
         self.qgis_locale = self.enterContext(patch.object(QgsApplication, "locale", return_value="en_GB"))
 
     def remove_modules(self):
@@ -61,12 +57,10 @@ class ProcessingHelpTests(unittest.TestCase):
             if name == self.processing_package_alias or name.startswith(self.processing_package_alias + "."):
                 del sys.modules[name]
 
-    def test_help_url_follows_qgis_in_extracted_zip_despite_legacy_plugin_override(self):
+    def test_help_url_follows_qgis_language_in_extracted_zip(self):
         for language in ("fi", "en"):
             with self.subTest(language=language):
                 self.qgis_locale.return_value = language
-                QgsSettings().setValue("savonia_responsible_forest_planning_tool/language",
-                                       "en" if language == "fi" else "fi")
                 algorithm = self.processing_module.ResponsibleForestPlanningInputsAlgorithm()
                 url = algorithm.helpUrl()
                 parsed = QUrl(url)

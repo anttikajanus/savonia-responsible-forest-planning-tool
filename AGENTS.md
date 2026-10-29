@@ -2,7 +2,9 @@
 
 Use the [documentation map](docs/agents/README.md) to find the owner of each kind
 of information. Current behavior belongs in `docs/specs/`, technical contracts
-in `docs/architecture/`, and local working plans in ignored `.scratch/`.
+in `docs/architecture/`, and working tickets and specs in ignored `.scratch/`.
+For local scripts, debugging and generated artifacts, follow the
+[local artifact guidance](docs/agents/issue-tracker.md#local-development-artifacts).
 
 ## Skills
 

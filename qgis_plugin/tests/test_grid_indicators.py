@@ -7,7 +7,7 @@ import unittest
 
 sys.path.insert(0, os.environ.get(
     "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[1])),
+    str(Path(__file__).resolve().parents[1]),
 ))
 
 from savonia_responsible_forest_planning_tool.analysis.grid_indicators import (
@@ -219,6 +219,17 @@ class GridIndicatorsTest(unittest.TestCase):
             {"area_ha": 1.0000000000005, "values": {"volume": 100}},
         ])
         self.assertEqual(tolerated["indicator_coverage"]["grid_total_volume_m3_ha"]["unknown_area_ha"], 0)
+
+    def test_summary_requires_coverage_for_every_piece(self):
+        current = assemble_classified_piece("stand", {"volume": 100}, 1, {},
+                                            {"forest_centre_stand": "AVAILABLE"})
+        without_coverage = {"class": "ECONOMIC", "area_ha": 1,
+                            "total_volume_m3_ha": 300, "stumpage_price_eur_m3": 50}
+        for rows in ([without_coverage], [current, without_coverage]):
+            with self.subTest(rows=rows), self.assertRaisesRegex(KeyError, "indicator_coverage"):
+                summarize_indicator_rows(rows)
+        with self.assertRaisesRegex(KeyError, "indicator_coverage"):
+            weighted_summary([without_coverage], "ECONOMIC")
 
 
 if __name__ == "__main__":

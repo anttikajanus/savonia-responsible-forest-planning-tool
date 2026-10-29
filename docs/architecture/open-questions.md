@@ -8,6 +8,16 @@ belong to [development](development.md), and current behavior belongs to
 
 ## Automated regression verification
 
+On 29 October 2026, removal of backward-compatibility paths passed 25 tooling
+tests, full Pylint, and 37 unit/resource plus 102 QGIS 4.2.3 integration/offscreen
+tests against both source and the extracted current-version ZIP. Checks include
+Finnish/English workflows, Processing, help, project setup and plugin lifecycle.
+Summaries now require current coverage records; retired-layer migration,
+old test-root aliases and obsolete language-setting test fixtures are removed.
+The current development formats are the supported contract under
+[WF-01](../specs/workflow.md#wf-01-installation-and-runtime). Interactive desktop
+and live-provider acceptance remain pending below.
+
 On 28 October 2026, the shared isolated QGIS bootstrap and local check runner
 passed 103 integration/offscreen tests and 36 unit/resource tests against both
 source and the extracted current-version ZIP. All 25 tooling tests passed;

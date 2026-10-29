@@ -95,6 +95,11 @@ peat/mire sensitivity criteria.
 
 ## Tier/class summaries and metric coverage
 
+Every summary input row must contain the current `indicator_coverage` record.
+A missing record is an internal schema error and stops the run; there is no
+older row-format or price-weighting path. Missing individual metric statistics
+within that record remain unknown under the current coverage policy.
+
 Combine full-precision sufficient statistics separately per tier/class:
 
 - Density mean: summed represented m³ / summed metric-valid hectares,

@@ -52,7 +52,7 @@ def qgis_application():
     os.environ["QT_QPA_PLATFORM"] = "offscreen"
     plugin_root = os.environ.get(
         "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-        os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
+        str(Path(__file__).resolve().parents[2]),
     )
     sys.path.insert(0, plugin_root)
     parent = os.environ.get("RESPONSIBLE_FOREST_PLANNING_TEST_ENV_ROOT")

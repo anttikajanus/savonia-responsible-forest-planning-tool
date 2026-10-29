@@ -56,8 +56,7 @@ class CheckRunnerTests(unittest.TestCase):
             calls.append((name, command[0], dict(environment)))
 
         with patch.object(check, "execute_check", side_effect=record), patch.dict(os.environ, {
-                "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT": "stale-installed-plugin",
-                "SAVONIA_TEST_PLUGIN_ROOT": "another-stale-installation"}):
+                "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT": "stale-installed-plugin"}):
             result = check.main(["--qgis-python", str(launcher), "--logs-dir", str(self.root)])
         self.assertEqual(result, 0)
         by_name = {name: (runtime, environment) for name, runtime, environment in calls}
@@ -67,7 +66,6 @@ class CheckRunnerTests(unittest.TestCase):
             self.assertEqual(by_name[name][0], str(launcher.resolve()))
         for _name, _runtime, environment in calls:
             self.assertNotIn("RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT", environment)
-            self.assertNotIn("SAVONIA_TEST_PLUGIN_ROOT", environment)
         self.assertIn("RESPONSIBLE_FOREST_PLANNING_TEST_ENV_ROOT", by_name["qgis"][1])
 
     def test_qgis_preflight_failure_stops_before_product_checks(self):

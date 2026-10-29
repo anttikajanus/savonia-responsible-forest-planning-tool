@@ -202,7 +202,7 @@ def summarize_indicator_rows(rows):
     coverage = {}
     indicators = {}
     for metric, source_id in source_by_metric.items():
-        parts = [row.get("indicator_coverage", {}).get(metric, {}) for row in rows]
+        parts = [row["indicator_coverage"].get(metric, {}) for row in rows]
         valid_area = math.fsum(_area(part.get("valid_area_ha", 0.0)) for part in parts)
         statistic = ("matching_area_ha" if metric in (*AGE_METRICS, *AREA_METRICS) else
                      "weighted_sum" if metric in ("basal_area_m2_ha", "growth_percent") else

@@ -9,6 +9,9 @@
 # Local specifications and ticket management
 /.scratch/
 
+# Local scripts, debugging outputs, check logs and extracted test packages
+/.local/
+
 # Local research notes
 /docs/research/
 

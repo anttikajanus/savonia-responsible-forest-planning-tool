@@ -171,44 +171,8 @@ def indicator_values(source_values, area_ha, mappings, source_status, derived_ma
 
 
 def weighted_summary(rows, class_value):
-    """Aggregate a class from sufficient statistics when coverage is supplied.
+    """Aggregate a class using current per-metric coverage statistics."""
+    from .grid_indicators import summarize_indicator_rows
 
-    Coverage-aware rows use each metric's valid hectares and full-precision
-    numerators. Legacy rows without coverage retain their earlier area-weighted
-    behavior, including the legacy price-weighting result.
-    """
     selected = [row for row in rows if row.get("class") == class_value]
-    if not selected or any("indicator_coverage" in row for row in selected):
-        from .grid_indicators import summarize_indicator_rows
-        return summarize_indicator_rows(selected)
-    area = sum(float(row.get("area_ha") or 0.0) for row in selected)
-    result = {"area_ha": area, "feature_count": len(selected)}
-    metrics = (
-        "total_volume_m3_ha", "pine_volume_m3_ha", "spruce_volume_m3_ha",
-        "sawtimber_volume_m3_ha", "growth_percent",
-        "share_under_20", "share_20_80", "share_over_80", "basal_area_m2_ha",
-    )
-    for metric in metrics:
-        valid = [row for row in selected if row.get(metric) is not None and row.get("area_ha") is not None]
-        denom = sum(float(row["area_ha"]) for row in valid)
-        result[metric] = (
-            sum(float(row[metric]) * float(row["area_ha"]) for row in valid) / denom
-            if denom > 0 else None
-        )
-    price_rows = [row for row in selected if row.get("stumpage_price_eur_m3") is not None]
-    volume_rows = [row for row in price_rows if row.get("total_volume_m3_ha") is not None and row.get("area_ha") is not None]
-    weighted_volume = sum(float(r["total_volume_m3_ha"]) * float(r["area_ha"]) for r in volume_rows)
-    if weighted_volume > 0:
-        result["stumpage_price_eur_m3"] = sum(
-            float(r["stumpage_price_eur_m3"]) * float(r["total_volume_m3_ha"]) * float(r["area_ha"])
-            for r in volume_rows
-        ) / weighted_volume
-        result["stumpage_price_weighting"] = "volume_weighted"
-    else:
-        denom = sum(float(r.get("area_ha") or 0.0) for r in price_rows)
-        result["stumpage_price_eur_m3"] = (
-            sum(float(r["stumpage_price_eur_m3"]) * float(r.get("area_ha") or 0.0) for r in price_rows) / denom
-            if denom > 0 else None
-        )
-        result["stumpage_price_weighting"] = "area_weighted_fallback" if denom > 0 else "unavailable"
-    return result
+    return summarize_indicator_rows(selected)

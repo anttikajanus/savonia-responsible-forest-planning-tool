@@ -3,7 +3,7 @@ py-version = "3.10"
 recursive = true
 source-roots = ["qgis_plugin", "qgis_plugin/tests", "qgis_plugin/tests/qgis", "scripts", "scripts/tests"]
 init-hook = "import sys; sys.path[:0] = ['qgis_plugin', 'qgis_plugin/tests/qgis', 'scripts']"
-ignore = [".git", ".scratch", ".venv", "venv", "__pycache__", "dist"]
+ignore = [".git", ".scratch", ".local", ".venv", "venv", "__pycache__", "dist"]
 # PyQGIS and Qt expose compiled APIs. Only load these known extensions.
 extension-pkg-allow-list = ["qgis", "PyQt6"]
 persistent = false

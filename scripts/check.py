@@ -18,7 +18,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_QGIS = os.environ.get("QGIS_PYTHON", "C:/Program Files/QGIS 4.2.3/bin/python-qgis.bat")
-PLUGIN_ROOT_KEYS = ("RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT", "SAVONIA_TEST_PLUGIN_ROOT")
+PLUGIN_ROOT_KEY = "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT"
 
 
 class CheckFailure(Exception):
@@ -95,7 +95,7 @@ def extracted_package(logs, environment, powershell):
 
 def run_checks(arguments, logs):
     environment = dict(os.environ, PYTHONUTF8="1", QT_QPA_PLATFORM="offscreen")
-    for key in (*PLUGIN_ROOT_KEYS, "RESPONSIBLE_FOREST_PLANNING_TEST_ENV_ROOT"):
+    for key in (PLUGIN_ROOT_KEY, "RESPONSIBLE_FOREST_PLANNING_TEST_ENV_ROOT"):
         environment.pop(key, None)
     powershell = preflight(arguments, logs, environment)
     if "tooling" in arguments.checks:
@@ -107,7 +107,7 @@ def run_checks(arguments, logs):
     if "qgis" in arguments.checks:
         qgis_check("qgis", ["--pattern", arguments.qgis_pattern], arguments.qgis_python, logs, environment)
     if arguments.package:
-        environment[PLUGIN_ROOT_KEYS[0]] = extracted_package(logs, environment, powershell)
+        environment[PLUGIN_ROOT_KEY] = extracted_package(logs, environment, powershell)
         if "unit" in arguments.checks:
             execute_check("unit-package", [sys.executable, "-m", "unittest", "discover", "-s", "qgis_plugin/tests", "-v"], logs, environment)
         if "qgis" in arguments.checks:
@@ -121,13 +121,13 @@ def main(argv=None):
     parser.add_argument("--qgis-python", default=DEFAULT_QGIS)
     parser.add_argument("--qgis-pattern", default="test*.py")
     parser.add_argument("--package", action="store_true", help="Build the current version and repeat selected unit/QGIS suites on the ZIP")
-    parser.add_argument("--logs-dir", type=Path, help="Parent directory for unique run logs (default: .scratch/checks)")
+    parser.add_argument("--logs-dir", type=Path, help="Parent directory for unique run logs (default: .local/checks)")
     arguments = parser.parse_args(argv)
     arguments.qgis_python = str(Path(arguments.qgis_python).expanduser().resolve())
     if not re.fullmatch(r"[A-Za-z0-9_.*?-]+", arguments.qgis_pattern):
         parser.error("QGIS patterns must contain only letters, digits, _, ., *, ? or -.")
     name = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ-") + uuid4().hex[:8]
-    logs = ((arguments.logs_dir or ROOT / ".scratch/checks") / name).resolve()
+    logs = ((arguments.logs_dir or ROOT / ".local/checks") / name).resolve()
     logs.mkdir(parents=True)
     try:
         run_checks(arguments, logs)

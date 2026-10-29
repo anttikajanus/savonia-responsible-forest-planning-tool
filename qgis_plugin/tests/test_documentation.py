@@ -11,7 +11,7 @@ from urllib.parse import unquote, urlsplit
 
 sys.path.insert(0, os.environ.get(
     "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[1])),
+    str(Path(__file__).resolve().parents[1]),
 ))
 
 from savonia_responsible_forest_planning_tool.documentation import ResourceError, manual_url, metadata, resource_url
@@ -68,7 +68,7 @@ class DocumentationTests(unittest.TestCase):
         self.assertEqual(actual["name[fi]"], "Savonia - Vastuullinen metsäsuunnittelu")
         package_root = Path(os.environ.get(
             "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-            os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[1])),
+            str(Path(__file__).resolve().parents[1]),
         ))
         expected = ConfigParser(interpolation=None)
         expected.read(package_root / "savonia_responsible_forest_planning_tool" / "metadata.txt", encoding="utf-8")

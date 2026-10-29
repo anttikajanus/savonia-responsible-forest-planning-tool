@@ -1,6 +1,6 @@
 """Savonia - Responsible Forest Planning QGIS plugin."""
 
-# Stored values remain stable for existing projects, settings and models.
+# Namespace for the plugin's QGIS custom properties.
 RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX = "savonia/"
 
 
