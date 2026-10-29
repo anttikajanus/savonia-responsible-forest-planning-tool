@@ -2,6 +2,8 @@
 
 TEXT = {
     "en": {
+        "field_stand_has_overlap": "Parent stand overlaps another stand within the analysis area",
+        "warning_stand_overlaps": "The analysis completed with overlapping forest stands. Summaries can include duplicate area and timber contributions. See the technical log for stand IDs and overlap areas: {path}",
         "project_name": "Savonia - Responsible Forest Planning",
         "prototype_notice": "Unfinished personal learning prototype by Antti Kajanus, based on a real Savonia use case, limited understanding and personal assumptions. Neither this prototype nor its results are official, backed, endorsed or approved by Savonia in any form.",
         "data_attribution_changes": "Data transformed to EPSG:3067 and clipped to the analysis area; source geometry repaired where necessary, and derived classifications and indicators calculated. Original providers have not endorsed these results.",
@@ -253,6 +255,8 @@ TEXT = {
         "source_schema_fields_missing": "Required fields are missing: {fields}. Choose a layer containing these fields, then try again.",
     },
     "fi": {
+        "field_stand_has_overlap": "Emokuvio on päällekkäinen toisen kuvion kanssa analyysialueella",
+        "warning_stand_overlaps": "Analyysi valmistui, mutta metsäkuvioissa on päällekkäisiä alueita. Yhteenvedoissa pinta-alaa ja puustoa voidaan laskea useaan kertaan. Kuvioiden tunnukset ja leikkaumapinta-alat ovat teknisessä lokissa: {path}",
         "project_name": "Savonia - Vastuullinen metsäsuunnittelu",
         "prototype_notice": "Antti Kajanuksen keskeneräinen henkilökohtainen oppimisprototyyppi, joka perustuu todelliseen Savonian käyttötapaukseen, rajalliseen ymmärrykseen ja omiin oletuksiin. Prototyyppi ja sen tulokset eivät ole Savonian virallisia, tukemia, suosittelemia tai millään tavoin hyväksymiä.",
         "data_attribution_changes": "Aineistoja on muunnettu EPSG:3067-koordinaatistoon ja leikattu analyysialueeseen; lähdegeometrioita on korjattu tarvittaessa ja tuloksiin laskettu johdettuja luokituksia ja tunnuslukuja. Alkuperäiset tuottajat eivät ole hyväksyneet tuloksia.",

@@ -7,7 +7,7 @@ import uuid
 
 from qgis.core import QgsProcessingException
 
-from ..app_logging import LOGGER_NAME, record_business_action
+from ..app_logging import LOGGER_NAME, record_business_action, technical_log_path
 from ..i18n import tr
 from .workflow_steps.common import _check_cancelled, _feedback
 from .workflow_steps.publishing import prepare_publication, write_outputs
@@ -86,6 +86,14 @@ def _run_workflow(parameters, feedback=None):
     parameters["_stage"] = "output_writing"
     logger.info("run_id=%s stage=%s started", run_id, parameters["_stage"])
     result = write_outputs(inputs, retrieved, classified, publication, feedback)
+    overlap_summary = classified["stand_overlap_summary"]
+    warnings = []
+    if overlap_summary["pair_count"]:
+        warnings.append(tr(language, "warning_stand_overlaps", path=technical_log_path()))
+    result["warnings"] = warnings
+    result["stand_overlap_summary"] = overlap_summary
+    for warning in warnings:
+        _feedback(feedback, "pushWarning" if hasattr(feedback, "pushWarning") else "pushInfo", warning)
     logger.info(
         "run_id=%s stage=%s completed result_feature_count=%d",
         run_id, parameters["_stage"], len(classified["result_rows"]),

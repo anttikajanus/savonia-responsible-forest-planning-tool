@@ -172,7 +172,7 @@ class GridSamplingTest(unittest.TestCase):
         with self.assertRaises(QgsProcessingException):
             retrieve_sources(retrieval_inputs(grid_layer([first, conflicting]), rectangle(0, 0, 8, 16)))
 
-    def test_shared_classification_samples_without_splitting_and_rejects_stand_overlap(self):
+    def test_shared_classification_samples_without_splitting_and_retains_stand_overlap(self):
         stands = [{"source_id": "stand-1", "geometry": rectangle(12, 0, 16, 16),
                    "attributes": {"volume": 200}, "values": {"volume": 200}}]
         grid = [record("left", rectangle(0, 0, 16, 16), 100),
@@ -190,14 +190,14 @@ class GridSamplingTest(unittest.TestCase):
         self.assertEqual(row["classes"]["all_out"], "ECONOMIC")
         stands.append({"source_id": "stand-2", "geometry": rectangle(27.5, 0, 16, 16),
                        "attributes": {"volume": 300}, "values": {"volume": 300}})
-        with self.assertRaises(QgsProcessingException) as conflict:
-            classify_source_features(inputs, retrieved)
-        self.assertIn("stand-1", str(conflict.exception))
-        self.assertIn("stand-2", str(conflict.exception))
+        rows = classify_source_features(inputs, retrieved)["result_rows"]
+        self.assertEqual(len(rows), 2)
+        self.assertTrue(all(row["stand_has_overlap"] for row in rows))
+        self.assertAlmostEqual(sum(row["geometry"].area() for row in rows), 512)
 
-    def test_stand_overlap_tolerance_is_one_square_metre_in_both_languages(self):
+    def test_stand_overlaps_above_numerical_tolerance_succeed_in_both_languages(self):
         for language in ("fi", "en"):
-            for overlap_m2 in (0, 0.5, 1, 1.01):
+            for overlap_m2 in (0, 1e-9, 0.5, 1, 1.01, 128):
                 with self.subTest(language=language, overlap_m2=overlap_m2):
                     stands = [{"source_id": identifier, "geometry": geometry,
                                "attributes": {"volume": 200}, "values": {"volume": 200}}
@@ -214,19 +214,14 @@ class GridSamplingTest(unittest.TestCase):
                                      for source in SERVICE_DEFINITIONS],
                         "protected_areas_status": "AVAILABLE", "grid_sampler": GridCellSampler(grid),
                     }
-                    if overlap_m2 <= 1:
-                        rows = classify_source_features(inputs, retrieved)["result_rows"]
-                        self.assertEqual(len(rows), 2)
-                        for row in rows:
-                            self.assertAlmostEqual(row["geometry"].area(), 256)
-                            self.assertAlmostEqual(row["indicators"]["grid_total_volume_m3_ha"], 100)
-                    else:
-                        with self.assertRaises(QgsProcessingException) as conflict:
-                            classify_source_features(inputs, retrieved)
-                        message = str(conflict.exception)
-                        self.assertIn("stand-1", message)
-                        self.assertIn("stand-2", message)
-                        self.assertIn("päällekkäisiä" if language == "fi" else "overlapping", message)
+                    classified = classify_source_features(inputs, retrieved)
+                    rows = classified["result_rows"]
+                    self.assertEqual(len(rows), 2)
+                    self.assertEqual(classified["stand_overlap_summary"]["pair_count"], int(overlap_m2 > 1e-8))
+                    for row in rows:
+                        self.assertEqual(row["stand_has_overlap"], overlap_m2 > 1e-8)
+                        self.assertAlmostEqual(row["geometry"].area(), 256)
+                        self.assertAlmostEqual(row["indicators"]["grid_total_volume_m3_ha"], 100)
 
     def test_transformed_multipart_cells_are_measured_in_epsg3067(self):
         pieces = [rectangle(350000, 6900000, 8, 16), rectangle(350024, 6900000, 8, 16)]
