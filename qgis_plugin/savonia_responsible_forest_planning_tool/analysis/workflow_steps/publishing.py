@@ -109,8 +109,9 @@ def prepare_publication(inputs, retrieved, classified, run_id):
         "analysis_crs": "EPSG:3067",
         "aoi_crs": inputs["aoi_crs"],
         "result_feature_count": len(classified["result_rows"]),
-        "skipped_stand_count": 0,
+        "skipped_stand_count": classified.get("result_geometry_filter", {}).get("excluded_stand_count", 0),
         "stand_overlap_summary": classified["stand_overlap_summary"],
+        "result_geometry_filter": classified.get("result_geometry_filter", {}),
         "sources": source_metadata,
         "data_attribution": data_attribution(
             inputs["service_ids"], tr(language, "data_attribution_changes"),

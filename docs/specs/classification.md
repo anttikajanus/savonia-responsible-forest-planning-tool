@@ -5,6 +5,7 @@ These are functional planning rules for the personal prototype. [Geometry/classi
 ## CL-01 Reporting domain and geometry
 
 - Clip forest stands to the chosen AOI, then split them at relevant sensitivity boundaries. Keep polygon results; grid boundaries supply indicators without subdividing the result or changing classification.
+- Exclude individual result polygons of 0.01 m² or less using unrounded EPSG:3067 area, including disconnected clipped components and split remainders. Report their count and total excluded area; preserve clipped source snapshots. Only retained polygons contribute to results and summaries. Larger polygons remain even when hectare rounding displays zero. If none remain, stop before publication with the no-forest-stands error.
 - Every result piece carries classifications for all six tiers. Each tier describes the same analyzed forest; adding areas across tiers would count that forest repeatedly.
 - The reporting area is forest represented by the classified stand pieces. It does not automatically include the whole AOI or open mires outside those stands.
 - Use direct polygon overlap, without implicit buffers or proximity rules. A criterion hit must exceed 1 m² in EPSG:3067. Exactly 1 m², smaller intersections and shared edges/points do not trigger sensitivity.

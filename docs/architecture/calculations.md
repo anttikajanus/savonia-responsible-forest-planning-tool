@@ -53,6 +53,18 @@ tolerance only discards negligible fragments when retaining split polygons; it
 does not determine whether a criterion hit occurs. Clipped numerical fragments
 at or below this tolerance are excluded.
 
+After criterion overlays, disconnected polygon components are considered
+individually, including stands with no matching criteria. Before sampling grid
+evidence, exclude final result polygons whose unrounded planar area is at most
+`0.01` m². Measure after translating EPSG:3067 coordinates near the origin,
+as for indicator reporting areas. This reporting filter is independent of both
+the overlay tolerance and the criterion-hit threshold. It does not filter grid
+intersections or source snapshots, and it does not use rounded hectare fields.
+Retained rows alone supply classifications, indicators and workbook summaries.
+Technical logs retain excluded parent IDs and areas, with aggregate count and
+area in bilingual feedback and durable run metadata. An all-excluded run fails
+before publication under the existing no-stands policy.
+
 ## Classification
 
 The [output schema](output-schema.md#classification-fields-and-values) owns the

@@ -14,6 +14,7 @@ from .grid_sampling import GridCellSampler, partition_index, projected_area_m2
 
 _MINIMUM_CRITERION_OVERLAP_AREA_M2 = 1.0
 _MINIMUM_OUTPUT_PIECE_AREA_M2 = 1e-8
+_MINIMUM_REPORTING_AREA_M2 = 0.01
 
 logger = logging.getLogger(LOGGER_NAME + ".analysis.spatial_classification")
 
@@ -113,7 +114,10 @@ def _split_stand(stand_geometry, criteria, language):
                     new_sources.setdefault(criterion["criterion"], set()).add(criterion["source_id"])
                 next_pieces.extend((polygon, new_matched, new_sources) for polygon in _polygon_parts(part))
         pieces = next_pieces
-    return pieces
+    # Also separate disconnected AOI-clipped components when no criterion split
+    # occurred, so the reporting-area filter measures each output polygon.
+    return [(polygon, matched, source_ids) for geometry, matched, source_ids in pieces
+            for polygon in _polygon_parts(geometry)]
 
 def classify_source_features(inputs, retrieved, feedback=None):
     """Apply source interpretation and spatial rules to retrieved features."""
@@ -161,6 +165,8 @@ def classify_source_features(inputs, retrieved, feedback=None):
     if grid_sampler is None:
         grid_sampler = GridCellSampler(source_features.get("forest_centre_gridcell", ()), language, feedback)
     result_rows = []
+    excluded_areas = []
+    excluded_stand_count = 0
     stand_count = max(len(stand_features), 1)
     for index, stand_record in enumerate(stand_features):
         _check_cancelled(feedback, language)
@@ -193,7 +199,17 @@ def classify_source_features(inputs, retrieved, feedback=None):
             raise QgsProcessingException(tr(language, "error_geometry_overlay", detail=exc))
         # Section 10 promotion is stand-wide, so any positive-area overlap marks
         # every split piece even when a piece itself lies outside the habitat.
+        previous_result_count = len(result_rows)
         for piece, matched, source_ids in _split_stand(clipped, stand_criteria, language):
+            reporting_area_m2 = projected_area_m2(piece, language)
+            if reporting_area_m2 <= _MINIMUM_REPORTING_AREA_M2:
+                excluded_areas.append(reporting_area_m2)
+                logger.debug(
+                    "run_id=%s stage=spatial_classification event=result_fragment_excluded "
+                    "stand_id=%s area_m2=%.17g",
+                    inputs.get("run_id", "unknown"), stand_id, reporting_area_m2,
+                )
+                continue
             if section10_hits:
                 matched.add("section10")
                 source_ids.setdefault("section10", set()).update(c["source_id"] for c in section10_hits)
@@ -241,7 +257,6 @@ def classify_source_features(inputs, retrieved, feedback=None):
                 "programme_info": programme_info,
                 "programme_protected_overlap": overlap_value,
             }
-            reporting_area_m2 = projected_area_m2(piece, language)
             intersections = grid_sampler.sample(piece)
             try:
                 result_row = assemble_classified_piece(
@@ -262,6 +277,26 @@ def classify_source_features(inputs, retrieved, feedback=None):
             result_row["geometry"] = piece
             result_row["stand_has_overlap"] = id(stand_record) in overlapping_stands
             result_rows.append(result_row)
+        if len(result_rows) == previous_result_count:
+            excluded_stand_count += 1
+    geometry_filter = {
+        "maximum_excluded_area_m2": _MINIMUM_REPORTING_AREA_M2,
+        "excluded_piece_count": len(excluded_areas),
+        "excluded_area_m2": math.fsum(excluded_areas),
+        "excluded_stand_count": excluded_stand_count,
+    }
+    if excluded_areas:
+        logger.info(
+            "run_id=%s stage=spatial_classification event=result_fragments_excluded "
+            "excluded_piece_count=%d excluded_area_m2=%.17g maximum_excluded_area_m2=%.17g",
+            inputs.get("run_id", "unknown"), len(excluded_areas),
+            geometry_filter["excluded_area_m2"], _MINIMUM_REPORTING_AREA_M2,
+        )
+        _feedback(feedback, "pushInfo", tr(
+            language, "progress_result_fragments", count=len(excluded_areas),
+            area=format(geometry_filter["excluded_area_m2"], ".6f").replace(
+                ".", "," if language == "fi" else "."),
+        ))
     if not result_rows:
         raise QgsProcessingException(tr(language, "error_no_stands"))
 
@@ -273,6 +308,7 @@ def classify_source_features(inputs, retrieved, feedback=None):
         "output_layer": output_layer,
         "coverage": coverage,
         "stand_overlap_summary": overlap_summary,
+        "result_geometry_filter": geometry_filter,
     }
 
 

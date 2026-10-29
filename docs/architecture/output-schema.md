@@ -234,6 +234,13 @@ records, operational errors and stand-overlap logs remain separate.
 The file also contains AOI-clipped source snapshots, a `source_coverage` table
 with retrieval/interpretation details and exclusions, and a `run_metadata`
 table with run identity, parameters, source dates, limitations and attribution.
+Its `result_geometry_filter` JSON object records `maximum_excluded_area_m2`
+(`0.01`), `excluded_piece_count`, full-precision `excluded_area_m2` and
+`excluded_stand_count` (parents with no retained result polygon) for final
+polygons omitted under the [reporting-area filter](calculations.md#area-and-geometry).
+These polygons do not contribute to `result_feature_count` or metric summaries;
+clipped source snapshots can still contain them.
+`skipped_stand_count` records the same excluded parent count.
 Each retrieved source's coverage row retains `spatial_filter`: `aoi_intersects` for the
 polygon request, `bbox_filter_size` for its size-budget fallback, `bbox` for
 other rectangle reads, `selected_snapshot` for captured features, or

@@ -2,6 +2,7 @@
 
 TEXT = {
     "en": {
+        "progress_result_fragments": "Excluded negligible result polygons: {count}; total area: {area} m² (each at most 0.01 m²).",
         "parameters_incomplete": "Complete the analysis area, required sources, sawlog price and output folder before running.",
         "sawlog_price": "Sawlog stumpage price (€/m³)",
         "error_sawlog_price": "Enter a finite, positive sawlog stumpage price (€/m³) with at most two decimal places.",
@@ -268,6 +269,7 @@ TEXT = {
         "source_schema_fields_missing": "Required fields are missing: {fields}. Choose a layer containing these fields, then try again.",
     },
     "fi": {
+        "progress_result_fragments": "Pois jätetyt erittäin pienet tulospolygonit: {count}; yhteispinta-ala: {area} m² (kukin enintään 0,01 m²).",
         "parameters_incomplete": "Täydennä analyysialue, pakolliset lähteet, tukkipuun kantohinta ja tuloskansio ennen ajoa.",
         "sawlog_price": "Tukkipuun kantohinta (€/m³)",
         "error_sawlog_price": "Anna äärellinen, positiivinen tukkipuun kantohinta (€/m³) enintään kahdella desimaalilla.",

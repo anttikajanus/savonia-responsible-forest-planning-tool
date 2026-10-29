@@ -71,6 +71,7 @@ The GeoPackage contains:
 - AOI-clipped source snapshots with original attributes and source identifiers, including grid cells.
 - Source coverage and run metadata, including parameters, the user-supplied sawlog price and its interpretation/source, run/language identity, source endpoint/type/provider/CRS, retrieval and available measurement/update dates, field provenance, limitations, attribution and prototype identity.
 - Full-precision per-metric coverage/statistics sufficient to explain aggregation, independently of rounded displayed results.
+- Run metadata records the result-fragment threshold, excluded polygon count/area and parents with no retained polygons under [CL-01](classification.md#cl-01-reporting-domain-and-geometry). These fragments contribute to neither result feature counts nor workbook summaries.
 
 The valid Excel workbook contains four localized worksheets: tier/class summaries, source coverage, metric coverage and calculation notes/limitations. Report sensitive/economic and relevant unknown classes separately for each tier, with sources, statuses, valid/unknown hectares and observed partial quantities. Retain formulas/meaning, reporting domain, dates, exclusions, attribution and prototype notice. A workbook must reopen in standard XLSX readers; manual Microsoft Excel acceptance remains separately tracked.
 

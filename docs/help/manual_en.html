@@ -77,6 +77,7 @@ body{font-family:system-ui,sans-serif;line-height:1.6;max-width:72rem;margin:2re
 <tr><td>Superprotection</td><td>All analyzed forest is sensitive when required evidence is available.</td></tr>
 </tbody></table>
 <p>A sensitivity hit requires more than 1 m² of overlap; boundary contact or exactly 1 m² does not qualify. A Section 10 hit makes all pieces of the same original stand sensitive in the applicable tiers. <strong>Unknown</strong> means insufficient evidence. The current workflow stops before publication if a required source fails; a successful empty response can permit a no-hit classification.</p>
+<p>Result polygons of 0.01 m² or less are excluded before indicator calculation and summaries. The run reports their count and total area and stores these in run metadata; clipped source snapshots remain available. Larger polygons are retained even if their hectare value rounds to zero. If every result polygon is excluded, the run stops without publishing outputs.</p>
 <h3>Workbook</h3>
 <table><thead><tr><th scope="col">Worksheet</th><th scope="col">What to check</th></tr></thead><tbody>
 <tr><td>Summary</td><td>Tier/class areas, feature counts and indicators. Each tier describes the same forest; adding tiers together counts that forest repeatedly.</td></tr>

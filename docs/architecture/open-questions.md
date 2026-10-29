@@ -10,7 +10,7 @@ belong to [development](development.md), and current behavior belongs to
 
 Latest recorded local evidence: 29 October 2026, Windows/QGIS 4.2.3, plugin
 version 1.0.0. The complete check runner passed 25 tooling tests, 43 unit/resource
-tests, Pylint and 118 integration/offscreen tests against source and the
+tests, Pylint and 126 integration/offscreen tests against source and the
 extracted current-version ZIP. Packaged Python files and both manuals matched
 the reviewed source.
 
@@ -21,6 +21,11 @@ Polygon-query checks cover backend predicates, holes/multipart AOIs, reduced
 transfers with identical clipped evidence, all pages, existing subsets, changed
 AOIs/cache reuse, source-CRS/axis handling, returned invalid-polygon repair and
 the large-filter fallback.
+Result-fragment checks cover standalone, multipart and split polygons, the
+inclusive 0.01 m² reporting threshold, retained small real polygons, bilingual
+feedback, metadata, unchanged snapshots and workbook counts. A geometry replay
+of the supplied export removed all 15 zero-displayed rows while retaining the
+21 other original row identities; this is not a live-provider rerun.
 Use the [development guide](development.md#regression-seams) for test boundaries
 and commands; detailed execution/debugging history belongs in local working
 verification records.
@@ -100,7 +105,7 @@ the linked procedures.
 | Reference and basemap presentation | Repeated bilingual setup/language changes, layer grouping and scale visibility, retained choices/identities after save/reopen, readable map presentation. Use [WF-02](../specs/workflow.md#wf-02-project-setup), the manuals and [grid GUI acceptance](development.md#grid-indicator-manual-gui-acceptance). Visual acceptance of the 28 October changes remains open. |
 | Live authenticated MML context | Both parcel collections and WMTS basemaps, valid/rejected/replaced keys, discovery and pan/zoom without extra credential prompts, persisted connections and service failures. Authenticated local fixtures passed; live access remains unverified. Unauthenticated WMTS capabilities returned HTTP 401 on 28 October. |
 | WFS initialization and responsiveness | On fresh and existing projects, confirm setup avoids feature/count requests, map reads are view-bounded and analysis retrieves complete pages. Check reconnection preserves layer identity and user choices. Setup remains synchronous; the reported minute-long desktop stall has not been reproduced end to end. |
-| Result and workbook interpretation | Inspect field labels/forms, nulls and coverage, source dates, tier/snapshot visibility and GeoPackage reopening. Verify €/m³ versus €, known zero versus unknown, and complete versus partial totals in QGIS and the four-sheet workbook in Microsoft Excel. [Result field checks](development.md#result-field-organization-checks). |
+| Result and workbook interpretation | Inspect field labels/forms, nulls and coverage, source dates, tier/snapshot visibility and GeoPackage reopening. Verify €/m³ versus €, known zero versus unknown, and complete versus partial totals in QGIS and the four-sheet workbook in Microsoft Excel. Added 29 October 2026: visually check the negligible-polygon exclusion message/count/area and retained small polygons in both languages; automated geometry/export checks do not establish desktop acceptance. [Result field checks](development.md#result-field-organization-checks). |
 | Language and offline resources | Finnish/English and unsupported-language fallback, Help/About with dock closed, offline links/legal texts and browser failure recovery. [Help and credits verification](development.md#help-and-credits-verification). |
 | Cancellation and failures | Required-source/geometry failures and cancellation leave actionable localized messages and no apparently complete partial output. [Grid GUI acceptance](development.md#grid-indicator-manual-gui-acceptance). |
 
