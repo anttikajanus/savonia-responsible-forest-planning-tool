@@ -16,7 +16,37 @@ _MINIMUM_CRITERION_OVERLAP_AREA_M2 = 1.0
 _MINIMUM_OUTPUT_PIECE_AREA_M2 = 1e-8
 
 logger = logging.getLogger(LOGGER_NAME + ".analysis.spatial_classification")
-_STAND_OVERLAP_TOLERANCE_M2 = 1.0
+
+
+def _stand_overlaps(stand_features, inputs, feedback):
+    """Inspect each clipped stand pair once, retaining all source geometries."""
+    affected = set()
+    source_ids = set()
+    pair_count = 0
+    run_id = inputs.get("run_id", "unknown")
+
+    def record_overlap(first, second, area_m2):
+        nonlocal pair_count
+        pair_count += 1
+        affected.update((id(first), id(second)))
+        source_ids.update((str(first["source_id"]), str(second["source_id"])))
+        logger.debug(
+            "run_id=%s stage=spatial_classification source=forest_centre_stand "
+            "event=stand_overlap_pair first=%s second=%s overlap_area_m2=%.17g",
+            run_id, first["source_id"], second["source_id"], area_m2,
+        )
+
+    partition_index(stand_features, "forest_centre_stand", inputs["language"], feedback,
+                    overlap_callback=record_overlap)
+    summary = {"pair_count": pair_count, "affected_stand_count": len(affected),
+               "stand_id_sample": sorted(source_ids)[:20]}
+    if pair_count:
+        logger.warning(
+            "run_id=%s stage=spatial_classification source=forest_centre_stand "
+            "event=stand_overlaps pair_count=%d affected_stand_count=%d stand_id_sample=%s",
+            run_id, pair_count, len(affected), summary["stand_id_sample"],
+        )
+    return affected, summary
 
 
 def _has_criterion_overlap_above_threshold(geometry, candidate):
@@ -126,8 +156,7 @@ def classify_source_features(inputs, retrieved, feedback=None):
     # Reuse the clipped retrieval snapshot so classification cannot trigger a
     # second WFS request that may return the full remote layer.
     stand_features = source_features["forest_centre_stand"]
-    partition_index(stand_features, "forest_centre_stand", language, feedback,
-                    overlap_tolerance_m2=_STAND_OVERLAP_TOLERANCE_M2)
+    overlapping_stands, overlap_summary = _stand_overlaps(stand_features, inputs, feedback)
     grid_sampler = retrieved.get("grid_sampler")
     if grid_sampler is None:
         grid_sampler = GridCellSampler(source_features.get("forest_centre_gridcell", ()), language, feedback)
@@ -230,6 +259,7 @@ def classify_source_features(inputs, retrieved, feedback=None):
                 )
                 raise QgsProcessingException(tr(language, "error_grid_statistics", stand_id=stand_id, detail=exc)) from exc
             result_row["geometry"] = piece
+            result_row["stand_has_overlap"] = id(stand_record) in overlapping_stands
             result_rows.append(result_row)
     if not result_rows:
         raise QgsProcessingException(tr(language, "error_no_stands"))
@@ -261,6 +291,7 @@ def classify_source_features(inputs, retrieved, feedback=None):
         "result_rows": result_rows,
         "output_layer": output_layer,
         "coverage": coverage,
+        "stand_overlap_summary": overlap_summary,
     }
 
 

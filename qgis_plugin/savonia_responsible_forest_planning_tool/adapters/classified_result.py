@@ -42,6 +42,7 @@ def create_classified_result_layer(rows, language="en"):
         QgsField("tier_rule_ids", QVariant.String, len=4096),
         QgsField("source_ids", QVariant.String, len=4096),
         QgsField("section10_stand_promoted", QVariant.Bool),
+        QgsField("stand_has_overlap", QVariant.Bool),
         QgsField("programme_info", QVariant.String, len=8192),
         QgsField("programme_protected_overlap", QVariant.String, len=16),
     ])
@@ -55,6 +56,7 @@ def create_classified_result_layer(rows, language="en"):
                 "Precision": RESULT_DECIMALS.get(name, 2), "AllowNull": True,
             }))
     _configure_result_form(layer, language)
+    layer.setFieldAlias(layer.fields().indexFromName("stand_has_overlap"), tr(language, "field_stand_has_overlap"))
 
     features = []
     for row in rows:
@@ -73,6 +75,7 @@ def create_classified_result_layer(rows, language="en"):
             json.dumps(row["rules"], sort_keys=True, default=json_default),
             json.dumps(row["source_ids"], sort_keys=True, default=json_default),
             row["section10_stand_promoted"],
+            row.get("stand_has_overlap", False),
             json.dumps(row["programme_info"], ensure_ascii=False, sort_keys=True, default=json_default),
             row["programme_protected_overlap"],
         ])

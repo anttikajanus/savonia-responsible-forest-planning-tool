@@ -132,6 +132,7 @@ class GridPublicationTests(unittest.TestCase):
                     {"attributes": {"TREEDATADATE": "2020-06-01", "UPDATETIME": "2026-10-25"}},
                     {"attributes": {"TREEDATADATE": NULL, "UPDATETIME": NULL}}]}, "snapshots": []}
                 classified = {"result_rows": rows, "output_layer": create_classified_result_layer(rows, language),
+                    "stand_overlap_summary": {"pair_count": 0, "affected_stand_count": 0, "stand_id_sample": []},
                     "coverage": [{"service_id": "forest_centre_stand", "status": "AVAILABLE"}]}
                 publication = prepare_publication(inputs, retrieved, classified, "grid-test")
                 self.assertEqual(publication["run_metadata"][0]["grid_source_dates"]["treedatadate"]["observed_values"], ["2020-06-01"])
