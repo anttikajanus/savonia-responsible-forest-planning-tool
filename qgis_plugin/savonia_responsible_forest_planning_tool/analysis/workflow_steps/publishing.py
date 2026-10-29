@@ -109,6 +109,7 @@ def prepare_publication(inputs, retrieved, classified, run_id):
         "aoi_crs": inputs["aoi_crs"],
         "result_feature_count": len(classified["result_rows"]),
         "skipped_stand_count": 0,
+        "stand_overlap_summary": classified["stand_overlap_summary"],
         "sources": source_metadata,
         "data_attribution": data_attribution(
             inputs["service_ids"], tr(language, "data_attribution_changes"),
@@ -122,7 +123,6 @@ def prepare_publication(inputs, retrieved, classified, run_id):
             "area_arithmetic": {
                 "coordinate_frame": "translated_EPSG:3067",
                 "closure_bound": "max(1e-8 m2, 8 * coordinate_ulp_m * polygon_perimeter_m)",
-                "closure_diagnostic": "AREA_ROUNDOFF_ADJUSTMENT",
             },
             "grid_density": "sum(intersected_ha * value) / sum(metric_valid_ha)",
             "stand_density": "sum(result_piece_ha * stand_value) / sum(metric_valid_ha)",

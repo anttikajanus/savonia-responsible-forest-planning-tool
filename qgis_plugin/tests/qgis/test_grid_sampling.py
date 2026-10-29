@@ -95,7 +95,7 @@ class GridSamplingTest(unittest.TestCase):
                                      for source in SERVICE_DEFINITIONS],
                         "protected_areas_status": "AVAILABLE", "grid_sampler": sampler,
                     }
-                    classified = classify_source_features({"sawlog_price_eur_m3": 75.25, 
+                    classified = classify_source_features({"sawlog_price_eur_m3": 75.25,
                         "language": language,
                         "source_display_names": {source: source for source in SERVICE_DEFINITIONS},
                     }, retrieved)
@@ -104,7 +104,7 @@ class GridSamplingTest(unittest.TestCase):
                     self.assertAlmostEqual(row["indicators"]["grid_total_volume_m3_ha"], 100)
                     self.assertEqual(row["indicators"]["share_under_20"], 100)
                     for metric in ("grid_total_volume_m3_ha", "peatland_area_ha", "natural_mire_area_ha"):
-                        self.assertEqual(row["indicator_status"][metric], "AVAILABLE")
+                        self.assertEqual(row["indicator_coverage"][metric]["status"], "AVAILABLE")
                         self.assertEqual(row["indicator_coverage"][metric]["unknown_area_ha"], 0)
                     self.assertAlmostEqual(row["indicators"]["peatland_area_ha"], polygon.area() / 10000)
 
@@ -115,7 +115,7 @@ class GridSamplingTest(unittest.TestCase):
         sampler = GridCellSampler([record("partial", rectangle(350000.03125, 6900000, 16, 16))])
         result = calculate_grid_indicators(0.0256, sampler.sample(polygon))
         for metric in ("grid_total_volume_m3_ha", "peatland_area_ha", "natural_mire_area_ha"):
-            self.assertEqual(result["indicator_status"][metric], "PARTIAL")
+            self.assertEqual(result["indicator_coverage"][metric]["status"], "PARTIAL")
             self.assertAlmostEqual(result["indicator_coverage"][metric]["unknown_area_ha"], 0.00005)
         self.assertIsNone(result["indicators"]["peatland_area_ha"])
         self.assertIsNone(result["indicators"]["natural_mire_area_ha"])
@@ -172,7 +172,7 @@ class GridSamplingTest(unittest.TestCase):
         with self.assertRaises(QgsProcessingException):
             retrieve_sources(retrieval_inputs(grid_layer([first, conflicting]), rectangle(0, 0, 8, 16)))
 
-    def test_shared_classification_samples_without_splitting_and_rejects_stand_overlap(self):
+    def test_shared_classification_samples_without_splitting_and_retains_stand_overlap(self):
         stands = [{"source_id": "stand-1", "geometry": rectangle(12, 0, 16, 16),
                    "attributes": {"volume": 200}, "values": {"volume": 200}}]
         grid = [record("left", rectangle(0, 0, 16, 16), 100),
@@ -190,14 +190,14 @@ class GridSamplingTest(unittest.TestCase):
         self.assertEqual(row["classes"]["all_out"], "ECONOMIC")
         stands.append({"source_id": "stand-2", "geometry": rectangle(27.5, 0, 16, 16),
                        "attributes": {"volume": 300}, "values": {"volume": 300}})
-        with self.assertRaises(QgsProcessingException) as conflict:
-            classify_source_features(inputs, retrieved)
-        self.assertIn("stand-1", str(conflict.exception))
-        self.assertIn("stand-2", str(conflict.exception))
+        rows = classify_source_features(inputs, retrieved)["result_rows"]
+        self.assertEqual(len(rows), 2)
+        self.assertTrue(all(row["stand_has_overlap"] for row in rows))
+        self.assertAlmostEqual(sum(row["geometry"].area() for row in rows), 512)
 
-    def test_stand_overlap_tolerance_is_one_square_metre_in_both_languages(self):
+    def test_stand_overlaps_above_numerical_tolerance_succeed_in_both_languages(self):
         for language in ("fi", "en"):
-            for overlap_m2 in (0, 0.5, 1, 1.01):
+            for overlap_m2 in (0, 1e-9, 0.5, 1, 1.01, 128):
                 with self.subTest(language=language, overlap_m2=overlap_m2):
                     stands = [{"source_id": identifier, "geometry": geometry,
                                "attributes": {"volume": 200}, "values": {"volume": 200}}
@@ -214,19 +214,14 @@ class GridSamplingTest(unittest.TestCase):
                                      for source in SERVICE_DEFINITIONS],
                         "protected_areas_status": "AVAILABLE", "grid_sampler": GridCellSampler(grid),
                     }
-                    if overlap_m2 <= 1:
-                        rows = classify_source_features(inputs, retrieved)["result_rows"]
-                        self.assertEqual(len(rows), 2)
-                        for row in rows:
-                            self.assertAlmostEqual(row["geometry"].area(), 256)
-                            self.assertAlmostEqual(row["indicators"]["grid_total_volume_m3_ha"], 100)
-                    else:
-                        with self.assertRaises(QgsProcessingException) as conflict:
-                            classify_source_features(inputs, retrieved)
-                        message = str(conflict.exception)
-                        self.assertIn("stand-1", message)
-                        self.assertIn("stand-2", message)
-                        self.assertIn("päällekkäisiä" if language == "fi" else "overlapping", message)
+                    classified = classify_source_features(inputs, retrieved)
+                    rows = classified["result_rows"]
+                    self.assertEqual(len(rows), 2)
+                    self.assertEqual(classified["stand_overlap_summary"]["pair_count"], int(overlap_m2 > 1e-8))
+                    for row in rows:
+                        self.assertEqual(row["stand_has_overlap"], overlap_m2 > 1e-8)
+                        self.assertAlmostEqual(row["geometry"].area(), 256)
+                        self.assertAlmostEqual(row["indicators"]["grid_total_volume_m3_ha"], 100)
 
     def test_transformed_multipart_cells_are_measured_in_epsg3067(self):
         pieces = [rectangle(350000, 6900000, 8, 16), rectangle(350024, 6900000, 8, 16)]
@@ -273,7 +268,7 @@ class GridSamplingTest(unittest.TestCase):
             retrieve_sources(retrieval_inputs(layer, rectangle(0, 0, 16, 16)))
         self.assertIn("forest_centre_gridcell", str(invalid.exception))
 
-    def test_indicator_diagnostics_keep_counts_and_areas_but_cap_samples(self):
+    def test_missing_values_retain_coverage_without_indicator_diagnostic_payloads(self):
         grid = [record("cell-" + str(index), rectangle(index, 0, 1, 1)) for index in range(24)]
         for item in grid:
             item["values"]["volume"] = None
@@ -285,10 +280,11 @@ class GridSamplingTest(unittest.TestCase):
             "protected_areas_status": "AVAILABLE", "grid_sampler": GridCellSampler(grid)}
         classified = classify_source_features(inputs, retrieved)
         coverage = next(row for row in classified["coverage"] if row["service_id"] == "forest_centre_gridcell")
-        self.assertEqual(coverage["indicator_diagnostic_count"], 24)
-        self.assertEqual(coverage["indicator_diagnostic_counts"], {"MISSING_VALUE:volume": 24})
-        self.assertAlmostEqual(coverage["indicator_diagnostic_area_ha"]["MISSING_VALUE:volume"], 0.0024)
-        self.assertEqual(len(coverage["indicator_diagnostic_sample"]), 20)
+        self.assertFalse(any(key.startswith("indicator_diagnostic") for key in coverage))
+        row = classified["result_rows"][0]
+        self.assertNotIn("indicator_diagnostics", row)
+        self.assertNotIn("indicator_status", row)
+        self.assertAlmostEqual(row["indicator_coverage"]["grid_total_volume_m3_ha"]["unknown_area_ha"], 0.0024)
         self.assertIsNone(classified["result_rows"][0]["indicators"]["grid_total_volume_m3_ha"])
         self.assertEqual(classified["result_rows"][0]["indicators"]["total_volume_m3_ha"], 200)
 

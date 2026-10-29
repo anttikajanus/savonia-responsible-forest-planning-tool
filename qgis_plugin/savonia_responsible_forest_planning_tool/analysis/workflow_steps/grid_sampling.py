@@ -55,8 +55,8 @@ def deduplicate_grid_records(records, language="en", feedback=None):
 
 
 def partition_index(records, service_id, language="en", feedback=None, *,
-                    overlap_tolerance_m2=AREA_TOLERANCE_M2):
-    """Validate polygon records within the overlap tolerance and index them."""
+                    overlap_tolerance_m2=AREA_TOLERANCE_M2, overlap_callback=None):
+    """Validate/index polygons, rejecting overlaps unless the caller records them."""
     _check_cancelled(feedback, language)
     spatial_index = QgsSpatialIndex()
     for index, record in enumerate(records):
@@ -75,8 +75,10 @@ def partition_index(records, service_id, language="en", feedback=None, *,
                 raise QgsProcessingException(tr(language, "error_partition_overlay", source=service_id,
                                                 first=other["source_id"], second=record["source_id"]))
             if not intersection.isEmpty() and intersection.area() > overlap_tolerance_m2:
-                raise QgsProcessingException(tr(language, "error_source_partition_overlap", source=service_id,
-                                                first=other["source_id"], second=record["source_id"]))
+                if overlap_callback is None:
+                    raise QgsProcessingException(tr(language, "error_source_partition_overlap", source=service_id,
+                                                    first=other["source_id"], second=record["source_id"]))
+                overlap_callback(other, record, projected_area_m2(intersection, language))
         feature = QgsFeature()
         feature.setId(index)
         feature.setGeometry(geometry)
@@ -133,10 +135,8 @@ class GridCellSampler:
             if AREA_TOLERANCE_M2 < abs(difference_m2) <= roundoff_m2:
                 # Reconcile only a numerical closure discrepancy. Real partial
                 # coverage remains partial; all adjusted areas retain their
-                # relative weights, and the adjustment is disclosed downstream.
+                # relative weights without producing separate diagnostic records.
                 factor = reporting_area_ha / sampled_area_ha
                 for part in parts:
-                    original_area_ha = part["area_ha"]
                     part["area_ha"] *= factor
-                    part["area_roundoff_adjustment_ha"] = part["area_ha"] - original_area_ha
         return parts

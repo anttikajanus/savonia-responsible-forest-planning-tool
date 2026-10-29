@@ -78,7 +78,7 @@ class GridPublicationTests(unittest.TestCase):
         ):
             with self.subTest(language=language), tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as folder:
                 row = classified_row()
-                # Large diagnostics/coverage payloads must not be silently truncated.
+                # Large coverage payloads must not be silently truncated.
                 row["indicator_coverage"]["audit"] = {"original": "x" * 12000}
                 layer = create_classified_result_layer([row], language)
                 path = str(Path(folder) / "indicators.gpkg")
@@ -101,7 +101,9 @@ class GridPublicationTests(unittest.TestCase):
                     self.assertEqual(coverage, row["indicator_coverage"])
                     self.assertEqual(coverage["share_under_20"]["coverage_percent"], 63)
                     self.assertEqual(coverage["share_under_20"]["coverage_percent_exact"], 62.5)
-                    statuses = json.loads(feature["indicator_status"])
+                    self.assertNotIn("indicator_status", reopened.fields().names())
+                    self.assertNotIn("indicator_diagnostics", reopened.fields().names())
+                    statuses = {metric: item["status"] for metric, item in json.loads(feature["indicator_coverage"]).items() if "status" in item}
                     self.assertNotIn("birch_volume_m3_ha", statuses)
                     self.assertNotIn("birch_volume_m3_ha", coverage)
                     self.assertNotIn("birch_volume_m3_ha", reopened.fields().names())
@@ -133,6 +135,7 @@ class GridPublicationTests(unittest.TestCase):
                     {"attributes": {"TREEDATADATE": "2020-06-01", "UPDATETIME": "2026-10-25"}},
                     {"attributes": {"TREEDATADATE": NULL, "UPDATETIME": NULL}}]}, "snapshots": []}
                 classified = {"result_rows": rows, "output_layer": create_classified_result_layer(rows, language),
+                    "stand_overlap_summary": {"pair_count": 0, "affected_stand_count": 0, "stand_id_sample": []},
                     "coverage": [{"service_id": "forest_centre_stand", "status": "AVAILABLE"}]}
                 publication = prepare_publication(inputs, retrieved, classified, "grid-test")
                 self.assertEqual(publication["run_metadata"][0]["grid_source_dates"]["treedatadate"]["observed_values"], ["2020-06-01"])

@@ -88,11 +88,13 @@ class ClassificationGeometryTests(unittest.TestCase):
                 self.assertAlmostEqual(sum(row["area_ha"] for row in parent), 1)
                 for row in parent:
                     self.assertTrue(row["section10_stand_promoted"])
+                    self.assertEqual(row["check_section10"], "MATCH")
                     self.assertEqual(set(row["classes"].values()), {"SENSITIVE"})
                     self.assertEqual(row["source_ids"]["section10"], ["habitat"])
                     self.assertIn("section10", row["rules"]["all_out"]["criteria"])
                 neighbor, = [row for row in rows if row["source_stand_id"] == "neighbor"]
                 self.assertFalse(neighbor["section10_stand_promoted"])
+                self.assertEqual(neighbor["check_section10"], "NO_MATCH")
                 self.assertEqual(neighbor["classes"]["all_out"], "ECONOMIC")
 
     def test_overlapping_protected_records_keep_piece_local_ids_in_either_order(self):

@@ -62,6 +62,12 @@ _technical_logger = logging.getLogger(LOGGER_NAME)
 _business_logger = logging.getLogger(BUSINESS_LOGGER_NAME)
 
 
+def technical_log_path():
+    """Return the profile's technical-log destination, including fallback cases."""
+    return os.path.normpath(os.path.join(QgsApplication.qgisSettingsDirPath(), LOG_DIRECTORY_NAME,
+                                         "logs", "technical.log"))
+
+
 def _remove_owned_handlers():
     for logger in (_technical_logger, _business_logger):
         for handler in tuple(logger.handlers):
@@ -85,10 +91,7 @@ def configure_logging():
     _technical_logger.addHandler(qgis_handler)
     _owned_handlers.append(qgis_handler)
 
-    settings_dir = QgsApplication.qgisSettingsDirPath()
-    log_dir = os.path.join(
-        settings_dir, LOG_DIRECTORY_NAME, "logs"
-    )
+    log_dir = os.path.dirname(technical_log_path())
     try:
         os.makedirs(log_dir, exist_ok=True)
     except OSError as exc:
