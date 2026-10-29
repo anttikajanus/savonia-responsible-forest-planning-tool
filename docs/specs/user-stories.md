@@ -104,6 +104,7 @@ Unless explicitly marked partial or deferred, stories describe implemented proto
 | US-065 | As a maintainer or agent, I want one command to cache official source descriptions and provider documents locally, so I can inspect them offline without committing downloaded artifacts. | [WF-08](workflow.md#wf-08-local-development-reference-material) |
 | US-066 | As a QGIS user, I want an installable ZIP downloadable from GitHub Releases, so I can install the plugin without building it. | [WF-01](workflow.md#wf-01-installation-and-runtime) |
 | US-067 | As a maintainer, I want each push to main to test, build and publish the next minor release, so distribution is automatic and retains the major version. | [WF-01](workflow.md#wf-01-installation-and-runtime) |
+| US-070 | As a maintainer, I want one command for checks with isolated QGIS settings/cache, correct runtimes and complete failure logs, so environment faults are detected before debugging plugin behavior. | [WF-09](workflow.md#wf-09-isolated-developer-checks) |
 
 Technical design, module boundaries and verification belong in
 [architecture](../architecture/README.md).

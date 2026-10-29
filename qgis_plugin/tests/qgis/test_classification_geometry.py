@@ -1,22 +1,14 @@
 """CL-01/02/03 geometry, promotion and piece-local provenance contracts."""
 
-import os
-from pathlib import Path
-import sys
 import unittest
 
-sys.path.insert(0, os.environ.get(
-    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
-))
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+from qgis_test_environment import qgis_application
+
+APP = qgis_application()
 
 from qgis.core import QgsApplication, QgsGeometry
 
-APP = QgsApplication.instance()
-if APP is None:
-    APP = QgsApplication([], False)
-    APP.initQgis()
 
 from savonia_responsible_forest_planning_tool.adapters.sources import SERVICE_DEFINITIONS
 from savonia_responsible_forest_planning_tool.analysis.workflow_steps.spatial_classification import classify_source_features

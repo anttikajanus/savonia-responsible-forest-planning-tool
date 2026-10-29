@@ -1,17 +1,14 @@
 """Managed WFS startup must inspect schemas without reading feature data."""
 
-import os
 from pathlib import Path
-import sys
 import tempfile
 import unittest
 from unittest.mock import patch
 
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-sys.path.insert(0, os.environ.get(
-    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
-))
+
+from qgis_test_environment import qgis_application
+
+APP = qgis_application()
 
 from qgis.core import (Qgis, QgsApplication, QgsDataSourceUri, QgsFeatureRequest,
                        QgsFillSymbol, QgsMapRendererParallelJob, QgsMapSettings,
@@ -19,10 +16,6 @@ from qgis.core import (Qgis, QgsApplication, QgsDataSourceUri, QgsFeatureRequest
 from qgis.PyQt.QtCore import QSize
 from qgis.PyQt.QtGui import QColor
 
-APP = QgsApplication.instance()
-if APP is None:
-    APP = QgsApplication([], False)
-    APP.initQgis()
 
 from savonia_responsible_forest_planning_tool.adapters import project_setup, sources
 from savonia_responsible_forest_planning_tool.analysis.worker_task import (
@@ -39,21 +32,6 @@ def feature_requests(fixture):
 
 
 class WfsInitializationTests(unittest.TestCase):
-    def setUp(self):
-        # Real provider rendering requires a writable SpatiaLite feature cache.
-        cache = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
-        self.addCleanup(cache.cleanup)
-        previous = QgsSettings().value("cache/directory", None)
-        self.addCleanup(self.restore_cache, previous)
-        QgsSettings().setValue("cache/directory", cache.name)
-
-    @staticmethod
-    def restore_cache(value):
-        if value is None:
-            QgsSettings().remove("cache/directory")
-        else:
-            QgsSettings().setValue("cache/directory", value)
-
     def test_setup_upgrades_existing_connection_and_preserves_identity_and_filter(self):
         service_id = "forest_centre_stand"
         fields = fixture_sources()[service_id]

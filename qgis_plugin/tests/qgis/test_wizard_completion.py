@@ -1,23 +1,15 @@
 """Wizard completion, map publication, cancellation and active-task unload."""
 
-import os
-from pathlib import Path
-import sys
 import unittest
 from unittest.mock import patch
 
-sys.path.insert(0, os.environ.get(
-    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
-))
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+from qgis_test_environment import qgis_application
+
+APP = qgis_application()
 
 from qgis.core import QgsApplication, QgsProject
 
-APP = QgsApplication.instance()
-if APP is None:
-    APP = QgsApplication([], True)
-    APP.initQgis()
 
 from savonia_responsible_forest_planning_tool import RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX as PREFIX
 from savonia_responsible_forest_planning_tool.analysis.worker_task import ResponsibleForestPlanningAnalysisTask

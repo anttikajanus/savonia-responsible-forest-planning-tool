@@ -1,19 +1,16 @@
 """MML key gate, real OAPIF requests, parcel presentation and persistence."""
 
 import base64
-import os
 from pathlib import Path
-import sys
 import tempfile
 import unittest
 from urllib.parse import quote, quote_plus
 from unittest.mock import patch
 
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-sys.path.insert(0, os.environ.get(
-    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
-))
+
+from qgis_test_environment import qgis_application
+
+APP = qgis_application()
 
 from qgis.core import (
     Qgis, QgsApplication, QgsDataSourceUri, QgsFeatureRequest, QgsMapRendererParallelJob, QgsMapSettings,
@@ -22,10 +19,6 @@ from qgis.core import (
 from qgis.PyQt.QtCore import QSize, Qt
 from qgis.PyQt.QtWidgets import QInputDialog, QLineEdit
 
-APP = QgsApplication.instance()
-if APP is None:
-    APP = QgsApplication([], True)
-    APP.initQgis()
 
 from savonia_responsible_forest_planning_tool.adapters import project_setup, sources
 from savonia_responsible_forest_planning_tool.i18n import tr
@@ -42,22 +35,8 @@ class ParcelReferenceTests(unittest.TestCase):
         self.enterContext(patch("savonia_responsible_forest_planning_tool.ui.plugin.MML_API_KEY_SETTING_KEY", self.setting_key))
         QgsSettings().remove(self.setting_key)
         self.addCleanup(QgsSettings().remove, self.setting_key)
-        # Remote providers require a writable SpatiaLite cache. Isolate it from
-        # the user's QGIS profile, which can be read-only in a sandbox.
-        cache = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
-        self.addCleanup(cache.cleanup)
-        old_cache = QgsSettings().value("cache/directory", None)
-        self.addCleanup(self.restore_cache, old_cache)
-        QgsSettings().setValue("cache/directory", cache.name)
         self.project = QgsProject()
         self.addCleanup(self.project.clear)
-
-    @staticmethod
-    def restore_cache(value):
-        if value is None:
-            QgsSettings().remove("cache/directory")
-        else:
-            QgsSettings().setValue("cache/directory", value)
 
     def test_missing_key_stops_before_project_mutation_or_network(self):
         user = QgsVectorLayer("Polygon?crs=EPSG:3067", "user", "memory")
@@ -153,12 +132,13 @@ class ParcelReferenceTests(unittest.TestCase):
                 group.addChildNode(replacement)
                 group.removeChildNode(node)
                 symbol.setStrokeWidth(0.3)  # Repeated setup must restore the managed width.
-            bounds = QgsRectangle(24.89, 60.09, 24.92, 60.12)
+            bounds = QgsRectangle(24.899, 60.099, 24.911, 60.111)
             settings = QgsMapSettings()
             settings.setLayers([labels, layer])
             settings.setDestinationCrs(layer.crs())
             settings.setExtent(bounds)
             settings.setOutputSize(QSize(600, 600))
+            self.assertLessEqual(settings.scale(), 10000, "Render inside the identifier visibility limit")
             job = QgsMapRendererParallelJob(settings)
             job.start()
             job.waitForFinished()

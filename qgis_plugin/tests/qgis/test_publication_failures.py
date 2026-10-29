@@ -2,22 +2,16 @@
 
 import os
 from pathlib import Path
-import sys
 import unittest
 from unittest.mock import patch
 
-sys.path.insert(0, os.environ.get(
-    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
-))
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+from qgis_test_environment import qgis_application
+
+APP = qgis_application()
 
 from qgis.core import QgsApplication, QgsProcessingException, QgsProcessingFeedback, QgsVectorFileWriter, QgsVectorLayer
 
-APP = QgsApplication.instance()
-if APP is None:
-    APP = QgsApplication([], False)
-    APP.initQgis()
 
 from savonia_responsible_forest_planning_tool.adapters import geopackage_writer
 from savonia_responsible_forest_planning_tool.analysis.workflow_steps import publishing

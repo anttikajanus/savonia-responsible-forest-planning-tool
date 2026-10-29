@@ -10,14 +10,12 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+from qgis_test_environment import qgis_application
+
+APP = qgis_application()
+
 from qgis.PyQt.QtCore import QUrl
 from qgis.core import Qgis, QgsApplication, QgsMessageLog, QgsSettings
-
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-APP = QgsApplication.instance()
-if APP is None:
-    APP = QgsApplication([], False)
-    APP.initQgis()
 
 
 class ProcessingHelpTests(unittest.TestCase):

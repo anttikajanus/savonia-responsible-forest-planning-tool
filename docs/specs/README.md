@@ -9,7 +9,7 @@ This is Antti Kajanus's unfinished personal learning project. Neither the protot
 | Document | Owns |
 | --- | --- |
 | [User stories](user-stories.md) | User goals, stable story IDs and links to acceptance requirements |
-| [Workflow](workflow.md) | Installation expectations, project setup, area selection, wizard, Processing, failure behavior; WF-08 separately covers maintainer reference tooling |
+| [Workflow](workflow.md) | Installation expectations, project setup, area selection, wizard, Processing, failure behavior; WF-08/09 separately cover maintainer references and isolated checks |
 | [Classification](classification.md) | Reporting domain, sensitivity tiers, spatial behavior and interpretation limits |
 | [Indicators and outputs](indicators-and-outputs.md) | Required indicators, missing values, presentation, result files and map review |
 | [Help and language](help-and-language.md) | Finnish/English behavior, offline help, About, identity, accessibility and attribution |

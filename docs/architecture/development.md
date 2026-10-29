@@ -16,6 +16,75 @@ The maximum uses QGIS's major-version-plus-`.99` convention. QGIS documents [plu
 separately from [runtime testing](https://docs.qgis.org/4.2/en/docs/developers_guide/unittesting.html)
 and [Processing algorithm tests](https://docs.qgis.org/4.2/en/docs/developers_guide/processingtesting.html).
 
+## Local check runner
+
+Use the Windows entry point for the source checks, or include package validation:
+
+```powershell
+./scripts/check.ps1
+./scripts/check.ps1 -Package
+./scripts/check.ps1 -Checks tooling,unit
+./scripts/check.ps1 -Checks qgis -QgisPattern test_parcel_reference.py
+```
+
+[check.ps1](../../scripts/check.ps1) selects a plain Python executable from PATH,
+falling back to the interpreter bundled with the selected QGIS installation.
+`-Python` selects an explicit executable. Tooling and unit checks run directly
+with that interpreter; lint and integration checks use `-QgisPython` (default:
+`QGIS_PYTHON`, then the baseline launcher below). Python 3.10+ is required.
+Plain Python need not be a separate installation: calling the bundled executable
+directly keeps tooling out of the QGIS launcher's modified environment.
+
+[check.py](../../scripts/check.py) checks Git when tooling is selected and the
+isolated QGIS runtime when lint or integration is selected, before starting
+test suites. Missing dependencies or failed checks return nonzero and identify
+the failed stage. Complete stdout/stderr goes to separate UTF-8 logs under a
+unique `.scratch/checks/<UTC timestamp>-<id>/` directory; the console shows
+elapsed times and a short failure tail. `-LogsDir` changes the parent directory.
+Selected checks run in order: tooling, unit, lint, QGIS. Source checks clear
+inherited installed-plugin overrides so they always exercise this checkout.
+
+`-Package` invokes the existing current-version packaging command, extracts its
+ZIP into the run directory, and repeats the selected unit and QGIS suites on
+that installation. It preserves the metadata version. The same QGIS pattern
+applies to source and installed checks. The runner also works as
+`python scripts/check.py --help`; detailed/direct commands remain below.
+
+## Shared QGIS test environment
+
+Every integration module calls `qgis_application()` from
+[qgis_test_environment.py](../../qgis_plugin/tests/qgis/qgis_test_environment.py)
+before importing QGIS or plugin modules. It creates one GUI-capable offscreen
+application per process. Temporary INI user/system settings, profile,
+authentication storage and provider cache keep test writes and credentials
+separate from the user's QGIS profile. File and SQLite write/read probes,
+settings persistence/containment, the supported QGIS range and required
+provider availability are checked before product tests.
+
+QGIS 4.2 external applications resolve their profile during `initQgis()`;
+the bootstrap sets `QGIS_CUSTOM_CONFIG_PATH` before construction and applies
+the cache setting after profile initialization. It checks that both the active
+settings file and QGIS profile stay inside the test root. See the
+[QGIS initialization implementation](https://github.com/qgis/QGIS/blob/release-4_2/src/core/qgsapplication.cpp)
+and [Qt settings paths](https://doc.qt.io/qt-6/qsettings.html#setPath).
+
+[run_qgis_tests.py](../../scripts/run_qgis_tests.py) supports `--preflight-only`
+and `--pattern`; the check runner uses it for integration checks. Direct
+`unittest` commands and existing CI jobs get the same bootstrap through the
+test imports. The runner owns each child's temporary environment and removes it
+after the process releases Windows file handles. Direct unittest runs allocate
+their own temporary environment with best-effort cleanup on process exit.
+`RESPONSIBLE_FOREST_PLANNING_TEST_ENV_ROOT` is reserved for a caller-owned
+temporary directory when using the bootstrap directly; the local check runner
+always allocates a fresh directory and ignores inherited values.
+
+[Bootstrap guard checks](../../scripts/tests/test_qgis_test_bootstrap.py) in the
+existing tooling suite enforce shared initialization before QGIS/plugin imports.
+[Environment checks](../../qgis_plugin/tests/qgis/test_qgis_environment.py) cover
+settings containment, reuse, writable SQLite and failure before discovery.
+The shared environment replaces the former per-module application construction
+and per-class cache-directory overrides. It changes test wiring only.
+
 ## Python linting
 
 [Pylint configuration](../../pyproject.toml) covers the plugin, regression tests
@@ -215,10 +284,9 @@ also require HTTP Basic credentials (key as username, empty password) on all
 requests, including conformance and reopened-project feature reads. A dedicated
 fixture returns MML-style `WWW-Authenticate: Basic` challenges; a valid saved
 key must produce no rejected requests. Check URI-escaped usernames and Basic
-authorization values are redacted from plugin errors. The tests
-isolate their SpatiaLite provider cache in a writable temporary directory and
-restore the user's cache setting afterwards; a read-only profile cache can
-otherwise prevent feature and label rendering in a sandbox. Live MML access
+authorization values are redacted from plugin errors. The shared test
+environment isolates the SpatiaLite provider cache; a read-only profile cache
+can otherwise prevent feature and label rendering in a sandbox. Live MML access
 and desktop map acceptance remain separate checks.
 
 Basemap checks use an authenticated local WMTS with PNG/JPEG tiles. They verify

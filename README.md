@@ -197,7 +197,7 @@ third-party software and data retain their [own terms and credits](OPEN_SOURCE_A
 - [Agent guidance and documentation map](docs/agents/README.md) — documentation ownership and task instructions.
 - [Open-source licences and acknowledgements](OPEN_SOURCE_ACKNOWLEDGEMENTS.md) — software dependencies, upstream licence references, and data-source credits.
 - [`qgis_plugin/README.md`](qgis_plugin/README.md) — plugin installation and documentation entry point.
-- [`docs/architecture/development.md`](docs/architecture/development.md) — practical QGIS plugin development, reload, and debugging guide.
+- [`docs/architecture/development.md`](docs/architecture/development.md) — practical QGIS plugin development, reload, debugging, and the local `./scripts/check.ps1` check runner.
 - [Geometry and classification](docs/architecture/calculations.md) — geometry mechanics, tolerances and classification field mapping.
 - [Indicator calculations](docs/architecture/indicator-calculations.md) — formulas, aggregation and worked examples.
 - [Output schema](docs/architecture/output-schema.md) — result fields, coverage statistics and output layout.

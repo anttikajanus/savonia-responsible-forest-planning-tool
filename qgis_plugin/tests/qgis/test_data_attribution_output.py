@@ -1,16 +1,14 @@
 """Localized source credits survive an independently shared XLSX output."""
 
 from pathlib import Path
-import os
-import sys
 import tempfile
 import unittest
 import zipfile
 
-sys.path.insert(0, os.environ.get(
-    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
-))
+
+from qgis_test_environment import qgis_application
+
+APP = qgis_application()
 
 from savonia_responsible_forest_planning_tool.data_attribution import data_attribution
 from savonia_responsible_forest_planning_tool.adapters.excel_writer import write_workbook

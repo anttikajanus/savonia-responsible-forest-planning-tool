@@ -1,16 +1,13 @@
 """Result lookup order, source labels and grouped forms survive publication."""
 
-import os
 from pathlib import Path
-import sys
 import tempfile
 import unittest
 
-sys.path.insert(0, os.environ.get(
-    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
-))
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+from qgis_test_environment import qgis_application
+
+APP = qgis_application()
 
 from qgis.PyQt import sip
 from qgis.core import Qgis, QgsAttributeEditorTextElement, QgsCoordinateTransformContext, QgsVectorLayer

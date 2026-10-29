@@ -1,25 +1,17 @@
 """Keep the wizard form compact when the dock gains vertical space."""
 
-import os
-from pathlib import Path
-import sys
 import unittest
 from unittest.mock import Mock
 
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-sys.path.insert(0, os.environ.get(
-    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
-))
+
+from qgis_test_environment import qgis_application
+
+APP = qgis_application()
 
 from qgis.PyQt.QtCore import QPoint, QSize
 from qgis.PyQt.QtWidgets import QLabel
 from qgis.core import QgsApplication
 
-APP = QgsApplication.instance()
-if APP is None:
-    APP = QgsApplication([], False)
-    APP.initQgis()
 
 from savonia_responsible_forest_planning_tool.ui.wizard import ResponsibleForestPlanningWizard
 

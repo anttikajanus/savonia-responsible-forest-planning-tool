@@ -8,6 +8,15 @@ belong to [development](development.md), and current behavior belongs to
 
 ## Automated regression verification
 
+On 28 October 2026, the shared isolated QGIS bootstrap and local check runner
+passed 103 integration/offscreen tests and 36 unit/resource tests against both
+source and the extracted current-version ZIP. All 25 tooling tests passed;
+full Pylint and the final changed-runner lint checks passed. Direct unittest
+environment checks also passed. Checks cover settings/profile/cache isolation,
+SQLite access, failed prerequisites, runtime routing, relative launcher paths,
+complete logs and child-environment cleanup. Planner behavior is unchanged;
+existing provider and interactive acceptance checks remain open below.
+
 On 28 October 2026, property identifiers were restricted to 1:10,000 or closer,
 with boundaries retaining their inclusive 1:25,000 limit. Six source parcel
 checks passed on QGIS 4.2.3, covering both limits, repeated Finnish/English setup

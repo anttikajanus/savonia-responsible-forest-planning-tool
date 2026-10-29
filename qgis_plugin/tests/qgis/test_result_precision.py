@@ -1,17 +1,14 @@
 """Published fields are rounded without changing calculation inputs."""
 
 import json
-import os
 from pathlib import Path
-import sys
 import tempfile
 import unittest
 
-sys.path.insert(0, os.environ.get(
-    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
-))
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+from qgis_test_environment import qgis_application
+
+APP = qgis_application()
 
 from qgis.PyQt.QtCore import QLocale
 from qgis.core import (
@@ -19,10 +16,6 @@ from qgis.core import (
     QgsRangeFieldFormatter, QgsVectorLayer,
 )
 
-APP = QgsApplication.instance()
-if APP is None:
-    APP = QgsApplication([], False)
-    APP.initQgis()
 
 from test_grid_publication import classified_row
 from savonia_responsible_forest_planning_tool.adapters.classified_result import create_classified_result_layer

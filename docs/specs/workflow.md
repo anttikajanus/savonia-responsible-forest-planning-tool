@@ -106,3 +106,24 @@ This requirement is maintainer/agent tooling, separate from the planner analysis
 - Commands, formats, exact inventory and verification belong in
   [development](../architecture/development.md#local-provider-references) and
   [reference instructions](../references/service-metadata/README.md).
+
+## WF-09 Isolated developer checks
+
+This requirement covers maintainer tooling; planner behavior is unchanged.
+
+- A maintainer can run selected tooling, unit, lint and QGIS checks from one
+  local command, with an optional current-version package validation pass.
+- Tooling/unit checks use plain Python; lint/integration use QGIS Python.
+  Required executables and writable test storage are checked before suites run.
+- QGIS tests use a shared offscreen application with temporary settings,
+  profile, authentication and cache storage. Tests do not use or change the
+  planner's QGIS settings or credentials. Direct unittest and CI runs share this
+  isolation.
+- A failed prerequisite or selected check returns nonzero with an actionable
+  stage summary. Full stdout/stderr remains in unique ignored local logs.
+  Focused QGIS runs fail if no tests match their pattern.
+- Package validation preserves the plugin version and repeats selected unit
+  and QGIS suites against the extracted ZIP. Source checks always use the
+  checkout even if installed-plugin overrides were inherited.
+- Commands, environment ownership and test boundaries belong to the
+  [development guide](../architecture/development.md#local-check-runner).

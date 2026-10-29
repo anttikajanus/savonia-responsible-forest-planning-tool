@@ -1,27 +1,20 @@
 """Artifact contracts for grid/stand indicators, using generated local data."""
 
 import json
-import os
 import posixpath
 from pathlib import Path
-import sys
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 import zipfile
 
-sys.path.insert(0, os.environ.get(
-    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
-))
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+from qgis_test_environment import qgis_application
+
+APP = qgis_application()
 
 from qgis.core import NULL, QgsApplication, QgsCoordinateTransformContext, QgsGeometry, QgsVectorLayer
 
-APP = QgsApplication.instance()
-if APP is None:
-    APP = QgsApplication([], False)
-    APP.initQgis()
 
 from savonia_responsible_forest_planning_tool.analysis.classification import assemble_classified_piece
 from savonia_responsible_forest_planning_tool.adapters.classified_result import create_classified_result_layer

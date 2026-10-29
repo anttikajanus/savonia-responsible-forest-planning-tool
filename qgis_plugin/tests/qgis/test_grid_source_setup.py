@@ -1,27 +1,20 @@
 """Grid readiness and project setup against a tiny local WFS and QGIS runtime."""
 
 import json
-import os
 from pathlib import Path
-import sys
 import tempfile
 import unittest
 from unittest.mock import patch
 
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-sys.path.insert(0, os.environ.get(
-    "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT",
-    os.environ.get("SAVONIA_TEST_PLUGIN_ROOT", str(Path(__file__).resolve().parents[2])),
-))
+
+from qgis_test_environment import qgis_application
+
+APP = qgis_application()
 
 from qgis.core import Qgis, QgsApplication, QgsProcessing, QgsProject, QgsVectorLayer
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 
-APP = QgsApplication.instance()
-if APP is None:
-    APP = QgsApplication([], False)
-    APP.initQgis()
 
 from savonia_responsible_forest_planning_tool.adapters.source_layers import (
     source_identifier_field, verify_source_layer,
