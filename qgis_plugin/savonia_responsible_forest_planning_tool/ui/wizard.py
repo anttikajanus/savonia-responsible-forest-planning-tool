@@ -1,9 +1,12 @@
 """Persistent dock contents and polygon drawing tool."""
 
 import os
+import math
+import sys
 
-from qgis.PyQt.QtCore import QStandardPaths, Qt, pyqtSignal
-from qgis.PyQt.QtGui import QColor
+from qgis.PyQt import sip
+from qgis.PyQt.QtCore import QLocale, QStandardPaths, Qt, pyqtSignal
+from qgis.PyQt.QtGui import QColor, QDoubleValidator, QValidator
 from qgis.PyQt.QtWidgets import (
     QButtonGroup, QCheckBox, QFileDialog, QGroupBox, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QRadioButton, QStackedWidget, QStyle,
@@ -21,11 +24,13 @@ from .. import RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX
 from ..analysis.classification import TIERS
 from ..analysis.worker_task import ResponsibleForestPlanningAnalysisTask, capture_worker_inputs
 from ..adapters.sources import SERVICE_DEFINITIONS
+from ..adapters.source_layers import verify_source_layer
 from ..i18n import tr
 from ..adapters.project_setup import results_group
 
 
 OUTPUT_FOLDER_SETTING_KEY = "savonia-forest-planning/output-folder"
+SAWLOG_PRICE_SETTING_KEY = "savonia-forest-planning/sawlog-price-eur-m3"
 
 
 class PolygonDrawTool(QgsMapTool):
@@ -92,7 +97,21 @@ class ResponsibleForestPlanningWizard(QWidget):
         self._updating_selection_choice = False
         self._analysis_task = None
         self._analysis_cancel_requested = False
+        self._layer_connections = []
+        self._external_connections = []
+        self._shutting_down = False
         self._build_ui()
+        project = QgsProject.instance()
+        for signal, callback in (
+            (project.layersAdded, self._refresh_layer_connections),
+            (project.layersWillBeRemoved, self._disconnect_layer_connections),
+            (project.layersRemoved, self._refresh_layer_connections),
+            (self.iface.mapCanvas().extentsChanged, self._update_buttons),
+            (self.iface.mapCanvas().destinationCrsChanged, self._update_buttons),
+        ):
+            signal.connect(callback)
+            self._external_connections.append((signal, callback))
+        self._refresh_layer_connections()
 
     def _build_ui(self):
         root = QVBoxLayout(self)
@@ -191,6 +210,25 @@ class ResponsibleForestPlanningWizard(QWidget):
         self._on_aoi_layer_changed(self.layer_combo.currentLayer())
         self._update_aoi_mode()
 
+        self.sawlog_price_label = QLabel(tr(self.language, "sawlog_price"), area_page)
+        area_layout.addWidget(self.sawlog_price_label)
+        self.sawlog_price = QLineEdit(area_page)
+        self.sawlog_price_label.setBuddy(self.sawlog_price)
+        self.price_validator = QDoubleValidator(0, sys.float_info.max, 2, self.sawlog_price)
+        self.price_validator.setNotation(QDoubleValidator.Notation.StandardNotation)
+        self.sawlog_price.setValidator(self.price_validator)
+        self._set_price_locale()
+        remembered_price = QgsSettings().value(SAWLOG_PRICE_SETTING_KEY)
+        try:
+            remembered_price = float(remembered_price)
+            if math.isfinite(remembered_price) and remembered_price > 0 and round(remembered_price, 2) == remembered_price:
+                self.sawlog_price.setText(self.price_validator.locale().toString(remembered_price, "f", 2))
+        except (TypeError, ValueError, OverflowError):
+            pass
+        self.sawlog_price.textChanged.connect(self._price_changed)
+        self.sawlog_price.editingFinished.connect(self._format_price)
+        area_layout.addWidget(self.sawlog_price)
+
         self.output_folder_label = QLabel(tr(self.language, "output_folder"), area_page)
         area_layout.addWidget(self.output_folder_label)
         folder_row = QHBoxLayout()
@@ -201,6 +239,7 @@ class ResponsibleForestPlanningWizard(QWidget):
         remembered_folder = QgsSettings().value(OUTPUT_FOLDER_SETTING_KEY, documents_folder)
         self.output_folder.setText(str(remembered_folder or documents_folder))
         self.output_folder.editingFinished.connect(self._remember_output_folder)
+        self.output_folder.textChanged.connect(self._update_buttons)
         browse_button = QPushButton("…", area_page)
         self.browse_button = browse_button
         browse_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DirOpenIcon))
@@ -250,6 +289,7 @@ class ResponsibleForestPlanningWizard(QWidget):
         for widget, key in (
             (self.heading, "wizard_heading"), (self.description, "wizard_description"),
             (self.aoi_layer_label, "aoi_layer_label"),
+            (self.sawlog_price_label, "sawlog_price"),
             (self.output_folder_label, "output_folder"),
             (self.layer_mode, "aoi_mode_layer"), (self.draw_mode, "aoi_mode_draw"),
             (self.extent_mode, "aoi_mode_extent"), (self.draw_button, "draw_aoi"),
@@ -261,6 +301,10 @@ class ResponsibleForestPlanningWizard(QWidget):
             widget.setText(tr(language, key))
             widget.setAccessibleName(tr(language, key))
         self.area_group.setTitle(tr(language, "analysis_area_group"))
+        price = self._price_value()
+        self._set_price_locale()
+        if price is not None:
+            self.sawlog_price.setText(self.price_validator.locale().toString(price, "f", 2))
         self.layer_combo.setAllowEmptyLayer(True, tr(language, "aoi_layer_placeholder"))
         selected_layer = self.layer_combo.currentLayer()
         self.selected_only.setText(tr(
@@ -296,6 +340,8 @@ class ResponsibleForestPlanningWizard(QWidget):
             self.aoi_status.setText(tr(language, "draw_instructions"))
 
     def _update_buttons(self, *_args):
+        if not hasattr(self, "run_button"):
+            return
         index = self.pages.currentIndex()
         has_multiple_pages = self.pages.count() > 1
         self.previous_button.setVisible(has_multiple_pages)
@@ -303,8 +349,113 @@ class ResponsibleForestPlanningWizard(QWidget):
         self.previous_button.setEnabled(index > 0)
         self.next_button.setEnabled(index < self.pages.count() - 1)
         self.run_button.setEnabled(
-            index == self.pages.count() - 1 and self._analysis_task is None
+            index == self.pages.count() - 1 and self._analysis_task is None and self._inputs_ready()
         )
+
+    def _configured_sources(self):
+        references = {
+            layer.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", ""): layer
+            for layer in QgsProject.instance().mapLayers().values()
+            if layer.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", "")
+        }
+        return {service_id: references.get(service_id) for service_id in SERVICE_DEFINITIONS}
+
+    def _inputs_ready(self):
+        if self._shutting_down or self._price_value() is None:
+            return False
+        folder = self.output_folder.text().strip()
+        if not folder:
+            return False
+        folder = os.path.abspath(folder)
+        parent = folder if os.path.isdir(folder) else os.path.dirname(folder)
+        if ((os.path.exists(folder) and not os.path.isdir(folder))
+                or not os.path.isdir(parent) or not os.access(parent, os.W_OK)):
+            return False
+        if self.extent_mode.isChecked():
+            canvas = self.iface.mapCanvas()
+            extent = canvas.extent()
+            if (not canvas.mapSettings().destinationCrs().isValid() or extent.isEmpty()
+                    or not all(math.isfinite(value) for value in (extent.xMinimum(), extent.xMaximum(),
+                                                                  extent.yMinimum(), extent.yMaximum()))):
+                return False
+        else:
+            aoi = self.drawn_aoi if self.draw_mode.isChecked() else self.layer_combo.currentLayer()
+            if (aoi is None or sip.isdeleted(aoi) or not aoi.isValid() or not aoi.crs().isValid()
+                    or aoi.geometryType() != QgsWkbTypes.PolygonGeometry):
+                return False
+            if self.layer_mode.isChecked() and self.selected_only.isChecked():
+                if aoi.selectedFeatureCount() == 0:
+                    return False
+            elif aoi.providerType().lower() != "wfs" and aoi.featureCount() <= 0:
+                return False
+        # Provider schema/identity is already local. Never request remote counts
+        # or feature iteration merely to decide whether the form is complete.
+        for service_id, layer in self._configured_sources().items():
+            _, error = verify_source_layer(layer, service_id, self.language)
+            if error or not layer.crs().isValid():
+                return False
+        return True
+
+    @staticmethod
+    def _disconnect_signals(connections):
+        for signal, callback in connections:
+            try:
+                signal.disconnect(callback)
+            except (TypeError, RuntimeError):
+                # Project removal may already have destroyed a layer QObject.
+                pass
+        connections.clear()
+
+    def _disconnect_layer_connections(self, *_args):
+        self._disconnect_signals(self._layer_connections)
+
+    def _refresh_layer_connections(self, *_args):
+        self._disconnect_layer_connections()
+        if self._shutting_down:
+            return
+        if self.drawn_aoi is not None and sip.isdeleted(self.drawn_aoi):
+            self.drawn_aoi = None
+            self.clear_drawn_aoi_button.setEnabled(False)
+            if self.draw_mode.isChecked():
+                self.aoi_status.setText(tr(self.language, "drawn_aoi_none"))
+        for layer in QgsProject.instance().mapLayers().values():
+            layer.customPropertyChanged.connect(self._refresh_layer_connections)
+            self._layer_connections.append((layer.customPropertyChanged, self._refresh_layer_connections))
+        layers = {layer.id(): layer for layer in self._configured_sources().values() if layer is not None}
+        for layer in (self.layer_combo.currentLayer(), self.drawn_aoi):
+            if layer is not None and not sip.isdeleted(layer):
+                layers[layer.id()] = layer
+        for layer in layers.values():
+            for name in ("dataSourceChanged", "isValidChanged", "updatedFields", "crsChanged",
+                         "featureAdded", "featureDeleted", "dataChanged"):
+                signal = getattr(layer, name, None)
+                if signal is not None:
+                    signal.connect(self._update_buttons)
+                    self._layer_connections.append((signal, self._update_buttons))
+        self._update_buttons()
+
+    def _set_price_locale(self):
+        locale = QLocale("fi_FI" if self.language == "fi" else "en_US")
+        locale.setNumberOptions(QLocale.NumberOption.RejectGroupSeparator | QLocale.NumberOption.OmitGroupSeparator)
+        self.price_validator.setLocale(locale)
+
+    def _price_value(self):
+        text = self.sawlog_price.text().strip()
+        state, _, _ = self.price_validator.validate(text, 0)
+        value, valid = self.price_validator.locale().toDouble(text)
+        return value if state == QValidator.State.Acceptable and valid and math.isfinite(value) and value > 0 else None
+
+    def _price_changed(self, *_args):
+        value = self._price_value()
+        if value is not None:
+            QgsSettings().setValue(SAWLOG_PRICE_SETTING_KEY, value)
+        if hasattr(self, "run_button"):
+            self._update_buttons()
+
+    def _format_price(self):
+        value = self._price_value()
+        if value is not None:
+            self.sawlog_price.setText(self.price_validator.locale().toString(value, "f", 2))
 
     def _hide_dock(self):
         parent = self.parentWidget()
@@ -349,15 +500,24 @@ class ResponsibleForestPlanningWizard(QWidget):
             self._update_drawn_aoi_status()
         else:
             self.aoi_status.setText(tr(self.language, "aoi_extent_status"))
+        self._update_buttons()
 
     def _on_aoi_layer_changed(self, layer):
         if self._selection_layer is not None:
-            self._selection_layer.selectionChanged.disconnect(self._on_aoi_selection_changed)
+            try:
+                self._selection_layer.selectionChanged.disconnect(self._on_aoi_selection_changed)
+            except (TypeError, RuntimeError):
+                pass
+        if self._shutting_down:
+            self._selection_layer = None
+            return
         self._selection_layer = layer
         self._selection_choice_manually_set = False
         if self._selection_layer is not None:
             self._selection_layer.selectionChanged.connect(self._on_aoi_selection_changed)
         self._update_aoi_selection()
+        if hasattr(self, "run_button"):
+            self._refresh_layer_connections()
 
     def _on_aoi_selection_changed(self, *_args):
         self._update_aoi_selection()
@@ -384,13 +544,13 @@ class ResponsibleForestPlanningWizard(QWidget):
             self.language, "selected_only_count", count=selected_count
         ))
         self.selected_only.setEnabled(
-            self.layer_mode.isChecked() and selected_count > 0
+            self.layer_mode.isChecked() and (selected_count > 0 or self.selected_only.isChecked())
         )
-        if selected_count == 0:
-            self._selection_choice_manually_set = False
+        if selected_count == 0 and not self._selection_choice_manually_set:
             self._set_selected_only_checked(False)
         elif not self._selection_choice_manually_set:
             self._set_selected_only_checked(True)
+        self._update_buttons()
         if not self.layer_mode.isChecked():
             return
         if layer is None:
@@ -414,6 +574,8 @@ class ResponsibleForestPlanningWizard(QWidget):
         else:
             self.aoi_status.setText(tr(self.language, "drawn_aoi_ready"))
             self.clear_drawn_aoi_button.setEnabled(True)
+        if hasattr(self, "run_button"):
+            self._refresh_layer_connections()
 
     def clear_drawn_aoi(self):
         canvas = self.iface.mapCanvas()
@@ -486,6 +648,10 @@ class ResponsibleForestPlanningWizard(QWidget):
         self._remember_output_folder()
         if self._analysis_task is not None:
             return
+        if not self._inputs_ready():
+            self.iface.messageBar().pushWarning(
+                tr(self.language, "toolbar_name"), tr(self.language, "parameters_incomplete"))
+            return
         aoi = self._selected_aoi()
         if aoi is None:
             self.iface.messageBar().pushWarning(
@@ -493,15 +659,7 @@ class ResponsibleForestPlanningWizard(QWidget):
             )
             return
         project = QgsProject.instance()
-        references = {
-            layer.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", ""): layer
-            for layer in project.mapLayers().values()
-            if layer.customProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "service_id", "")
-        }
-        sources = {
-            service_id: references.get(service_id)
-            for service_id in SERVICE_DEFINITIONS
-        }
+        sources = self._configured_sources()
         try:
             worker_inputs = capture_worker_inputs(
                 aoi,
@@ -510,6 +668,7 @@ class ResponsibleForestPlanningWizard(QWidget):
                 project.transformContext(),
                 self.language,
                 self.output_folder.text().strip(),
+                sawlog_price_eur_m3=self._price_value(),
             )
         except Exception as exc:
             self.iface.messageBar().pushCritical(
@@ -541,6 +700,15 @@ class ResponsibleForestPlanningWizard(QWidget):
 
     def shutdown(self):
         """Cancel owned analysis and detach callbacks before widgets are deleted."""
+        self._shutting_down = True
+        self._disconnect_layer_connections()
+        self._disconnect_signals(self._external_connections)
+        if self._selection_layer is not None:
+            try:
+                self._selection_layer.selectionChanged.disconnect(self._on_aoi_selection_changed)
+            except (TypeError, RuntimeError):
+                pass
+            self._selection_layer = None
         task = self._analysis_task
         if task is not None:
             task.detach_completion_callback()
@@ -565,6 +733,8 @@ class ResponsibleForestPlanningWizard(QWidget):
                     tr(self.language, "toolbar_name"),
                     tr(self.language, "run_complete", gpkg=gpkg_path, workbook=workbook_path),
                 )
+                for warning in task.result.get("warnings", []):
+                    self.iface.messageBar().pushWarning(tr(self.language, "toolbar_name"), warning)
             except Exception as exc:
                 self.iface.messageBar().pushCritical(
                     tr(self.language, "toolbar_name"), tr(self.language, "run_error", error=str(exc))
@@ -643,7 +813,7 @@ class ResponsibleForestPlanningWizard(QWidget):
             project.addMapLayer(class_layer, False)
             node = tier_group.addLayer(class_layer)
             visible = tier == "all_out"
-            node.setItemVisibilityChecked(visible)
+            node.setItemVisibilityChecked(True)
             if visible and active_layer is None:
                 active_layer = class_layer
         for tier, _label in TIERS:
@@ -656,7 +826,8 @@ class ResponsibleForestPlanningWizard(QWidget):
                 snapshot.setName("{0} ({1})".format(snapshot.name(), tr(self.language, "run_input_suffix")))
                 project.addMapLayer(snapshot, False)
                 node = inputs_group.addLayer(snapshot)
-                node.setItemVisibilityChecked(False)
+                node.setItemVisibilityChecked(True)
+            inputs_group.setItemVisibilityChecked(False)
         if active_layer is not None:
             self.iface.setActiveLayer(active_layer)
 
@@ -677,12 +848,14 @@ class ResponsibleForestPlanningWizard(QWidget):
         return {
             "layer": selected_layer,
             "selected_only": self.selected_only.isChecked(),
+            "selection_choice_manually_set": self._selection_choice_manually_set,
             "aoi_mode": (
                 "draw" if self.draw_mode.isChecked()
                 else "extent" if self.extent_mode.isChecked()
                 else "layer"
             ),
             "output_folder": self.output_folder.text(),
+            "sawlog_price": self.sawlog_price.text(),
             "drawn_aoi": self.drawn_aoi,
         }
 
@@ -692,6 +865,7 @@ class ResponsibleForestPlanningWizard(QWidget):
         if state.get("layer") is not None:
             self.layer_combo.setLayer(state["layer"])
         self.output_folder.setText(state.get("output_folder", ""))
+        self.sawlog_price.setText(state.get("sawlog_price", ""))
         self.drawn_aoi = state.get("drawn_aoi")
         if state.get("aoi_mode") == "draw":
             self.draw_mode.setChecked(True)
@@ -700,6 +874,7 @@ class ResponsibleForestPlanningWizard(QWidget):
         else:
             self.layer_mode.setChecked(True)
         self.selected_only.setChecked(bool(state.get("selected_only")))
+        self._selection_choice_manually_set = bool(state.get("selection_choice_manually_set", False))
         self._update_aoi_mode()
         if self.drawn_aoi is not None:
             self.drawn_aoi.setName(tr(self.language, "drawn_aoi_layer"))

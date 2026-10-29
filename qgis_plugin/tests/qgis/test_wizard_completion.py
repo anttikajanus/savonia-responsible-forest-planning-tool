@@ -48,7 +48,7 @@ class WizardCompletionTests(WorkflowFixtureMixin, unittest.TestCase):
 
     def assert_ready(self):
         self.assertIsNone(self.wizard._analysis_task)
-        self.assertTrue(self.wizard.run_button.isEnabled())
+        self.assertFalse(self.wizard.run_button.isEnabled())
         self.assertFalse(self.wizard.cancel_button.isEnabled())
         self.assertEqual(self.wizard.cancel_button.text(), tr(self.wizard.language, "cancel_analysis"))
 
@@ -110,6 +110,7 @@ class WizardCompletionTests(WorkflowFixtureMixin, unittest.TestCase):
                 self.assertIn(self.iface.active_layer, views)
                 for layer in added:
                     node = project.layerTreeRoot().findLayer(layer.id())
+                    self.assertTrue(node.itemVisibilityChecked())
                     self.assertEqual(node.isVisible(), layer in views and '"class_all_out"' in layer.subsetString())
                     if layer in views:
                         subset = layer.subsetString()
@@ -117,8 +118,34 @@ class WizardCompletionTests(WorkflowFixtureMixin, unittest.TestCase):
                                        or ('"class_superprotection"' not in subset and "'ECONOMIC'" in subset))
                     else:
                         expected = int("|layername=forest_centre_stand" in layer.source())
+                        self.assertFalse(node.parent().itemVisibilityChecked())
+                        node.parent().setItemVisibilityChecked(True)
+                        self.assertTrue(node.isVisible())
+                        node.parent().setItemVisibilityChecked(False)
                     self.assertEqual(layer.featureCount(), expected, layer.source())
                     self.assertEqual(len(list(layer.getFeatures())), expected, layer.source())
+                for view in views:
+                    node = project.layerTreeRoot().findLayer(view.id())
+                    parent = node.parent()
+                    self.assertEqual(parent.itemVisibilityChecked(), '"class_all_out"' in view.subsetString())
+                    parent.setItemVisibilityChecked(True)
+                    self.assertTrue(node.isVisible())
+                    parent.setItemVisibilityChecked('"class_all_out"' in view.subsetString())
+
+    def test_success_warning_is_presented_after_layer_publication(self):
+        for language in ("en", "fi"):
+            self.wizard.set_language(language)
+            with self.subTest(language=language), self.scenario([]) as (_, layers, aoi):
+                result = self.run_algorithm(layers, aoi, language, "warning-" + language)
+                task = self.task()
+                warning = tr(language, "warning_stand_overlaps", path="profile/technical.log")
+                task.result = {"gpkg_path": result["RESULT"].split("|", 1)[0],
+                               "xlsx_path": result["EXCEL"], "warnings": [warning]}
+                before = set(QgsProject.instance().mapLayers())
+                task.finished(True)
+                self.assertGreater(len(set(QgsProject.instance().mapLayers()) - before), 0)
+                self.assertEqual(self.iface.message_levels[-2:], ["success", "warning"])
+                self.assertEqual(self.iface.messages[-1][1], warning)
 
     def test_unload_cancels_active_task_and_detaches_late_completion(self):
         task = self.task()
