@@ -22,6 +22,14 @@ verify handler ownership, rotation configuration, correlated aggregate events,
 traceback separation and log-directory/file-open failures in a temporary profile.
 They do not establish behavior for every possible filesystem failure.
 
+Stand overlaps use the technical channel: each unordered AOI-clipped pair at
+DEBUG, with source/stand IDs and intersection m², and one aggregate WARNING
+with pair/parent counts and a capped ID sample. No feature details enter business
+actions. Successful wizard and Processing completion warnings disclose possible
+duplicate area/timber contributions and point to the technical log destination.
+There is no per-indicator missing-value, soil/drainage-contradiction or area-roundoff
+diagnostic stream; metric coverage remains the durable numeric evidence interface.
+
 ## Development and verification
 
 Use [development](development.md) for profile/reload setup, runtime policy,

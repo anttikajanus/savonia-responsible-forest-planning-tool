@@ -327,7 +327,8 @@ save/reopen; verify ordering, visibility and no extra credential prompt.
 
 Calculation/workflow acceptance covers exact boundary intersections (including
 0.5 m²), projected CRS transforms, cell duplicates/conflicts, stand overlaps
-(shared edges, 0.5 m² and exactly 1 m² accepted; greater than 1 m² rejected),
+(shared edges without warnings; 0.5 m², exactly 1 m² and larger intersections
+retained with inherited parent flags and completion/log warnings),
 AOI dissolution, empty/partial coverage, metric-specific sufficient statistics,
 integer half-up age rounding and null preservation. Compare reopened artifacts
 by semantic values with tolerances rather than GeoPackage bytes. Keep grid and

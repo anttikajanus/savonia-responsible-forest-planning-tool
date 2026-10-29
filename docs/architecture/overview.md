@@ -45,7 +45,7 @@ flowchart TD
     W[Wizard] --> T[Capture inputs and create worker-owned layers]
     T --> R[Shared run_workflow]
     P[Processing algorithm] --> R
-    R --> V[Validate AOI, sources and output destinations]
+    R --> V[Validate AOI, price, sources and output destinations]
     V --> S[Retrieve and clip evidence once]
     S --> C[Classify stand pieces and sample grid indicators]
     C --> M[Prepare one publication record]
@@ -59,7 +59,7 @@ The five orchestrated stages are validation, source retrieval, spatial classific
 
 | Boundary | Responsibility and owning implementation |
 | --- | --- |
-| Pure evidence policy | [classification.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/classification.py) interprets normalized source values and assembles piece-level classes, rule/source IDs and indicator/status values. It receives scalar area and evidence rather than widgets or QGIS project state. |
+| Pure evidence policy | [classification.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/classification.py) interprets normalized source values and assembles piece-level classes, criterion checks, rule/source IDs and indicators with metric coverage. It receives scalar area and evidence rather than widgets or QGIS project state. |
 | Pure field contract | [source_readiness.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/source_readiness.py) resolves required fields and aliases by semantic source ID. |
 | Pure calculations | [domain.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/domain.py) owns stand mappings and summaries; [grid_indicators.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/grid_indicators.py) owns grid statistics. |
 | Workflow phases | [workflow_steps](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/) owns validation, QGIS geometry/retrieval, spatial classification, grid sampling and publication coordination. |
@@ -75,6 +75,14 @@ Packaged `metadata.txt` remains authoritative for the installation range. Use th
 Specifically, [`capture_worker_inputs`](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/worker_task.py) copies AOI geometries as WKB, source provider descriptions, selected-source feature snapshots when applicable, and the coordinate transform context on the main thread. `ResponsibleForestPlanningAnalysisTask.run()` rebuilds the AOI and source layers in the worker. When the task finishes, the wizard's main-thread callback reopens the saved GeoPackage and adds result views and clipped source snapshots to the project. Processing instead sets `NoThreading` because it receives live layer objects; it calls the same synchronous workflow with an explicit transform context from Processing.
 
 Processing feedback carries progress and cancellation; worker use does not create a second analysis implementation.
+
+The required `sawlog_price_eur_m3` parameter is captured with the worker inputs;
+Processing supplies `SAWLOG_PRICE_EUR_M3` explicitly. Shared preflight rejects
+invalid price before retrieval or output mutation. Wizard profile settings
+remember a valid price, but execution always uses the current captured input.
+Stand-overlap completion warnings are returned through the task boundary and
+presented after successful publication/project insertion; Processing receives
+the same shared warning through feedback.
 
 The capture record also retains the selected-only flag. The worker selects its
 reconstructed AOI features when that flag is set, preserving run metadata while

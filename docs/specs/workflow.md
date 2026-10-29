@@ -52,11 +52,13 @@ Scope and status follow the [specification index](README.md). These requirements
 - Dissolve overlapping AOI features so overlapping boundary inputs are counted once. Validate the area, coordinate transformations, output basename and writable destination before expensive work or publication.
 - Use EPSG:3067 spatial outputs and planar hectares. The reporting domain is the analyzed forest within the AOI, as defined in [CL-01](classification.md#cl-01-reporting-domain-and-geometry).
 - The wizard remembers the output folder and generates a basename beginning `savonia_responsible_forest_inputs_`. Processing permits an explicit basename. Reject existing paired output names instead of overwriting user files.
+- Require an explicit finite positive sawlog stumpage price (€/m³). The wizard accepts two decimal places using the selected locale, starts blank without a saved value, and remembers the last valid entry across projects and restarts. Clearing the current entry prevents a run even when settings contain a previous price. The price control follows the area controls and precedes the output folder.
 
 ## WF-05 Wizard interaction
 
 - Open a persistent nonmodal dock beside the map; it opens on the right, allows left/right docking and floating, and redocks to the right.
-- The current wizard has one analysis page: area mode and status, output folder and Run. Hiding/closing and reopening the dock preserves its current choices.
+- The wizard has one analysis page: area mode and status, sawlog stumpage price, output folder and Run. Hiding/closing and reopening the dock preserves its current choices, including the current price text.
+- Enable Run only while idle and when the current area mode has a usable AOI, selected-only mode has a usable selection, required sources are configured and locally ready, the current price is valid and the output destination is valid. Refresh readiness after relevant area, selection, extent, source, price and destination changes without feature downloads. Execution still performs complete shared validation.
 - Hiding the dock leaves a run active. Unloading the plugin requests cancellation and detaches its completion callback before deleting the wizard; a late completion must not update deleted controls or add results to the project.
 - Keep map interaction available for drawing and selection. Setup, redock, Help and About work in docked and floating modes.
 - Run the same analysis behavior as Processing, report meaningful progress, provide cancellation and show both output paths on success. On success, add the run's results and snapshots to Results as specified in [IO-06](indicators-and-outputs.md#io-06-map-review-and-run-retention).
@@ -65,7 +67,7 @@ Scope and status follow the [specification index](README.md). These requirements
 ## WF-06 Processing and repeatability
 
 - Expose the same AOI, required source, classification, indicator and publication behavior through the Processing Toolbox, batch and model workflows.
-- Explicit inputs include the polygon AOI, selected-only option, all eight source layers including grid cells, output folder and basename. The technical parameter IDs and execution interface belong to architecture and the installed Processing help.
+- Explicit inputs include the polygon AOI, selected-only option, all eight source layers including grid cells, required sawlog stumpage price, output folder and basename. Processing has no silent price default from wizard settings. The technical parameter IDs and execution interface belong to architecture and the installed Processing help.
 - Equivalent inputs produce equivalent classes, indicators, coverage and artifacts through both entry points. Return usable output paths and actionable failures to callers.
 - Keep input data intact. One entry point must not silently apply a different tier rule, missing-value policy or indicator fallback.
 
@@ -74,9 +76,11 @@ Scope and status follow the [specification index](README.md). These requirements
 | Condition | Required result |
 | --- | --- |
 | Invalid AOI, unusable transform, missing/invalid required source or required field, failed source request/iteration | Stop before publishing results and identify the problem. |
+| Missing, nonpositive or non-finite sawlog price | Reject before source retrieval or output mutation in both entry points. |
 | Returned classification values cannot be interpreted | Stop publication; do not turn the source into a no-hit or publish an assumed economic class. |
 | Repairable invalid nonempty source polygon | Repair the analysis copy, retain polygonal components and report repaired IDs/counts; preserve original input data. |
-| Null/empty or unrepairable returned geometry, failed overlay, ambiguous overlap beyond the specified tolerance or internal invariant failure | Stop publication with source identifiers and diagnostics. |
+| Null/empty or unrepairable returned geometry, failed overlay, grid-cell conflict/overlap beyond numerical tolerance or internal invariant failure | Stop publication with source identifiers and diagnostics. |
+| AOI-clipped forest stands overlap beyond numerical tolerance | Continue with original clipped geometry and duplicate contributions. After successful publication, report a localized completion warning explaining this limit and giving the technical log destination in both entry points. |
 | Successful empty retrieval or missing/invalid numeric metric values | Continue where classification remains usable; publish unavailable/partial indicators and coverage as specified in [IO-03](indicators-and-outputs.md#io-03-unavailable-and-partial-values). |
 | Intentionally excluded source/criterion | Record out of scope; its absence is not a required-source error. |
 | Cancellation | Stop at safe checkpoints; do not report success. Attempt cleanup of partial outputs. |

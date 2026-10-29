@@ -22,6 +22,11 @@
 
 Provide bilingual short help explaining the algorithm, inputs, outputs and limits, plus a link to the packaged manual's Processing section in the QGIS language. Matching section links must work in both manuals after ZIP installation, including installation paths with spaces or non-ASCII characters. Keep instructions aligned with the current shared workflow and source requirements.
 
+Explain the explicit required sawlog price, its eligibility and constant unit-price
+meaning, recoverable stand-overlap warnings and possible duplicate contributions.
+Describe readable criterion checks and retained metric coverage without presenting
+removed independent indicator status or diagnostic fields as current interfaces.
+
 ## HL-04 Identity, credits and attribution
 
 - Use **Savonia - Responsible Forest Planning** in English and **Savonia - Vastuullinen metsäsuunnittelu** in Finnish. Identify Antti Kajanus as author and describe Savonia as the source use case.

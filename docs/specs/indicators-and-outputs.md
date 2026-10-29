@@ -21,7 +21,7 @@ Provide these indicators on result polygons and in separate tier/class workbook 
 | Grid ages | Under 20, 20–80 inclusive and over 80 (%) | Area shares by overall grid-cell mean age over valid-age hectares |
 | Grid land | Peatland area (ha) | Source-classified peat soil within analyzed forest |
 | Grid land | Source-classified natural-mire area (ha) | Source drainage classification within analyzed forest |
-| Unavailable | Average stumpage price (€/m³) | Blank with `OUT_OF_SCOPE`; no source or estimate |
+| Sawlog price | Sawlog stumpage price (€/m³) | User-supplied unit price where valid positive stand sawlog volume is represented; otherwise blank |
 
 Use deciduous volume as adopted in [ADR-0011](../architecture/adr/0011-deciduous-volume-instead-of-birch.md). Birch-specific volume is out of scope and absent from result fields, summaries, coverage, metadata and UI. Deciduous volume describes all source-classified deciduous trees and must not be presented as birch-only volume.
 
@@ -31,6 +31,7 @@ Use deciduous volume as adopted in [ADR-0011](../architecture/adr/0011-deciduous
 - Use each metric's own valid area and source. Keep grid and stand total volume separate; never blend, add or silently substitute them. Missing species values are independent of available total volume and must not be inferred by subtraction.
 - Summaries combine full-precision metric statistics before final rounding. Do not average already rounded polygon fields or weight a partially covered metric by the entire piece area.
 - Weight stand metrics by actual result-piece area. Growth remains an area-weighted mean of stand growth rates using stand volume, rather than a ratio mixing stand growth with grid stock.
+- Weight sawlog prices by represented sawlog cubic metres from unrounded stand sawlog volume and piece hectares. With one supplied unit price, every nonempty eligible group has that price; groups without eligible sawlogs have a null price. Price eligibility uses original values even when a tiny positive displayed volume rounds to zero. No pulpwood calculation, external price feed or total monetary indicator is included.
 - Use original grid mean ages for age-band membership. The shares describe area with valid age, rather than stand counts or individual-tree age distribution. Disclose age coverage over the full reporting domain.
 - Soil and drainage classifications are independent. Peatland and natural-mire hectares describe source-classified conditions at source date, rather than certification of present ecological condition.
 
@@ -44,6 +45,7 @@ Acceptance: reproduce the [boundary-weighting example](../architecture/indicator
 - A successfully empty grid response may yield unavailable grid metrics while forest classification completes. There is no stand-value fallback for grid metrics.
 - Unavailable and excluded indicator scope follows [IO-01](#io-01-indicator-catalogue).
 - An empty tier/class has zero land area and feature count, with null density/age-share values. Missing metrics must remain distinguishable from known zero through both output formats.
+- Retain `indicator_coverage`, including its own availability statuses and exact statistics. Independent `indicator_status` and per-indicator diagnostic interfaces are removed. Do not produce per-value, contradictory-soil/drainage or area-roundoff diagnostic records; preserve numerical corrections, fatal invariants, source/geometry diagnostics and operational logging.
 
 ## IO-04 Labels, order and precision
 
@@ -60,9 +62,9 @@ Every successful run produces `<basename>.gpkg` and `<basename>.xlsx` with the s
 
 The GeoPackage contains:
 
-- Exactly one spatial analysis result dataset of classified forest polygons, each carrying all six tier classes, indicators, statuses, source/rule identifiers and classification context.
+- Exactly one spatial analysis result dataset of classified forest polygons, each carrying all six tier classes, ordinary criterion checks, parent-overlap flag, indicators, metric coverage, source/rule identifiers and classification context.
 - AOI-clipped source snapshots with original attributes and source identifiers, including grid cells.
-- Source coverage and run metadata, including parameters, run/language identity, source endpoint/type/provider/CRS, retrieval and available measurement/update dates, field provenance, limitations, attribution and prototype identity.
+- Source coverage and run metadata, including parameters, the user-supplied sawlog price and its interpretation/source, run/language identity, source endpoint/type/provider/CRS, retrieval and available measurement/update dates, field provenance, limitations, attribution and prototype identity.
 - Full-precision per-metric coverage/statistics sufficient to explain aggregation, independently of rounded displayed results.
 
 The valid Excel workbook contains four localized worksheets: tier/class summaries, source coverage, metric coverage and calculation notes/limitations. Report sensitive/economic and relevant unknown classes separately for each tier, with sources, statuses, valid/unknown hectares and observed partial quantities. Retain formulas/meaning, reporting domain, dates, exclusions, attribution and prototype notice. A workbook must reopen in standard XLSX readers; manual Microsoft Excel acceptance remains separately tracked.
@@ -73,6 +75,7 @@ Neither successful requests, feature counts nor mapped overlap alone establish c
 
 - After wizard success, retain each run beneath Results without removing configured sources or earlier runs.
 - Include eighteen filtered project views (six tiers × three classes) and hidden-by-default clipped snapshots loaded from that run's GeoPackage. Filtered views reference the same result dataset rather than creating extra outputs. Initially only the All out tier group is visible; users switch tiers through layer-tree group visibility.
+- Check every class child view in all six tier groups. Check every snapshot child inside its initially unchecked parent group. Enabling a previously hidden group immediately reveals its checked children.
 - Every view and snapshot must remain readable with the row count implied by its filter or captured source. Opening a later view or another run must not disrupt readers of an earlier view.
 - Use sensitive red/orange, economic green and unknown grey for the class views. Tier and category labels follow the QGIS language. The complete classified dataset is available in the GeoPackage and can be added separately.
 - US-005 is partially implemented; the [implementation-gap register](../architecture/open-questions.md#known-implementation-gaps) owns the outstanding tier-selector/full-layer presentation work, separately from acceptance of the existing views.

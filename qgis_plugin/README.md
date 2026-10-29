@@ -38,6 +38,12 @@ Continue with [First run](../README.md#first-run) to set up the source layers
 and run an analysis. The [Language](#language) section explains how QGIS selects
 Finnish or English.
 
+Each analysis requires an explicit positive sawlog stumpage price (€/m³).
+The wizard remembers the last valid price; Processing requires its own input.
+Stand overlaps are retained with parent flags and completion warnings, so
+summaries can include duplicate area/timber contributions. Read the manuals
+before interpreting the ordinary criterion checks and metric coverage.
+
 ### Build a plugin ZIP from source
 
 If a release ZIP is unavailable or you need to package a checkout, follow

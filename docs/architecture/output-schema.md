@@ -63,11 +63,26 @@ lists use these codes; several reasons can apply to one piece.
 | `other_habitat` | Match to another valuable habitat. |
 | `remaining_analyzed_forest` | Superprotection's rule for analyzed forest with no more specific sensitivity match and available required evidence. This is a policy reason and has no matched source-feature identifier. |
 
-Two additional fields describe classification context:
+Ordinary source-check attributes complement the structured reasons:
+
+| Field | Meaning |
+| --- | --- |
+| `check_protected` | Recognized active protected-area match. |
+| `check_section10` | Parent stand promoted by Section 10 evidence, including pieces outside its footprint. |
+| `check_programme` | Conservation programme match. |
+| `check_groundwater` | Groundwater footprint match. |
+| `check_other_habitat` | Other valuable habitat match. |
+
+Each stores `MATCH`, `NO_MATCH` or `UNKNOWN`, with localized presentation.
+Unavailable dependencies are unknown rather than no-match. Superprotection's
+remaining-forest rule remains in `tier_rule_ids` rather than another check field.
+
+Additional fields describe classification and parent geometry context:
 
 | Field | Stored values and meaning |
 | --- | --- |
 | `section10_stand_promoted` | Nullable boolean. `true`: Section 10 habitat evidence promoted the whole parent stand, including result pieces outside the mapped habitat footprint. `false`: no qualifying mapped Section 10 hit with Habitat available. `null`: Habitat unavailable. |
+| `stand_has_overlap` | Boolean. The AOI-clipped parent stand overlaps another stand beyond numerical tolerance anywhere inside the AOI. Every derived piece inherits the same value; this does not locate the physical overlap within each piece. |
 | `programme_protected_overlap` | Text. `YES`: a programme-matched piece has a qualifying overlap with recognized active protected-area evidence. `NO`: no such overlap with Protected available. `UNKNOWN`: Protected unavailable. `null`: no programme match to assess. |
 
 A false promotion flag does not exclude other sensitivity reasons or unmapped
@@ -131,13 +146,15 @@ These categories describe the source classification at its source date, rather
 than certification of present ecological condition. They are descriptive
 indicators, separate from the sensitivity classifications.
 
-### Unavailable indicators / Tunnusluvut, jotka eivät ole käytettävissä
+<a id="unavailable-indicators--tunnusluvut-jotka-eivät-ole-käytettävissä"></a>
+
+### Sawlog price / Tukkipuun kantohinta
 
 This field is retained at the end of the indicators.
 
 | Field | Display label | Meaning of stored value |
 | --- | --- | --- |
-| `stumpage_price_eur_m3` | Keskimääräinen kantohinta / Average stumpage price (€/m³) | Always null with status `OUT_OF_SCOPE`; no price estimate is provided. |
+| `stumpage_price_eur_m3` | Tukkipuun kantohinta / Sawlog stumpage price (€/m³) | Explicit user-supplied unit price when original stand sawlog volume is valid and positive; otherwise null. Group price is weighted by represented sawlog m³. |
 
 ### Stored precision
 
@@ -151,15 +168,16 @@ field. Reporting precision does not establish measurement accuracy.
 
 ### Availability codes and missing values
 
-`indicator_status` is a JSON object mapping indicator field IDs to the following
-codes. `area_ha` is always `AVAILABLE` for a published result piece.
+Availability codes are retained inside each metric's `indicator_coverage` entry.
+There is no independent `indicator_status` result field. Published land area
+comes directly from valid result geometry.
 
 | Status | Meaning | Numeric result |
 | --- | --- | --- |
 | `AVAILABLE` | The metric has valid evidence over the whole result piece, within numerical tolerance. | A value, including a valid zero. This status does not certify measurement accuracy. |
 | `PARTIAL` | Some hectares have valid evidence and some are unknown for this metric. | Volume means and age shares describe valid hectares only. Peatland/natural-mire totals remain null; their observed matching hectares are a lower bound in coverage JSON. |
 | `UNKNOWN_FIELD_OR_VALUE` | No valid area is available for the metric, for example because values are missing/invalid or no grid cells cover the piece. | Null, never an assumed zero. |
-| `OUT_OF_SCOPE` | The indicator is intentionally unavailable in these outputs. | Null; currently used for `stumpage_price_eur_m3`. |
+| `OUT_OF_SCOPE` | An intentionally excluded metric in the retained coverage vocabulary. | Null; sawlog price is now in scope. |
 
 A null/blank numeric field means no reported value; consult its status to find
 the reason. A numeric zero can be a known zero or a small positive estimate
@@ -174,12 +192,12 @@ its own source, availability, valid/unknown hectares and supporting quantities.
 
 | Coverage member | Meaning / unit |
 | --- | --- |
-| `source_id` | Dataset identifier: `forest_centre_stand` for stand metrics, `forest_centre_gridcell` for grid metrics, or null for out-of-scope price. Unlike `source_ids`, this identifies a dataset rather than matched feature records. |
+| `source_id` | Dataset identifier: `forest_centre_stand` for stand metrics and sawlog-price applicability, or `forest_centre_gridcell` for grid metrics. Unlike `source_ids`, this identifies a dataset rather than matched feature records. |
 | `status` | The metric availability code defined above. |
 | `valid_area_ha` | Hectares with valid evidence for this particular metric. |
 | `unknown_area_ha` | Reporting hectares without valid metric evidence; not assumed zero or allocated to a matching category. |
 | `represented_volume_m3` | Timber volume represented over this metric's valid area, in m³. Present for volume metrics. |
-| `weighted_sum` | Area-weighted accumulator retained for growth or basal area. A supporting statistic, not the reported percentage or m²/ha value. |
+| `weighted_sum` | Accumulator retained for growth, basal area or sawlog price. Growth/basal area use hectares; price uses represented sawlog m³. A supporting statistic rather than the reported value. |
 | `matching_area_ha` | Valid hectares matching the age band, peat soil or natural-mire category. For partial area totals this is the observed lower bound. |
 | `coverage_percent_exact` | Percentage of the result piece with valid age evidence, at full precision. |
 | `coverage_percent` | The same age coverage rounded to a whole percent. This is coverage of the polygon, not its share in an age band. |
@@ -202,17 +220,17 @@ stored in text fields.
 | `tier_rule_ids` | Object keyed by tier. Each entry contains `criteria` (reason codes), `source_ids` (supporting feature identifiers) and `unknown_sources` (unavailable dependencies for an unmatched decision). Empty lists mean no entries of that kind. |
 | `source_ids` | Matched feature identifiers grouped by classification reason, independently of tier. `{}` means no matched classification identifiers, rather than no source data used. Section 10 identifiers apply to all promoted pieces. |
 | `programme_info` | List of retained programme records: `LsoAlueTunnus` (identifier), `Luokka` (class), `Subtype` (subtype), `Nimi` (name), `MuutosPvm` (source change date) and `Lisatieto` (additional information), where available. `[]` means no retained programme records. |
-| `indicator_diagnostics` | List of value/geometry diagnostic records, with available source-cell ID, source field and affected hectares. An empty list does not guarantee indicator availability; read `indicator_status` and `indicator_coverage`. |
 
-Diagnostic `reason_code` values are `MISSING_VALUE` (absent value),
-`INVALID_VALUE` (unusable value), `CONTRADICTORY_SOIL_DRAINAGE` (non-peat soil
-with natural-mire drainage) and `AREA_ROUNDOFF_ADJUSTMENT` (bounded numerical
-area adjustment). Diagnostic areas can overlap; use metric coverage to read
-unknown hectares.
+There is no per-indicator diagnostic result field or corresponding metadata
+summary. Coverage retains the evidence needed for null/partial interpretation;
+geometry corrections and invariant checks still run. General source/geometry
+records, operational errors and stand-overlap logs remain separate.
 
 The file also contains AOI-clipped source snapshots, a `source_coverage` table
 with retrieval/interpretation details and exclusions, and a `run_metadata`
 table with run identity, parameters, source dates, limitations and attribution.
+Run parameters include the supplied sawlog price; durable metadata identifies
+its user-supplied origin, applicability source and unit-price interpretation.
 The application columns in both tables are text, with objects/lists stored as
 JSON. Successful source counts do not establish geographic completeness;
 source dates are distinct from the run timestamp. Retain attribution when

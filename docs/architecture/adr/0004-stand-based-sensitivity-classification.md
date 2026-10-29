@@ -11,4 +11,8 @@ MY zoning, recreation, potential protected sites, peatland sensitivity and water
 
 ## Current contract
 
+The stand-overlap acceptance limit is superseded by
+[ADR-0013](0013-nonfatal-stand-overlaps.md); the recorded decision above retains
+its historical context.
+
 The decision above retains its recorded context. [CL-01/CL-02](../../specs/classification.md) own current thresholds and tier membership; [geometry](../calculations.md#area-and-geometry) owns numerical tolerances.
