@@ -83,27 +83,51 @@ The experimental plugin targets **QGIS 4.2.3 and newer 4.x releases**.
 Follow the [Plugin installation guide](qgis_plugin/README.md#plugin-installation)
 to download the release ZIP, install it in QGIS and check that Help opens.
 Analysis needs an internet connection to the configured Metsäkeskus and SYKE
-WFS services.
+WFS services. Project setup also connects to Maanmittauslaitos (MML) services
+and requires an MML API key. Prepare the
+[API key and user identifier](#get-the-api-key-and-user-identifier) before setup.
 
 To build a ZIP from source or set up a development environment, use the
 [development guide](docs/architecture/development.md).
 
 ## First run
 
+### Get the API key and user identifier
+
+Prepare these before setting up the layers:
+
+| Provider | When needed | How to obtain it |
+| --- | --- | --- |
+| Maanmittauslaitos (MML) API key | Required for project setup: property boundaries, property identifiers and MML basemaps. | Register or sign in to **OmaTili** and create a key, following the [MML API-key instructions](https://www.maanmittauslaitos.fi/rajapinnat/api-avaimen-ohje). |
+| SYKE application identifier (`sykeuserid`) | SYKE requires an application-specific identifier for long-term application use or intensive requests. The plugin accepts a blank value and lets you supply it later. | Request an identifier from **gistuki@syke.fi**, following the [SYKE identifier instructions](https://www.syke.fi/fi/ymparistotieto/avoimet-rajapinnat/paikkatietorajapinnat). |
+
+The plugin remembers both values separately in QGIS settings. It uses the MML
+key as the layer connection username with an empty password, and includes the
+SYKE identifier in service URLs. **Saved QGIS projects retain both values**;
+review layer connections and URLs before sharing a project. To replace a
+rejected or changed MML key, change or clear
+`savonia-forest-planning/mml-api-key` in QGIS's Advanced Settings Editor, then
+repeat setup.
+
+### Set up layers and run an analysis
+
+Setup adds **13 layers**: eight analysis sources (three Metsäkeskus and five
+SYKE), two MML property layers (boundaries and identifiers), and three basemaps
+(Orthophoto, Topographic map and OpenStreetMap).
+
 1. In the wizard toolbar, choose **Set up forest planning layers**.
-2. At the SYKE prompt, enter a provider-issued `sykeuserid` or leave it blank
-   to continue. The plugin accepts a blank value, but **SYKE requires an
-   application-specific identifier for long-term application use or intensive
-   requests**. See [SYKE setup](qgis_plugin/README.md#requirements-and-syke-setup)
-   for the provider's instructions. When supplied, the identifier is included
-   in layer URLs and saved QGIS projects; review those URLs before sharing a
-   project. Wait for all **eight required source layers** to report ready.
-3. Start with a small area: draw a polygon, select polygon features from a
+2. At the **MML API key** prompt, enter your key. A saved key is
+   reused on later setups. Cancelling or leaving the key blank stops setup
+   before any layers change.
+3. At the SYKE prompt, enter your `sykeuserid` or leave it blank to continue.
+   Wait for all layers to report ready.
+   If MML setup is incomplete, check the key and network connection, then repeat setup.
+4. Start with a small area: draw a polygon, select polygon features from a
    project layer, or use the current map extent.
-4. Enter a positive sawlog stumpage price (€/m³), choose a writable output folder
+5. Enter a positive sawlog stumpage price (€/m³), choose a writable output folder
    and run the analysis. Resolve any reported
    source, geometry or validation error before retrying.
-5. Inspect the classified layer in **Results**, then open the GeoPackage and
+6. Inspect the classified layer in **Results**, then open the GeoPackage and
    workbook described below. Check source and metric coverage alongside the
    classifications and indicators.
 
