@@ -67,7 +67,7 @@ key as the HTTP Basic username with an empty password so authentication reaches
 both discovery and feature requests, including linked URLs. Saved projects
 retain that username; review connections before sharing them. Plugin errors
 redact credentials. See [MML authentication instructions](https://www.maanmittauslaitos.fi/rajapinnat/api-avaimen-ohje)
-and the [setup instructions](../../qgis_plugin/README.md#requirements-and-syke-setup)
+and the [setup instructions](../../README.md#get-the-api-key-and-user-identifier)
 for key replacement. The [source-layer contract](source-layer-requirements.md#configured-layer-behavior)
 owns validation and reuse.
 
@@ -160,6 +160,6 @@ Successful empty retrieval is `AVAILABLE` but is not certification of complete g
 
 ## Access and evidence maintenance
 
-For sustained/load-generating SYKE use, obtain the provider-issued application identifier and pass it as `sykeuserid`; keep it outside committed source, fixtures and logs. The plugin saves it in QGIS settings and includes it in SYKE WFS layer URLs. Saving a project intentionally persists those URLs, including the identifier, in `.qgs` or `.qgz` so the layers retain their service connection details. Review layer URLs before sharing or committing a project. This persistence is separate from error-message redaction in [sources.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py). See [SYKE service guidance](https://www.syke.fi/fi/ymparistotieto/avoimet-rajapinnat/paikkatietorajapinnat), [request parameter guidance](https://wwwi4.ymparisto.fi/i4/fin/eowiki/kysymys_wcs.html), and the [plugin setup instructions](../../qgis_plugin/README.md#requirements-and-syke-setup).
+For sustained/load-generating SYKE use, obtain the provider-issued application identifier and pass it as `sykeuserid`; keep it outside committed source, fixtures and logs. The plugin saves it in QGIS settings and includes it in SYKE WFS layer URLs. Saving a project intentionally persists those URLs, including the identifier, in `.qgs` or `.qgz` so the layers retain their service connection details. Review layer URLs before sharing or committing a project. This persistence is separate from error-message redaction in [sources.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py). See [SYKE service guidance](https://www.syke.fi/fi/ymparistotieto/avoimet-rajapinnat/paikkatietorajapinnat), [request parameter guidance](https://wwwi4.ymparisto.fi/i4/fin/eowiki/kysymys_wcs.html), and the [credential setup instructions](../../README.md#get-the-api-key-and-user-identifier).
 
 When investigating a provider question, identify the exact endpoint/type, CRS, required properties and representative sanitized status/code/null formats. Keep schema evidence distinct from feature values, field readiness distinct from metric coverage, and provider facts distinct from application choices. [Outstanding checks](../open-questions.md).
