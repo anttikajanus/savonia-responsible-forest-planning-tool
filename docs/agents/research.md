@@ -1,8 +1,8 @@
 # Research
 
 Read this guide for research tasks and use `mattpocock-skills:research`.
-It complements the [documentation map](README.md): research notes hold dated
-evidence; maintained specs and technical references hold adopted outcomes.
+It complements the [documentation map](README.md): research notes hold findings
+and sources; maintained specs and technical references hold adopted outcomes.
 
 ## Workflow
 
@@ -29,7 +29,7 @@ findings to versioned owners before relying on them in a fresh checkout.
 
 ## Finalizing findings
 
-When a research question is resolved, record adopted consequential choices as ADRs under `docs/architecture/adr/` and move enduring technical guidance, primary-source citations and remaining questions into the appropriate `docs/architecture/` reference. Capture adopted user-facing requirements in `docs/specs/` using the [specification workflow](specifications.md), keeping proposals in `.scratch/`. Put project context outside architecture when it is not technical. Preserve original evidence dates and distinguish proposals from implemented decisions.
+When a research question is resolved, record adopted consequential choices as ADRs under `docs/architecture/adr/` and move enduring technical guidance, primary-source citations and remaining questions into the appropriate `docs/architecture/` reference. Capture adopted user-facing requirements in `docs/specs/` using the [specification workflow](specifications.md), keeping proposals in `.scratch/`. Put project context outside architecture when it is not technical. Distinguish proposals from implemented decisions; dated verification reports are not required.
 
 Mark a fully superseded note `Disposition: ready to delete`, link its replacements,
 and redirect incoming project-documentation links before removal. A note with

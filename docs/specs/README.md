@@ -54,17 +54,12 @@ The [verification and deferred-work register](../architecture/open-questions.md)
 owns current implementation gaps, provider checks and acceptance/release status.
 Stories with outstanding functionality carry an explicit partial/deferred marker.
 
-Reviewed against the implementation and recorded evidence on **30 October 2026**.
 Use these links to distinguish completed changes from remaining work:
 
-| Area | Requirement and current status | Evidence / remaining work |
+| Area | Requirement and current status | Checks / remaining work |
 | --- | --- | --- |
-| Stand overlaps, required price and run readiness | Implemented: [CL-01](classification.md#cl-01-reporting-domain-and-geometry), [WF-04–06](workflow.md#wf-04-analysis-area-and-destination) | [Recorded automated checks](../architecture/open-questions.md#automated-regression-verification); personal [desktop checklist](../testing/manual-acceptance.md#inputs-and-execution). |
-| Calculated sawlog value | Implemented: [IO-01–04](indicators-and-outputs.md#io-01-indicator-catalogue) | [Automated evidence](../architecture/open-questions.md#automated-regression-verification); [QGIS/Excel interpretation checks](../testing/manual-acceptance.md#numerical-interpretation-and-exceptional-evidence). |
-| Polygon source queries and negligible result fragments | Implemented: [WF-03](workflow.md#wf-03-source-readiness-and-retrieval), [CL-01](classification.md#cl-01-reporting-domain-and-geometry) | [Automated checks](../architecture/open-questions.md#automated-regression-verification) and bounded [provider evidence](../architecture/open-questions.md#provider-evidence). |
-| US-005 map review | Implemented: [IO-06](indicators-and-outputs.md#io-06-map-review-and-run-retention) | [Current scope confirmed by the project owner](../architecture/open-questions.md#us-005-map-review); visual [desktop checks](../architecture/open-questions.md#interactive-acceptance) remain separate. |
-| Ranta10 context | Deferred: US-016, [CL-04](classification.md#cl-04-exclusions-and-interpretation) | [Deferred sources](../architecture/deferred-sources.md); no retrieval is implemented. |
+| Stand overlaps, required price and run readiness | Implemented: [CL-01](classification.md#cl-01-reporting-domain-and-geometry), [WF-04–06](workflow.md#wf-04-analysis-area-and-destination) | [Automated checks](../architecture/development.md#automated-regression-verification); personal [desktop checklist](../testing/manual-acceptance.md#inputs-and-execution). |
+| Calculated sawlog value | Implemented: [IO-01–04](indicators-and-outputs.md#io-01-indicator-catalogue) | [Automated checks](../architecture/development.md#automated-regression-verification); [QGIS/Excel interpretation checks](../testing/manual-acceptance.md#numerical-interpretation-and-exceptional-evidence). |
+| Polygon source queries and negligible result fragments | Implemented: [WF-03](workflow.md#wf-03-source-readiness-and-retrieval), [CL-01](classification.md#cl-01-reporting-domain-and-geometry) | [Automated checks](../architecture/development.md#automated-regression-verification) and bounded [provider evidence](../architecture/open-questions.md#provider-evidence). |
+| US-005 map review | Implemented: [IO-06](indicators-and-outputs.md#io-06-map-review-and-run-retention) | Current scope confirmed by the project owner; visual [desktop checks](../architecture/open-questions.md#interactive-acceptance) remain separate. |
 | Maintainer reference material | Implemented tooling: [WF-08](workflow.md#wf-08-local-development-reference-material) | [Cache integrity and missing authenticated material](../architecture/open-questions.md#reference-material-integrity); cached schemas do not verify feature values. |
-
-This review changes documentation only. It does not establish new runtime,
-provider, desktop or buyer acceptance.

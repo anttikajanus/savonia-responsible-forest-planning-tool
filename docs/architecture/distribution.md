@@ -1,7 +1,7 @@
 # Distribution, notices and attribution
 
 This page describes the prototype's package inventory, licensing and data
-attribution, checked on 26 October 2026. Full ownership and host/transitive licence
+attribution. Full ownership and host/transitive licence
 compatibility audits remain outside that inventory check.
 [ADR-0009](adr/0009-project-licence-and-portable-attribution.md).
 
@@ -46,8 +46,17 @@ policy must permit the token's tag/release writes.
 
 Install the named plugin ZIP from [GitHub Releases](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/releases);
 GitHub source archives do not provide the bundled installation layout.
-[Hosted evidence and remaining checks](open-questions.md#acceptance-and-distribution)
-are recorded separately from the workflow design.
+[Hosted checks](#hosted-checks) and
+[remaining questions](open-questions.md#acceptance-and-distribution) are separate
+from the workflow design.
+
+### Hosted checks
+
+Inspect [GitHub Actions](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/actions/workflows/build-and-release.yml)
+for the source commit's build, integration, cache and release results. The logs
+and release artifacts provide execution details without a separate dated summary
+in repository documentation. CI success does not establish downloaded-ZIP desktop
+behavior, live-provider completeness, newer-QGIS compatibility or merge blocking.
 
 ## Host software
 

@@ -4,7 +4,7 @@ This catalogue records the prototype's current user goals.
 Stable `US-` IDs identify stories; linked requirement IDs provide their acceptance
 criteria.
 
-Unless explicitly marked partial or deferred, stories describe implemented prototype behavior with acceptance limits stated in the [index](README.md#implementation-and-acceptance-status). They do not establish Savonia acceptance.
+Unless explicitly marked partial, deferred or retired, stories describe implemented prototype behavior with acceptance limits stated in the [index](README.md#implementation-and-acceptance-status). They do not establish Savonia acceptance.
 
 ## Starting and organizing work
 
@@ -30,7 +30,7 @@ Unless explicitly marked partial or deferred, stories describe implemented proto
 | US-013 | As a planner, I want setup to prepare mapped habitats, so Section 10 and other valuable habitats can supply distinct criteria. | [WF-02](workflow.md#wf-02-project-setup), [CL-02](classification.md#cl-02-six-cumulative-tiers) |
 | US-014 | As a planner, I want all required protected-area products prepared and checked, so state-owned, private-land and wilderness evidence can inform classification. | [WF-02](workflow.md#wf-02-project-setup), [CL-03](classification.md#cl-03-classes-and-evidence-policy) |
 | US-015 | As a planner, I want excluded criteria recorded as out of scope, so their intentional absence is distinguishable from unavailable required evidence. | [CL-04](classification.md#cl-04-exclusions-and-interpretation) |
-| US-016 | As a planner, I want optional Ranta10 shoreline context separate from classification, so context does not silently add sensitivity rules. **Deferred: Ranta10 is disabled and not retrieved in the current scope.** | [CL-04](classification.md#cl-04-exclusions-and-interpretation) |
+| US-016 | **Retired on 30 October 2026.** This ID is reserved and will not be reused. | — |
 | US-017 | As a planner, I want discovery and validation of required sources and fields, so changed or unusable services are reported before they are misinterpreted. | [WF-03](workflow.md#wf-03-source-readiness-and-retrieval) |
 | US-018 | As a planner, I want online-source queries restricted to the analysis geometry where request size permits, with complete paging and exact local clipping, so unnecessary features are reduced without truncating the analysis evidence. | [WF-03](workflow.md#wf-03-source-readiness-and-retrieval) |
 | US-019 | As a planner, I want the required grid prepared once with dark green borders and no fill, and stands, habitats and grid rendered only at their configured close scales, so detailed source display remains practical while analysis works at any map scale. | [WF-02](workflow.md#wf-02-project-setup), [IO-02](indicators-and-outputs.md#io-02-weighting-and-aggregation) |

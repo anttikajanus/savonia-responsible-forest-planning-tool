@@ -31,7 +31,7 @@ Start with the [technical architecture diagram and explanation](overview.md#syst
 
 | Need | Owner |
 | --- | --- |
-| Configured products/endpoints, dated checks and provider references | [Data sources](data-sources.md) |
+| Configured products/endpoints, provider references and interpretation limits | [Data sources](data-sources.md) |
 | Indicator evidence, rationale, accuracy and source limitations | [Indicator design](indicators.md) |
 | Candidate datasets and unadopted policy questions | [Deferred sources](deferred-sources.md) |
 

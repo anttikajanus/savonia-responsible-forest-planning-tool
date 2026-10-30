@@ -29,8 +29,8 @@ Read existing cached files before making new requests. Populate missing or
 invalid files with the downloader and use `--refresh` when an explicit refresh
 is needed. The reference instructions own the commands, validation, failure
 handling and provenance details. Download records retain retrieval timestamps,
-byte counts and SHA-256 hashes locally; maintained documentation must preserve
-the evidence dates and interpretation limits needed without that cache.
+byte counts and SHA-256 hashes locally; maintained documentation retains the
+source interpretation and limitations needed without that cache.
 
 The trade-off is that a fresh checkout needs provider access to populate its
 references. Upstream URLs and contents can change, so the manifest alone cannot

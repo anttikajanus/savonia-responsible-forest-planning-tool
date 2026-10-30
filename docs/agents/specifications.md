@@ -8,7 +8,7 @@ identifies the authoritative owners; this guide owns the handoff between them.
 
 Use the affected maintained requirements as the starting point for current
 behavior, technical references for exact contracts, and `.scratch/` for the
-local proposal and dated evidence. `.scratch/` is ignored by Git and may be
+local proposal and useful debugging notes. `.scratch/` is ignored by Git and may be
 absent in a fresh checkout. Keep final user goals and observable behavior in
 `docs/specs/`; link technical details to their architecture owner. Maintained
 documentation must contain the information needed without local work records.
@@ -32,9 +32,8 @@ contracts a maintainer needs to understand or safely change the system:
   a runtime workaround only when it explains a consequential constraint; link
   to its implementation for the mechanics.
 - Keep user interactions in specs/manuals and repeatable commands in the
-  development guide. Keep detailed automated-test outcomes and debugging history in
-  working verification records; the maintained verification register needs
-  dated evidence summaries, outstanding gaps and the next check.
+  development guide. Keep useful debugging detail local; maintained documentation
+  needs current limitations, outstanding gaps and the next check.
 
 Before retaining a paragraph, identify the decision, boundary, guarantee or
 external contract it explains. If it only restates discoverable implementation,
@@ -62,7 +61,7 @@ Before reporting the feature complete:
 3. Update `docs/specs/user-stories.md` for added, changed or retired user goals. Preserve stable story/requirement IDs; allocate new IDs for new goals. For a retired goal, retain its ID with its disposition or replacement link rather than reusing the ID.
 4. Review technical references and consequential ADRs in `docs/architecture/` against the [architecture scope](#architecture-scope), updating changed decisions and contracts rather than narrating implementation. Update domain terms in `GLOSSARY.md` and affected manuals/entry-point links. For an internal refactor, update architecture when needed and record that the functional specs were reviewed and behavior is unchanged.
 5. Add links from the local working spec to the maintained specs/technical references that describe its outcome. Keep working records in `.scratch/` and publish final behavior, decisions and remaining evidence gaps in their maintained owners. Public documentation must not link to individual `.scratch/` files or depend on scripts stored there.
-6. Check local links, requirement/story references and consistency between specs, architecture and actual behavior. Record any unresolved discrepancy explicitly, with its current behavior and follow-up. Preserve evidence dates and outstanding checks; documentation promotion does not complete acceptance tests.
+6. Check local links, requirement/story references and consistency between specs, architecture and actual behavior. Record any unresolved discrepancy explicitly, with its current behavior and follow-up. Keep outstanding checks clear; documentation promotion does not complete acceptance tests.
 
 The documentation handoff is complete when the affected maintained docs reflect the final behavior, the working spec links to them, and remaining verification/deferred items have an explicit home. Use `Status: implemented` for implementation progress under [triage guidance](triage-labels.md); keep that status separate from documentation handoff and acceptance completion. Report any unfinished handoff rather than treating the feature as fully complete.
 
@@ -74,12 +73,13 @@ The documentation handoff is complete when the affected maintained docs reflect 
   ownership links and agreement with the existing contracts. Record that product
   behavior is unchanged. Packaged manual/resource changes also need their relevant
   help and package checks under QGIS guidance.
-- Keep verification dates explicit. Documentation edits do not establish runtime,
-  bilingual GUI or provider-value verification. Carry remaining gaps into the
-  [verification register](../architecture/open-questions.md).
+- Summarize checks performed and remaining concerns in the task response.
+  Verification reports, date-stamped evidence summaries and test-history
+  documentation are not required. Keep substantive unresolved questions in
+  [open questions](../architecture/open-questions.md). Source measurement/update
+  dates and machine-generated retrieval provenance retain their product meaning.
 - Manual testing follows the [personal checklist](../testing/manual-acceptance.md).
-  Its lightweight workflow governs manual checks; working verification records
-  remain useful for automated checks, debugging and provider evidence. Keep
+  Its lightweight workflow governs manual checks. Local notes may help debugging; keep
   substantive defects and unanswered questions in their maintained owners.
 
 ## Writing a maintained spec

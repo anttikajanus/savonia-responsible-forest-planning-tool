@@ -21,8 +21,8 @@ screenshots, extracted packages, simulations and local tooling in ignored
 `.local/<feature-slug>/`. The shared check runner uses `.local/checks/`; see the
 [development guide](../architecture/development.md#local-check-runner).
 Keep reusable scripts needed by the repository in versioned `scripts/`.
-Record verification summaries in the working Markdown records and reference
-supporting artifacts in `.local/` when useful.
+Keep debugging notes and artifact references only when useful; verification
+reporting follows [specification guidance](specifications.md#scope-verification-to-the-change).
 
 ### Working records
 
@@ -47,7 +47,7 @@ verification needed. Readiness must reflect unanswered blocking questions.
 
 Read the referenced file. If given only a number, locate it within the named
 feature; inspect its working spec, dependency tickets and linked maintained
-requirements before changing it. Preserve comments and dated verification history.
+requirements before changing it. Preserve relevant comments and decisions.
 
 ## Wayfinding operations
 

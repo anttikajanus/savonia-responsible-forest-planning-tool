@@ -36,5 +36,5 @@ maps or parallel glossaries.
   should be reconsidered. For example, replacing provider-field readiness with
   a saved-schema decision changes
   [ADR-0003](../architecture/adr/0003-provider-field-source-contracts.md).
-- Keep evidence dates and acceptance limits explicit. An adopted decision is
+- Keep acceptance limits explicit. An adopted decision is
   separate from proof that its implementation or provider assumptions are verified.

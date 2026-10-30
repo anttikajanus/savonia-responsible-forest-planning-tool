@@ -24,7 +24,7 @@ tracker, labels and document destinations.
 | Domain terminology | [Root glossary](../../GLOSSARY.md) | One shared vocabulary; follow [domain guidance](domain.md) when changing terms or ADRs. |
 | Current user goals and functional requirements | [Specification index](../specs/README.md) | Start with the affected stories and requirement IDs; use [specification maintenance](specifications.md) for changes. |
 | Technical boundaries, contracts and adopted decisions | [Architecture index](../architecture/README.md) | Read the relevant contract and ADRs; apply [architecture scope](specifications.md#architecture-scope) when writing or reviewing them. |
-| Commands for development, tests and packaging | [Development guide](../architecture/development.md) | Use the documented runtime/commands and automated verification records. |
+| Commands for development, tests and packaging | [Development guide](../architecture/development.md) | Use the documented runtime/commands; summarize checks in the task response. |
 | Personal manual testing | [Manual checklist](../testing/manual-acceptance.md) | Use its steps and expected results when checking the installed plugin; follow its lightweight workflow. |
 | Planner instructions | [English manual](../help/manual_en.html) and [Finnish manual](../help/manual_fi.html) | Maintain equivalent user instructions; [QGIS guidance](qgis.md) owns localization and package checks. |
 | Local working proposals, issues and verification records | Ignored `.scratch/<feature-slug>/` | Follow the [local tracker](issue-tracker.md) and [triage mapping](triage-labels.md). Publish current behavior and remaining gaps in maintained documentation. |
@@ -32,7 +32,7 @@ tracker, labels and document destinations.
 | Research evidence | [Research directory](../research/README.md) | Follow [research guidance](research.md); promote adopted requirements, decisions and unresolved questions to their maintained owners. |
 | External source material | [Reference index](../references/README.md) | Procurement PDFs are versioned under `procurement/629864/`; provider evidence has a separate cache. |
 | Provider capabilities, schemas and PDF/XLSX documents | [Service metadata](../references/service-metadata/README.md) | Read cached files first. The manifest and instructions are versioned; downloads and retrieval metadata are ignored. |
-| Remaining acceptance and provider checks | [Open questions](../architecture/open-questions.md) | Preserve explicit gaps and evidence dates; implementation completion does not close acceptance. |
+| Remaining acceptance and provider checks | [Open questions](../architecture/open-questions.md) | Keep unresolved questions and limitations explicit; implementation completion does not close acceptance. |
 
 ## Reading and handoff
 

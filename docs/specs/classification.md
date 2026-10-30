@@ -44,7 +44,7 @@ conservation of the parent geometry and full-precision area.
 
 ## CL-04 Exclusions and interpretation
 
-SYKE forest-sensitive-water criteria, peat/mire sensitivity criteria, water-protection buffers, recreation areas, potential protected sites and MY plan areas are out of scope. Do not retrieve/process their geometries as classification evidence or make their absence an unknown-source failure. Ranta10 shoreline context is deferred; it is disabled and not requested or processed.
+SYKE forest-sensitive-water criteria, peat/mire sensitivity criteria, water-protection buffers, recreation areas, potential protected sites and MY plan areas are out of scope. Do not retrieve/process their geometries as classification evidence or make their absence an unknown-source failure.
 
 Grid peatland and natural-mire **indicators** are included within analyzed forest and do not add sensitivity criteria. Programme membership does not establish current legal protection, and Section 10 stand promotion is a conservative prototype assumption. No mapped habitat does not prove habitat absence.
 

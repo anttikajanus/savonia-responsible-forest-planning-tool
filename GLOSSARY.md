@@ -90,7 +90,7 @@ A mapped SYKE groundwater-area footprint used as sensitivity evidence in Balance
 An area identified as potentially suitable for protection, rather than evidence of an established protected area or a conservation programme designation. It is excluded from the agreed sensitivity criteria.
 
 **Context layer**:
-Geographic information provided for map interpretation without contributing sensitivity evidence. Shoreline context and basemaps do not create criterion matches.
+Geographic information provided for map interpretation without contributing sensitivity evidence. Property boundaries, property identifiers and basemaps do not create criterion matches.
 
 ## Tiers and classifications
 

@@ -1,8 +1,7 @@
 # Data sources and evidence contract
 
 This page defines the prototype's configured sources and evidence limits.
-Provider observations were recorded on 23–29 October 2026; individual checks
-retain their evidence dates below. [ADR-0003](adr/0003-provider-field-source-contracts.md)
+[ADR-0003](adr/0003-provider-field-source-contracts.md)
 explains why provider fields, rather than saved XSD contents, determine readiness.
 
 ## Required sources
@@ -22,7 +21,7 @@ Eight WFS layers are required. The three protected-area layers form one interpre
 
 Metsäkeskus and SYKE list their services in the [Metsäkeskus interface directory](https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto/aineistot-paikkatieto-ohjelmille/rajapinnat) and [SYKE service directory](https://www.syke.fi/fi/ymparistotieto/avoimet-rajapinnat/paikkatietorajapinnat). WMS is map context; analysis uses vector WFS. `inspire_ps` contains multiple feature families: a Natura type does not satisfy the required protected/wilderness contract. Compare the provider's [Natura dictionary](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Natura.pdf) with the [protected/wilderness dictionary](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Luonnonsuojelujaeramaaalueet.pdf).
 
-Ranta10 is disabled and not retrieved. MML WMTS basemaps and OpenStreetMap are display context and do not enter classifications or exported analysis snapshots. MY, potential protected sites, recreation, water buffers and peatland sensitivity sources are excluded; [deferred sources](deferred-sources.md) records alternatives without activating them.
+MML WMTS basemaps and OpenStreetMap are display context and do not enter classifications or exported analysis snapshots. MY, potential protected sites, recreation, water buffers and peatland sensitivity sources are excluded; [deferred sources](deferred-sources.md) records alternatives without activating them.
 
 ## MML basemap context
 
@@ -37,8 +36,8 @@ The project CRS is unchanged.
 
 The [official WMTS technical description](https://www.maanmittauslaitos.fi/en/maps-and-spatial-data/datasets-and-interfaces/map-interface-services/map-image-service-wms-wmts-1)
 and [API-key instructions](https://www.maanmittauslaitos.fi/rajapinnat/api-avaimen-ohje)
-were checked on 28 October 2026. An unauthenticated capabilities request returned
-HTTP 401; authenticated live capabilities/tiles remain unverified here.
+describe authenticated access. Capabilities require credentials; authenticated
+live capabilities/tiles remain unverified here.
 The [reference cache](../references/service-metadata/README.md) supports an
 optional `MML_API_KEY` for this download. These are display-only rasters outside
 the eight-source analysis registry and exports. Preserve MML attribution in
@@ -58,7 +57,7 @@ The [parcel model](../references/service-metadata/mml/parcels/palstan-sijaintiti
 defines polygon location. The cached
 [identifier-location model](../references/service-metadata/mml/parcels/kiinteistotunnuksen-sijaintitiedot.pdf)
 defines identifier points (`GM_Point`) and `kiinteistotunnuksenEsitysmuoto`.
-These are older model evidence, not live service schema checks. Reviewed 28 October 2026; live
+These are older model evidence, not live service schema checks. Live
 credentialed/schema and desktop verification remain in the
 [verification register](open-questions.md#provider-evidence).
 
@@ -93,17 +92,17 @@ Use the [reference instructions](../references/service-metadata/README.md) to po
 explicitly refresh local evidence. The versioned manifest owns request URLs and
 filenames; local retrieval metadata records capture times and checksums.
 Capabilities/XSD files establish advertised types, CRS and property definitions
-at capture time; they contain no representative feature records. Keep dated
-observations separate from subsequent refreshes of these mutable local artifacts.
+at capture time; they contain no representative feature records. Cached files
+can become stale as providers change their services.
 
 | Evidence | Established fact | Limit |
 | --- | --- | --- |
 | Saved stand XSD + Metsäkeskus 2.1.3 **MV GeoServer** workbook sheet | `standid`, `meanage`, `volume`, `sawlogvolume`, `volumegrowth` exist in the reduced WFS model; age is years, stock/sawlogs m³/ha and annual growth m³/ha/year. | Optional nullable decimal fields do not establish populated or valid values. The wider GeoPackage model is not proof of WFS fields. |
 | Saved habitat XSD + **EY GeoServer** sheet | `habitattype` is the controlling property; workbook links it to the official `elinymparistokuvion_tyyppi-v_1_0` code set. | Schema does not establish current code frequencies or inventory completeness. |
-| Protected-sites capabilities and all three XSDs, refreshed 26 October | Separate state/private/wilderness types advertise EPSG:3067; schemas include `olotila`, `tyyppilyhenne`, `kohdetyyppi`. | Not a sample of active/inactive values or proof of geographic completeness. |
+| Protected-sites capabilities and all three XSDs | Separate state/private/wilderness types advertise EPSG:3067; schemas include `olotila`, `tyyppilyhenne`, `kohdetyyppi`. | Not a sample of active/inactive values or proof of geographic completeness. |
 | Saved programme capabilities/XSD | Exact typename, EPSG:3067, `lsoaluetunnus`, `luokka` and optional nullable `subtype`. | Current class/subtype distribution and completeness are not verified by XSD. |
-| Grid schema and three-cell bounded request checked 25 October | Direct total/pine/spruce/deciduous fields, age, soil/drainage; sample showed a null spruce value and different measurement/update dates. | Raw samples were not saved. Three cells do not estimate regional/national coverage or null prevalence. |
-| Groundwater capabilities/XSD downloaded 26 October and general provider dictionary | Exact `syke_vhspohjavesi:VHS2022_Pohjavesi` type advertises EPSG:3067 and its schema is retained; fields include `pvaluetunnus`, `pvalueeutunnus`, `pvalueluokka`, nullable `muutospvm` (`xsd:dateTime`) and `geom` (`gml:MultiSurfacePropertyType`). | No representative feature values were retrieved. The general dictionary does not independently define this service's complete field semantics. |
+| Grid schema and three-cell bounded request | Direct total/pine/spruce/deciduous fields, age, soil/drainage; sample showed a null spruce value and different measurement/update dates. | Raw samples were not saved. Three cells do not estimate regional/national coverage or null prevalence. |
+| Groundwater capabilities/XSD and general provider dictionary | Exact `syke_vhspohjavesi:VHS2022_Pohjavesi` type advertises EPSG:3067 and its schema is retained; fields include `pvaluetunnus`, `pvalueeutunnus`, `pvalueluokka`, nullable `muutospvm` (`xsd:dateTime`) and `geom` (`gml:MultiSurfacePropertyType`). | No representative feature values were retrieved. The general dictionary does not independently define this service's complete field semantics. |
 
 The local [2.1.3 workbook](../references/service-metadata/metsakeskus/tiedosto-tietomallikaavio-mv_ey_2-1-3-metsakeskuksen-tietomallin-uudistus.xlsx), [provider model update page](https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto/tietojen-yllapito/tietomallin-uudistus), and [GeoPackage guide](https://www.metsakeskus.fi/sites/default/files/document/tiedosto-geopackage-sisaltoohjeet-tietomalli-2-0.pdf) establish modeled units and code relationships. WFS is a narrower product; stand `PROPORTIONPINE`/`PROPORTIONSPRUCE`/`PROPORTIONOTHER` definitions did not establish volume proportions. Current species metrics use direct grid volumes instead.
 
@@ -163,4 +162,4 @@ Successful empty retrieval is `AVAILABLE` but is not certification of complete g
 
 For sustained/load-generating SYKE use, obtain the provider-issued application identifier and pass it as `sykeuserid`; keep it outside committed source, fixtures and logs. The plugin saves it in QGIS settings and includes it in SYKE WFS layer URLs. Saving a project intentionally persists those URLs, including the identifier, in `.qgs` or `.qgz` so the layers retain their service connection details. Review layer URLs before sharing or committing a project. This persistence is separate from error-message redaction in [sources.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py). See [SYKE service guidance](https://www.syke.fi/fi/ymparistotieto/avoimet-rajapinnat/paikkatietorajapinnat), [request parameter guidance](https://wwwi4.ymparisto.fi/i4/fin/eowiki/kysymys_wcs.html), and the [plugin setup instructions](../../qgis_plugin/README.md#requirements-and-syke-setup).
 
-Future evidence checks should record exact endpoint/type, request date, CRS, required properties and representative sanitized status/code/null formats. Keep schema evidence distinct from feature values, field readiness distinct from metric coverage, and provider facts distinct from application choices. [Outstanding checks](open-questions.md).
+When investigating a provider question, identify the exact endpoint/type, CRS, required properties and representative sanitized status/code/null formats. Keep schema evidence distinct from feature values, field readiness distinct from metric coverage, and provider facts distinct from application choices. [Outstanding checks](open-questions.md).

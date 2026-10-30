@@ -138,8 +138,8 @@ Use **internationalization (i18n)** to keep code ready for multiple languages an
 For each changed boundary, check the required workflow and relevant contracts
 above. Tie findings to the violated requirement and verification needed; summarize
 which deterministic, bilingual, packaged and interactive checks were performed
-or remain untested in the task result. Keep automated/provider evidence in its
-existing owners and use the personal checklist workflow for manual checks.
+or remain untested in the task result. Keep substantive limitations in their
+maintained owners and use the personal checklist workflow for manual checks.
 
 ## Related project documentation
 

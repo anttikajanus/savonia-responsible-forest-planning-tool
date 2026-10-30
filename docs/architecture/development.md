@@ -238,6 +238,14 @@ the integration command in a new Python process. The test code remains outside
 the distributable plugin. GUI acceptance and live-source smoke checks remain
 separate from these deterministic checks.
 
+### Automated regression verification
+
+Use the [check runner](#local-check-runner) for source and packaged checks and
+the [regression seams](#regression-seams) to select affected suites. Inspect the
+runner output or CI logs for results; a maintained test-history summary is not
+required. Automated fixtures do not establish live-provider completeness,
+interactive desktop/browser/Excel behavior or newer-QGIS compatibility.
+
 ## Check packaging separately
 
 Use the [manual acceptance guide](../testing/manual-acceptance.md) for installed
@@ -308,8 +316,9 @@ provide diagnostics; exact installation/tooling configuration lives in the
 Continue Finnish/English desktop acceptance using the
 [manual guide](../testing/manual-acceptance.md).
 Offscreen CI does not establish interactive acceptance or compatibility with
-newer QGIS releases. The [verification register](open-questions.md#acceptance-and-distribution)
-records hosted execution and repository-setting checks separately.
+newer QGIS releases. Inspect [hosted checks](distribution.md#hosted-checks) for CI
+results and [open questions](open-questions.md#acceptance-and-distribution)
+for remaining repository-setting work.
 
 ### Required merge checks
 

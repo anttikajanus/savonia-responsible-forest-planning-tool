@@ -1,7 +1,6 @@
 # Deferred sources and unadopted alternatives
 
-These candidate sources are outside the implemented scope. Source details were
-checked on 25 October 2026. The implemented exclusions are recorded in
+These candidate sources are outside the implemented scope. The implemented exclusions are recorded in
 [ADR-0004](adr/0004-stand-based-sensitivity-classification.md). Verify access,
 licensing, schema, dates and coverage before adopting a candidate, and define
 its purpose, denominator and rule.
@@ -28,7 +27,7 @@ Urban structure, plan extent, recreation use and an actual MY plan designation h
 | Harva ja tiheä taajama-alue | [Metadata](https://ckan.ymparisto.fi/dataset/harva-ja-tihea-taajama-alue) separates dense/sparse settlement structure. | Could distinguish core/periphery; not a legally effective plan boundary or an adopted sensitivity criterion. |
 | Asemakaavoitettu alue | [Metadata](https://ckan.ymparisto.fi/dataset/asemakaavoitettu-alue) describes municipal detailed-plan outer extents, not individual designations; excludes shore detailed plans and Åland. | Useful as a separate planning-context measure. It may contain unbuilt forests/water and cannot identify MY. Verify selected annual version and geometry. |
 | SYKE general-plan service | [Service/terms](https://www.syke.fi/fi/ymparistotieto/kartta-ja-tietopalvelut/elinympariston-tietopalvelu-liiteri/yleiskaavapalvelu), [metadata](https://ckan.ymparisto.fi/dataset/yleiskaavapalvelun-aineistot) describe extent vectors/map images, contract/cost conditions, overlaps and temporal/legal-effect caveats. | Verify coverage, terms and charges. Obtain actual designation geometries and plan provisions if interpreting MY. |
-| Ryhti / VOOKA and municipal services | [Ryhti consumer services](https://ryhti.syke.fi/palvelut/palvelut-tiedon-hyodyntajille/), [API guidance](https://ryhti.syke.fi/palvelut/ohjeet-ryhti-jarjestelman-avoimien-rajapintojen-kayttoon/), [VOOKA](https://www.syke.fi/fi/projektit/vooka), [existing plans](https://ryhti.syke.fi/alueidenkaytto/voimassa-olevat-kaavat-tietojarjestelmaan/). National coverage was incomplete at the evidence date. | Verify actual current coverage; municipal data may be needed. Normalize designations, dates, legal effect and reuse terms per source. |
+| Ryhti / VOOKA and municipal services | [Ryhti consumer services](https://ryhti.syke.fi/palvelut/palvelut-tiedon-hyodyntajille/), [API guidance](https://ryhti.syke.fi/palvelut/ohjeet-ryhti-jarjestelman-avoimien-rajapintojen-kayttoon/), [VOOKA](https://www.syke.fi/fi/projektit/vooka), [existing plans](https://ryhti.syke.fi/alueidenkaytto/voimassa-olevat-kaavat-tietojarjestelmaan/). These references do not establish complete national coverage. | Verify actual current coverage; municipal data may be needed. Normalize designations, dates, legal effect and reuse terms per source. |
 
 A future design can compare YKR and detailed-plan extents as separate contextual
 shares. Their role in classification requires an explicit decision.

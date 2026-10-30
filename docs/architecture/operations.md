@@ -34,7 +34,7 @@ values are explained by durable coverage rather than a per-value log stream.
 ## Development and verification
 
 Use [development](development.md) for runtime setup and repeatable checks.
-Dated evidence summaries and remaining provider/desktop acceptance belong in
+Remaining provider/desktop questions belong in
 [open questions](open-questions.md). Automated checks and adopted policies do
 not establish interactive or live-provider acceptance.
 
