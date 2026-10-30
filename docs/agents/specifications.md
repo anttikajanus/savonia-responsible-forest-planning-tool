@@ -32,7 +32,7 @@ contracts a maintainer needs to understand or safely change the system:
   a runtime workaround only when it explains a consequential constraint; link
   to its implementation for the mechanics.
 - Keep user interactions in specs/manuals and repeatable commands in the
-  development guide. Keep detailed test outcomes and debugging history in
+  development guide. Keep detailed automated-test outcomes and debugging history in
   working verification records; the maintained verification register needs
   dated evidence summaries, outstanding gaps and the next check.
 
@@ -77,6 +77,10 @@ The documentation handoff is complete when the affected maintained docs reflect 
 - Keep verification dates explicit. Documentation edits do not establish runtime,
   bilingual GUI or provider-value verification. Carry remaining gaps into the
   [verification register](../architecture/open-questions.md).
+- Manual testing follows the [personal checklist](../testing/manual-acceptance.md).
+  Its lightweight workflow governs manual checks; working verification records
+  remain useful for automated checks, debugging and provider evidence. Keep
+  substantive defects and unanswered questions in their maintained owners.
 
 ## Writing a maintained spec
 

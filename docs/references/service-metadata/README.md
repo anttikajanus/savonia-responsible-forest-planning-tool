@@ -88,7 +88,10 @@ the service has multiple schemas in this reference set.
 
 - Open raster WMTS: [GetCapabilities](mml/wmts/get-capabilities.xml).
   Ortokuva and Maastokartta use the ETRS-TM35FIN matrix set; authenticated
-  retrieval is required. See the [basemap contract](../../architecture/data-sources.md#mml-basemap-context).
+  retrieval is required. This link is a local download destination and is absent
+  until a successful authenticated capture. See the
+  [material availability review](../../architecture/open-questions.md#reference-material-integrity)
+  and [basemap contract](../../architecture/data-sources.md#mml-basemap-context).
 - [Parcel location model](mml/parcels/palstan-sijaintitiedot.pdf), dated
   5 October 2020: polygon location and `kiinteistotunnuksenEsitysmuoto`.
   This model describes the display-only `PalstanSijaintitiedot` collection;
@@ -128,7 +131,7 @@ the service has multiple schemas in this reference set.
   · [DescribeFeatureType](syke/groundwater/describe-feature-type.xsd)
   · [general groundwater dictionary](syke/groundwater/pohjavesialueet.pdf).
 
-The files are retained as source evidence. The XSDs describe field names and
+Downloaded files are retained as source evidence. The XSDs describe field names and
 types; they do not contain representative feature values.
 
 The manifest covers six WFS services, one WMTS service, eight layer schemas and

@@ -41,6 +41,7 @@ Start with the [technical architecture diagram and explanation](overview.md#syst
 | --- | --- |
 | Logging configuration and runtime language/help mechanisms | [Operations](operations.md) |
 | Repeatable setup, reload, debugging, test and packaging procedures | [Development](development.md) |
+| Personal manual checklist and expected results | [Manual testing](../testing/manual-acceptance.md) |
 | Release mechanics, software inventory, licensing and exported attribution | [Distribution](distribution.md) |
 | Current implementation gaps, provider evidence gaps and pending acceptance | [Open questions](open-questions.md) |
 

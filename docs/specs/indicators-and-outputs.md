@@ -80,11 +80,10 @@ Neither successful requests, feature counts nor mapped overlap alone establish c
 ## IO-06 Map review and run retention
 
 - After wizard success, retain each run beneath Results without removing configured sources or earlier runs.
-- Include eighteen filtered project views (six tiers × three classes) and hidden-by-default clipped snapshots loaded from that run's GeoPackage. Filtered views reference the same result dataset rather than creating extra outputs. Initially only the All out tier group is visible; users switch tiers through layer-tree group visibility.
+- Include eighteen filtered project views (six tiers × three classes) and hidden-by-default clipped snapshots loaded from that run's GeoPackage. Filtered views reference the same result dataset rather than creating extra outputs. Initially only the All out tier group is visible. Users switch tiers through layer-tree group visibility by turning the current tier group off and the desired group on.
 - Check every class child view in all six tier groups. Check every snapshot child inside its initially unchecked parent group. Enabling a previously hidden group immediately reveals its checked children.
 - Every view and snapshot must remain readable with the row count implied by its filter or captured source. Opening a later view or another run must not disrupt readers of an earlier view.
 - Use sensitive red/orange, economic green and unknown grey for the class views. Tier and category labels follow the QGIS language. The complete classified dataset is available in the GeoPackage and can be added separately.
-- US-005 is partially implemented; the [implementation-gap register](../architecture/open-questions.md#known-implementation-gaps) owns the outstanding tier-selector/full-layer presentation work, separately from acceptance of the existing views.
 - Keep Results above References above Basemaps after setup and publication. Changing map scale or toggling source rendering must not change analysis values.
 
 Acceptance covers reopened bilingual GeoPackage/workbook artifacts, field order/value alignment, independent metric coverage, partial/zero/null behavior, rounding after aggregation, persisted forms and repeated-run retention. Outstanding visual desktop checks remain in [open questions](../architecture/open-questions.md).

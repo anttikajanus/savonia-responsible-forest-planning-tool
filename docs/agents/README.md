@@ -24,7 +24,8 @@ tracker, labels and document destinations.
 | Domain terminology | [Root glossary](../../GLOSSARY.md) | One shared vocabulary; follow [domain guidance](domain.md) when changing terms or ADRs. |
 | Current user goals and functional requirements | [Specification index](../specs/README.md) | Start with the affected stories and requirement IDs; use [specification maintenance](specifications.md) for changes. |
 | Technical boundaries, contracts and adopted decisions | [Architecture index](../architecture/README.md) | Read the relevant contract and ADRs; apply [architecture scope](specifications.md#architecture-scope) when writing or reviewing them. |
-| Commands for development, tests and packaging | [Development guide](../architecture/development.md) | Use the documented runtime/commands; keep test outcomes in verification records. |
+| Commands for development, tests and packaging | [Development guide](../architecture/development.md) | Use the documented runtime/commands and automated verification records. |
+| Personal manual testing | [Manual checklist](../testing/manual-acceptance.md) | Use its steps and expected results when checking the installed plugin; follow its lightweight workflow. |
 | Planner instructions | [English manual](../help/manual_en.html) and [Finnish manual](../help/manual_fi.html) | Maintain equivalent user instructions; [QGIS guidance](qgis.md) owns localization and package checks. |
 | Local working proposals, issues and verification records | Ignored `.scratch/<feature-slug>/` | Follow the [local tracker](issue-tracker.md) and [triage mapping](triage-labels.md). Publish current behavior and remaining gaps in maintained documentation. |
 | Local scripts, debugging and generated artifacts | Ignored `.local/` | Follow the [local artifact guidance](issue-tracker.md#local-development-artifacts); the [development guide](../architecture/development.md#local-check-runner) owns check-runner commands. |
@@ -42,7 +43,7 @@ tracker, labels and document destinations.
    requirements, technical contracts, manuals and evidence rather than repeating
    their full contents in every document.
 3. Finish a change when the affected owners agree with the implementation,
-   verification is recorded, and remaining gaps are explicit. For wording or
+   verification scope is clear, and remaining gaps are explicit. For wording or
    navigation edits, check links and meaning without creating new product stories.
 
 When code and documentation disagree, inspect the implementation and verification

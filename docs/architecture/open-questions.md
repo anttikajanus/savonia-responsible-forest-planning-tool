@@ -1,8 +1,9 @@
 # Remaining verification and deferred work
 
 These are outstanding evidence gaps, acceptance checks and deferred choices.
-This register owns current outstanding status and dated evidence; procedures
-belong to [development](development.md), and current behavior belongs to
+This register owns current outstanding status and dated evidence. Automated
+procedures belong to [development](development.md), interactive procedures to the
+[manual acceptance guide](../testing/manual-acceptance.md), and current behavior to
 [specs](../specs/README.md). Adopted choices are indexed in the
 [ADRs](README.md#architecture-decision-records).
 
@@ -40,9 +41,30 @@ with newer QGIS releases. Hosted evidence is recorded separately below.
 
 ## Provider evidence
 
+### Reference material integrity
+
+Offline review on 30 October 2026 checked all 25 entries in the versioned
+[reference manifest](../references/service-metadata/manifest.json). The 24
+present files passed the downloader's format validation and matched the byte
+counts and SHA-256 values in local retrieval metadata. The WFS/model references
+were captured on 26 October; the two MML parcel models on 28 October. No
+references were refreshed during this review.
+
+`mml/wmts/get-capabilities.xml` is absent. Its link in the
+[reference instructions](../references/service-metadata/README.md#maanmittauslaitos)
+identifies a download destination, not bundled evidence. Populate it using the
+documented `MML_API_KEY` and `--only mml/wmts/` options when an authorized key is
+available, then record the actual retrieval outcome. The missing authenticated
+material does not invalidate the other 24 references or establish a plugin
+failure. Integrity checks establish the identity of cached artifacts, not their
+current accuracy, feature values or geographic completeness.
+
+### Live values and service behavior
+
 | Item | Current limit and next evidence needed |
 | --- | --- |
 | Analysis polygon queries | Added 29 October 2026. A small live Metsäkeskus grid comparison through shared retrieval inspected 274 candidates instead of 484 and retained the same 210 clipped features with identical attributes/geometries. These single bounded reads are not a performance guarantee. Verify representative AOIs on all eight sources, provider handling of malformed polygons before local repair, and deployment-specific GET limits; large filters currently retain bbox retrieval. |
+| Setup responsiveness | Setup remains synchronous. A live eight-source WFS setup check passed on 28 October 2026, but the reported minute-long desktop stall has not been reproduced end to end. Use the manual checklist's MT-08 to investigate waits separately from map rendering. |
 | MML property context | Added 28 October 2026 using the provider's API-key technical description and cached 2020 parcel and identifier-point models. Local authenticated OAPIF fixtures verify connection, retrieval and schema/geometry handling. A real MML key was not supplied: verify both current live collections/schemas, paging, representative formatted identifiers and network errors with an authorized key. |
 | Representative classification values | Saved XSDs are not feature samples. Check sanitized habitat codes, active/inactive protected statuses/categories, programme identifiers/classes and null formats across all three protected sources. Current code rejects unrecognized values; a policy accepting inactive records would require an explicit change. |
 | Groundwater | Capabilities and the exact VHS2022 XSD were downloaded on 26 October 2026; regenerate them with the reference downloader. Check representative identifiers/nulls and service-specific field meanings; the general groundwater PDF alone does not establish those semantics. |
@@ -85,29 +107,45 @@ requires a specification change and reconsideration of ADR-0004.
 
 ## Known implementation gaps
 
-| Item | Current status and completion boundary |
-| --- | --- |
-| US-005 tier selector and full-layer presentation | Manual review on 26 October 2026 found these unimplemented. US-005 is partially implemented; existing map behavior is owned by [IO-06](../specs/indicators-and-outputs.md#io-06-map-review-and-run-retention). Implementing a dedicated selector/full-layer presentation is separate from visual acceptance of the existing filtered views. |
-| Raw XSD metadata parser | `describe_feature_type()` still walks global XML elements into saved properties. Provider-field readiness bypasses this defect; provenance metadata may still be misleading. Correcting that parser is separate work. |
+### Raw XSD metadata parser
+
+Still open after source inspection on 30 October 2026:
+[`describe_feature_type()`](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py)
+walks all XML elements into saved properties, including feature declarations
+outside the selected type's property sequence. Provider-field readiness bypasses
+this defect, but discovery provenance can contain misleading properties.
+
+Completion requires parsing the selected feature type's actual property
+definitions, with representative multi-type/imported-schema fixtures and
+retained provider-field readiness behavior. Cached XSD availability and passing
+readiness tests do not establish that this parser is correct.
+
+## Resolved specification scope
+
+### US-005 map review
+
+On 30 October 2026, the project owner confirmed that the existing filtered views
+and layer-tree tier-group controls satisfy the intended map-review interaction.
+US-005 is implemented under [IO-06](../specs/indicators-and-outputs.md#io-06-map-review-and-run-retention).
+The earlier dedicated-selector and automatic full-layer requirements are retired;
+they are no longer implementation follow-up. Bilingual/package visual
+[checks](#interactive-acceptance) remain part of personal testing; this scope
+confirmation does not establish Savonia acceptance.
 
 ## Acceptance and distribution
 
 ### Interactive acceptance
 
-As of 29 October 2026, Finnish/English desktop, browser, network-disconnected
-help and Microsoft Excel acceptance remain pending. Automated/offscreen checks
-do not close them. Record build/runtime, locale, date and outcome when executing
-the linked procedures.
+Use the [personal manual checklist](../testing/manual-acceptance.md) for desktop,
+language, Excel, browser and offline-help checks. Its
+[open-question mapping](../testing/manual-acceptance.md#use-the-checklist-with-open-questions)
+connects relevant checks to investigation topics.
 
-| Pending check | Acceptance boundary / procedure |
-| --- | --- |
-| Wizard lifecycle and input handling | Docked/floating layout, setup, reload/unload, remembered/cleared price and decimal-comma entry, readiness after selection/source/output changes, understandable completion warnings. [Package and wizard checks](development.md#check-packaging-separately). |
-| Reference and basemap presentation | Repeated bilingual setup/language changes, layer grouping and scale visibility, retained choices/identities after save/reopen, readable map presentation. Use [WF-02](../specs/workflow.md#wf-02-project-setup), the manuals and [grid GUI acceptance](development.md#grid-indicator-manual-gui-acceptance). Visual acceptance of the 28 October changes remains open. |
-| Live authenticated MML context | Both parcel collections and WMTS basemaps, valid/rejected/replaced keys, discovery and pan/zoom without extra credential prompts, persisted connections and service failures. Authenticated local fixtures passed; live access remains unverified. Unauthenticated WMTS capabilities returned HTTP 401 on 28 October. |
-| WFS initialization and responsiveness | On fresh and existing projects, confirm setup avoids feature/count requests, map reads are view-bounded and analysis retrieves complete pages. Check reconnection preserves layer identity and user choices. Setup remains synchronous; the reported minute-long desktop stall has not been reproduced end to end. |
-| Result and workbook interpretation | Inspect field labels/forms, nulls and coverage, source dates, tier/snapshot visibility and GeoPackage reopening. Verify €/m³ versus €, known zero versus unknown, and complete versus partial totals in QGIS and the four-sheet workbook in Microsoft Excel. Added 29 October 2026: visually check the negligible-polygon exclusion message/count/area and retained small polygons in both languages; automated geometry/export checks do not establish desktop acceptance. [Result field checks](development.md#result-field-organization-checks). |
-| Language and offline resources | Finnish/English and unsupported-language fallback, Help/About with dock closed, offline links/legal texts and browser failure recovery. [Help and credits verification](development.md#help-and-credits-verification). |
-| Cancellation and failures | Required-source/geometry failures and cancellation leave actionable localized messages and no apparently complete partial output. [Grid GUI acceptance](development.md#grid-indicator-manual-gui-acceptance). |
+As requested by the sole maintainer on 30 October 2026, individual manual-test
+results and completion records are not tracked here. Keep substantive defects,
+provider questions and planning decisions in their sections above; the checklist
+remains the reusable guidance for manual testing. Removing test paperwork adds
+no runtime or provider verification evidence.
 
 ### Release and distribution verification
 

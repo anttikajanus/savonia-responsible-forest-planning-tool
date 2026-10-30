@@ -92,8 +92,9 @@ runtime setup. For a read-only review, report compliance and gaps without claimi
 tests were executed. For code changes, run the relevant checks below and the
 required bilingual/package checks. Documentation navigation alone needs link and
 contract-consistency checks; changes to packaged manuals or resources also need
-the affected help/package checks. Record checks not run and preserve outstanding
-GUI acceptance explicitly.
+the affected help/package checks. Report checks performed and untested areas in
+the task result. Use the [personal manual checklist](../testing/manual-acceptance.md)
+for GUI checks and its lightweight workflow.
 
 Keep tests deterministic and independent of live data services wherever possible.
 Use tiny checked-in or generated local fixtures; do not mutate source fixtures in place.
@@ -113,7 +114,7 @@ Test the following layers:
    Assert semantically important output layers, attributes, CRS/units,
    coverage/status fields, workbook contents and failure messages. Include at
    least one success path and representative fatal and partial-data paths.
-4. **GUI acceptance checks:** in the supported QGIS runtime, install the packaged ZIP, load and unload the plugin, open the wizard, run with local layers, repeat with QGIS set to Finnish and English, inspect the output, and verify errors/cancellation are understandable. Restart QGIS after changing its application language as prompted. These checks supplement deterministic automated tests.
+4. **GUI acceptance checks:** use the [manual checklist](../testing/manual-acceptance.md) in the supported QGIS runtime to inspect the installed plugin, Finnish/English interactions, saved outputs and failure handling. These checks supplement deterministic automated tests.
 
 Include regressions for empty input, null and invalid geometry, multipart features, missing or renamed fields, differing CRSs, no-match and partial-coverage cases, unavailable providers, cancellation, and output-write failures. For spatial results, compare meaningful attributes and geometries with suitable tolerances; avoid byte-for-byte comparisons of GeoPackages where metadata or ordering can vary.
 
@@ -135,9 +136,10 @@ Use **internationalization (i18n)** to keep code ready for multiple languages an
 ## Review evidence
 
 For each changed boundary, check the required workflow and relevant contracts
-above. Tie findings to the violated requirement and verification needed; record
+above. Tie findings to the violated requirement and verification needed; summarize
 which deterministic, bilingual, packaged and interactive checks were performed
-or remain pending. A read-only review does not complete those acceptance checks.
+or remain untested in the task result. Keep automated/provider evidence in its
+existing owners and use the personal checklist workflow for manual checks.
 
 ## Related project documentation
 

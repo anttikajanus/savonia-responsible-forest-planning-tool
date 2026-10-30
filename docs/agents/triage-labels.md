@@ -22,6 +22,7 @@ readiness label under which it was executed.
 For working specs, set `Status: implemented` when implementation work is complete. This records implementation progress; review or verification may still remain. Before reporting the feature fully complete, also finish the [documentation handoff](specifications.md#completing-implementation) to `docs/specs/` and `docs/architecture/`, recording any outstanding acceptance checks separately.
 
 An accepted ADR, implemented spec and passing automated check each establish a
-different fact. Record acceptance and provider-verification gaps with dated
-evidence in the working verification record and
-[maintained register](../architecture/open-questions.md).
+different fact. Keep substantive acceptance questions and provider-verification
+gaps in the [maintained register](../architecture/open-questions.md), with dated
+automated/provider evidence where relevant. Manual checks follow the
+[personal checklist](../testing/manual-acceptance.md).

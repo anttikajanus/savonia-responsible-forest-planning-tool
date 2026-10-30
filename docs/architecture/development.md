@@ -8,8 +8,9 @@ prototype only; see the [project context](../../README.md).
 
 This guide owns setup, reload, debugger, test and packaging instructions for the Savonia - Responsible Forest Planning plugin. Run commands from the repository root unless stated otherwise. The plugin targets **QGIS 4.2.3 and newer 4.x releases**, as declared in [metadata.txt](../../qgis_plugin/savonia_responsible_forest_planning_tool/metadata.txt) (`4.2.3` minimum, `4.99` maximum). QGIS 4.2.3 is the verification baseline. Run the suites and packaged load/Processing/unload checks on each newer release before recording it as verified; the metadata range permits installation without establishing future runtime compatibility.
 
-This guide owns repeatable development and verification procedures. Record the
-tested build/runtime, locale, date and outcome when executing them; current
+This guide owns repeatable development, automated verification and packaging
+procedures. The [manual checklist](../testing/manual-acceptance.md) owns
+interactive steps and expected results for personal use. Current
 outstanding checks belong to the [verification register](open-questions.md).
 Automated headless/offscreen checks do not establish interactive acceptance.
 The maximum uses QGIS's major-version-plus-`.99` convention. QGIS documents [plugin metadata ranges](https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/plugins/plugins.html#metadata-txt)
@@ -239,10 +240,8 @@ separate from these deterministic checks.
 
 ## Check packaging separately
 
-For wizard desktop acceptance, test Finnish and English in docked and floating
-modes, resizing and reopening the panel. Verify readable spacing, accessible
-controls and toolbar sizing consistent with QGIS. Compare against the maintained
-workflow/manual requirements rather than copying widget settings into this guide.
+Use the [manual acceptance guide](../testing/manual-acceptance.md) for installed
+desktop checks, including wizard layout, both languages and expected results.
 
 The linked development checkout is for fast iteration. Use a ZIP install when checking the distributable package:
 
@@ -251,7 +250,8 @@ The linked development checkout is for fast iteration. Use a ZIP install when ch
 - **Release maintainers:** `./qgis_plugin/package.ps1 -BumpMinor` increments the minor version in `metadata.txt`, resets the patch to zero and writes a ZIP. Use the switch only when intentionally preparing a new version; it edits metadata before building, so an archive failure can leave the increment in place. Packaging errors stop the command and remove an incomplete ZIP.
 - In QGIS Plugin Manager, use **Install from ZIP** and select the generated file under `qgis_plugin\dist`. For a clean acceptance check, use a separate profile so a previously installed copy cannot be confused with the development source.
 
-For a release or final acceptance check in QGIS 4.2.3, verify that the ZIP loads, the main plugin toolbar opens the wizard, and setup works from both the wizard toolbar and plugin menu (including with the wizard closed). In Finnish and English, check that setup is first in the docked and floating wizard toolbar, separated from redock/Help/About, with a translated tooltip and accessible name. Verify that the Processing algorithm is available, the shared workflow reports failures clearly, and unloading/reloading does not duplicate actions or provider entries.
+After installation, select the appropriate [manual test scope](../testing/manual-acceptance.md#choose-the-scope)
+and work through the checklist with that ZIP/runtime.
 
 ### Result field organization checks
 
@@ -264,31 +264,19 @@ workbook/documentation order. These checks are part of the
 Build the ZIP with `./qgis_plugin/package.ps1`, extract it and run the suites
 against that copy using `RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT` as described above.
 
-For desktop acceptance, install the ZIP in a separate profile, inspect
-table/form/Identify labels and nulls in both languages, reopen the GeoPackage,
-and inspect the workbook in Excel.
+For desktop QGIS/Excel procedures, use
+[map review and saved results](../testing/manual-acceptance.md#map-review-and-saved-results).
 
 <a id="grid-indicator-manual-gui-acceptance--pending"></a>
 
 ### Grid-indicator manual GUI acceptance
 
-Execute these steps in both languages and record the build, locale, date and
-result. [Current status](open-questions.md#interactive-acceptance) is maintained
-separately; this list is the reusable procedure.
-
-- Install the current-version ZIP in a separate QGIS 4.2.3 profile; load,
-  open/reopen the wizard, check Processing registration, reload and unload.
-- In Finnish and English, run setup repeatedly and after a language change.
-  Check managed groups, ordering and scale visibility against
-  [WF-02](../specs/workflow.md#wf-02-project-setup) and the manuals. Save/reopen
-  the project and confirm presentation and user visibility choices persist.
-- Run the same local fixture at near/far canvas scales through wizard and
-  Processing; compare calculations and captured snapshots.
-- Inspect both total-volume aliases/columns, deciduous volume,
-  integer age shares/coverage, partial metric denominators/lower bounds,
-  and source dates/reporting-area notes in the result and workbook in both languages.
-- Exercise cancellation and representative required-source/geometry failures;
-  verify actionable localized messages and no apparently complete partial outputs.
+The reusable procedure is now consolidated in the
+[manual acceptance guide](../testing/manual-acceptance.md), especially
+[inputs/execution](../testing/manual-acceptance.md#inputs-and-execution) and
+[numerical interpretation](../testing/manual-acceptance.md#numerical-interpretation-and-exceptional-evidence).
+This heading retains existing links. The
+[register](open-questions.md#interactive-acceptance) owns current status.
 
 ## Automatic GitHub builds and releases
 
@@ -317,7 +305,8 @@ ZIP. Both must pass before a main release starts. Workflow failure artifacts
 provide diagnostics; exact installation/tooling configuration lives in the
 [workflow](../../.github/workflows/build-and-release.yml).
 
-Continue Finnish/English desktop acceptance locally as documented here.
+Continue Finnish/English desktop acceptance using the
+[manual guide](../testing/manual-acceptance.md).
 Offscreen CI does not establish interactive acceptance or compatibility with
 newer QGIS releases. The [verification register](open-questions.md#acceptance-and-distribution)
 records hosted execution and repository-setting checks separately.
@@ -369,22 +358,11 @@ tests still exercise the checkout's scripts and source package; the Processing
 help tests copy the selected package to a separate temporary ZIP installation.
 Keep these distinctions when reporting installed-package coverage.
 
-Check Finnish and English QGIS locales and English fallback for other QGIS
-languages. Check that the wizard follows QGIS's language, Help/About with the dock
-closed, QGIS language refresh, detached controls, Processing help, full offline
-legal texts, browser failures, and unload/reload cleanup. Automated offscreen
-widget checks supplement interactive desktop acceptance. Record acceptance
-outcomes against the [register](open-questions.md#interactive-acceptance).
-
-For desktop language acceptance, set QGIS's application language to Finnish,
-restart as prompted, and check the wizard, global Help/About and Processing.
-The wizard title and controls should be localized, with no personal learning
-prototype banner or prototype suffix on working tool labels. Open About/info
-and verify the personal prototype notice remains there; also check Plugin
-Manager metadata and the repository documentation for that notice.
-Repeat with English and an unsupported language, which should use English.
-Confirm that QGIS's application language is the sole language setting for the
-plugin.
+Interactive locale/lifecycle checks and offline/browser/notices checks are owned
+by the [manual acceptance guide](../testing/manual-acceptance.md#installation-lifecycle-and-language)
+and its [help section](../testing/manual-acceptance.md#help-offline-use-and-notices).
+Automated offscreen widget checks supplement those observations. Keep substantive
+defects or unanswered questions in the [register](open-questions.md#interactive-acceptance).
 
 ## Related guidance
 

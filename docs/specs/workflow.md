@@ -40,6 +40,7 @@ Scope and status follow the [specification index](README.md). These requirements
 - Managed WFS initialization checks service metadata and provider fields without sample-feature or feature-count downloads. Map reads use the view bounds; analysis reads use the AOI bounds and retrieve all pages. Repeated setup upgrades older managed connection options while retaining layer identity, filters, authentication and visibility choices. A per-response page size must not become a total feature limit.
 - Setup discovers/verifies configured feature types and schema information. Before analysis, all eight sources must be valid polygon layers with usable coordinate systems, the expected provider/source identity and required provider fields. Report all source-readiness failures together where preflight can collect them.
 - Current provider fields determine readiness and interpretation. Match accepted names case-insensitively, ignore extra fields/order and apply the documented alias priority independently for each source. Saved discovery schemas are provenance and cannot override usable provider fields. Exact aliases, fields and value sets belong to [source-layer requirements](../architecture/source-layer-requirements.md).
+- Saved discovery properties have a [known XSD parser limitation](../architecture/open-questions.md#raw-xsd-metadata-parser). They must not be interpreted as a verified list of fields belonging only to the selected feature type; provider-field readiness remains the current validation authority.
 - Retrieve AOI-bounded evidence and clip it exactly. Ordinary WFS reads additionally filter by the actual AOI polygon, including its holes and separate parts, to reduce transferred candidates. Oversized polygon filters retain the bounding-box read and exact local clipping. Keep every response page and record the chosen spatial filter in source coverage. Reuse the retrieved grid for all result pieces rather than requesting each piece separately or downloading the national grid; its snapshot still covers the AOI rather than only the forest stands.
 - Cache initialization must not duplicate source evidence in observed counts or retained snapshots.
 - Retain original source attributes, identifiers, dates, source identity and clipped snapshots. Distinguish measurement dates from database update dates.
@@ -113,6 +114,11 @@ This requirement is maintainer/agent tooling, separate from the planner analysis
 - Commands, formats, exact inventory and verification belong in
   [development](../architecture/development.md#local-provider-references) and
   [reference instructions](../references/service-metadata/README.md).
+- The inventory can be only partly populated when an entry requires credentials.
+  In particular, MML WMTS capabilities require a separately supplied downloader
+  key; a missing cached entry does not disable the other references. Record
+  [material availability and integrity](../architecture/open-questions.md#reference-material-integrity)
+  separately from tooling implementation and live-service verification.
 
 ## WF-09 Isolated developer checks
 
