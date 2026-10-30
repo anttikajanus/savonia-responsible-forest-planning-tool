@@ -79,7 +79,7 @@ tier criteria, overlap thresholds, formulas and treatment of missing data.
 
 ## Plugin installation
 
-The experimental plugin targets **QGIS 4.2.3 and newer 4.x releases**.
+The experimental plugin targets **QGIS 3.44 and newer 3.x/4.x releases**.
 Follow the [Plugin installation guide](qgis_plugin/README.md#plugin-installation)
 to download the release ZIP, install it in QGIS and check that Help opens.
 Analysis needs an internet connection to the configured Metsäkeskus and SYKE

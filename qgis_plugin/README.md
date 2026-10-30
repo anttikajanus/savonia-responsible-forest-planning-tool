@@ -11,11 +11,12 @@ dependencies; no separate Python packages or helper plugins are required.
 
 ### Requirements
 
-The experimental plugin targets **QGIS 4.2.3 and newer 4.x releases**; the
+The experimental plugin targets **QGIS 3.44 and newer 3.x/4.x releases**; the
 installation range is authoritative in
 [metadata.txt](savonia_responsible_forest_planning_tool/metadata.txt).
-QGIS 4.2.3 is the verification baseline; newer releases require their own runtime
-checks. Analysis requires an internet connection to the configured Metsäkeskus
+QGIS 3.44.0 and 4.2.3 are the verification baselines. The installation range also
+permits intervening and newer releases; those require their own runtime checks.
+Analysis requires an internet connection to the configured Metsäkeskus
 and SYKE WFS services. The packaged manuals work offline.
 
 ### Install in QGIS

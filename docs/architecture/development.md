@@ -6,7 +6,7 @@ Neither it nor its results are backed, endorsed, finalized, or approved by
 Savonia in any form.** Implementation and test completion here describe this
 prototype only; see the [project context](../../README.md).
 
-This guide owns setup, reload, debugger, test and packaging instructions for the Savonia - Responsible Forest Planning plugin. Run commands from the repository root unless stated otherwise. The plugin targets **QGIS 4.2.3 and newer 4.x releases**, as declared in [metadata.txt](../../qgis_plugin/savonia_responsible_forest_planning_tool/metadata.txt) (`4.2.3` minimum, `4.99` maximum). QGIS 4.2.3 is the verification baseline. Run the suites and packaged load/Processing/unload checks on each newer release before recording it as verified; the metadata range permits installation without establishing future runtime compatibility.
+This guide owns setup, reload, debugger, test and packaging instructions for the Savonia - Responsible Forest Planning plugin. Run commands from the repository root unless stated otherwise. The plugin targets **QGIS 3.44 and newer 3.x/4.x releases**, as declared in [metadata.txt](../../qgis_plugin/savonia_responsible_forest_planning_tool/metadata.txt) (`3.44.0` minimum, `4.99` maximum). The verification baselines are QGIS 3.44.0 and 4.2.3. The continuous metadata range also permits intervening 4.0/4.2 releases; run the suites and packaged load/Processing/unload checks on each additional target before recording it as verified.
 
 This guide owns repeatable development, automated verification and packaging
 procedures. The [manual checklist](../testing/manual-acceptance.md) owns
@@ -63,6 +63,20 @@ the same report ([Python documentation](https://docs.python.org/3.12/library/uni
 
 ## Shared QGIS test environment
 
+Run source and packaged checks on both **QGIS 3.44.0 (Qt 5)** and
+**QGIS 4.2.3 (Qt 6)**. The default launcher remains 4.2.3; select the other
+installation explicitly, for example:
+
+```powershell
+./scripts/check.ps1 -Package -QgisPython 'C:\Program Files\QGIS 3.44.0\bin\python-qgis.bat'
+./scripts/check.ps1 -Package
+```
+
+Use the launcher actually shipped by the selected installer; LTR-branded packages
+may name it `python-qgis-ltr.bat`. Keep separate processes and isolated settings
+for each runtime. CI pins both baseline installers and verifies their checksums
+and runtime versions.
+
 `RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT` is the sole plugin-root override
 for pure and integration tests. When unset, tests use this checkout; the package
 check runner sets it to the extracted ZIP. Earlier test-variable aliases are not
@@ -95,6 +109,11 @@ environment's user site, then run from the repository root:
 & 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' -m pip install --user -r requirements-dev.txt
 & 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' -m pylint qgis_plugin scripts
 ```
+
+Install the current pins in each baseline runtime before linting. They include
+Astroid's fix for an infinite loop when inspecting live Qt 5 classes; older
+development-tool installations can stall on the QGIS 3.44 bindings.
+[Upstream fix](https://github.com/pylint-dev/astroid/releases/tag/v4.3.4).
 
 Use the QGIS launcher so PyQGIS and Qt imports resolve. The repository
 configuration enables fatal/error diagnostics and selected correctness warnings;
@@ -306,10 +325,11 @@ tag/version, completes an unfinished draft, or leaves a published release intact
 If the job cannot push tags or publish, check that repository/organization policy
 permits the release job's `contents: write` token and its release tags.
 
-Hosted CI has two required job names: `Test and build installable ZIP` and
-`Pylint and QGIS 4.2.3 integration`. The first supplies the tested installation
-ZIP; the second runs lint and offscreen QGIS integration against source and that
-ZIP. Both must pass before a main release starts. Workflow failure artifacts
+Hosted CI has three required job names: `Test and build installable ZIP`,
+`Pylint and QGIS 3.44.0 integration` and `Pylint and QGIS 4.2.3 integration`.
+The build supplies the tested installation ZIP; each QGIS job runs lint and
+offscreen integration against source and that ZIP. All three must pass before
+a main release starts. Workflow failure artifacts
 provide diagnostics; exact installation/tooling configuration lives in the
 [workflow](../../.github/workflows/build-and-release.yml).
 
@@ -323,13 +343,13 @@ for remaining repository-setting work.
 ### Required merge checks
 
 Workflow jobs run on pull requests, but preventing a merge also requires active
-GitHub branch protection or a ruleset for `main`. Require both exact check names
+GitHub branch protection or a ruleset for `main`. Require all three exact check names
 above and require the branch to be up to date before merging. Keep existing
 protection rules. GitHub documents
 [required status checks](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-status-checks-before-merging).
 
 The [main quality ruleset](../../.github/rulesets/main-quality.json) is an
-API-ready definition with those two checks and no bypass actors. A checked-in
+API-ready definition with those three checks and no bypass actors. A checked-in
 JSON file does not activate repository settings. After the updated workflow
 has run successfully, a repository administrator can create the additional
 ruleset from the repository root:
@@ -356,7 +376,7 @@ Keep the repository layout when copying the packaging script to a test directory
 
 The resource resolver is independent of QGIS and widgets. Run its standalone tests
 and the disposable-copy packaging checks with Python, then run the complete
-suites with the configured QGIS 4.2.3 launcher shown above. The packaging checks
+suites with both QGIS baseline launchers shown above. The packaging checks
 exercise both modes, including the version-incrementing path only in a temporary
 copy; they leave working metadata and generated source caches intact.
 

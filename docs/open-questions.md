@@ -97,8 +97,10 @@ register.
 
 - Optional merge blocking needs administrator activation of the checked-in
   ruleset. See [required merge checks](architecture/development.md#required-merge-checks).
-- Compatibility with newer QGIS 4.x releases remains unverified; recorded
-  runtime evidence covers QGIS 4.2.3. Repeat the source and packaged checks on
-  each newer targeted release before recording compatibility.
+- Compatibility with releases beyond the QGIS 3.44.0 and 4.2.3 verification
+  baselines remains unverified, including intervening 4.0/4.2 releases admitted
+  by the continuous metadata range. Repeat source and packaged checks for each
+  additional target. Finnish/English desktop acceptance on both baselines
+  remains separate from offscreen automated coverage.
 - Arrange explicit map-visible OpenStreetMap attribution for the basemap and shared maps/screenshots; the reviewed setup and About credits do not establish that display. Separately review tile-client usage-policy behavior if preparing distribution.
 - A full ownership and host/transitive licence-compatibility audit remains outstanding. Recheck inventory and dataset-specific terms when adding copied material, runtime bundles, custom data or a public distribution destination. [Distribution boundaries](architecture/distribution.md).

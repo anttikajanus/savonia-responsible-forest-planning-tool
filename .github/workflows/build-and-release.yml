@@ -47,15 +47,31 @@ jobs:
           if-no-files-found: error
 
   quality:
-    name: Pylint and QGIS 4.2.3 integration
+    name: Pylint and QGIS ${{ matrix.qgis.version }} integration
     needs: build
     runs-on: windows-latest
     timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        qgis:
+          - version: 3.44.0
+            version_int: 34400
+            launcher: python-qgis.bat
+            installer: QGIS-OSGeo4W-3.44.0-1.msi
+            # https://download.qgis.org/downloads/QGIS-OSGeo4W-3.44.0-1.sha256sum
+            sha256: 440408a79806b993a7ee12b18a5176e8007848be83a8775ee4b187e120cf04cd
+          - version: 4.2.3
+            version_int: 40203
+            launcher: python-qgis.bat
+            installer: QGIS-OSGeo4W-4.2.3-2.msi
+            # https://download.qgis.org/downloads/QGIS-OSGeo4W-4.2.3-2.sha256sum
+            sha256: c9b4b837350d00eecb77ae5c965219b3f74776e1921f7460b3859c898f38b1cf
     env:
-      QGIS_PYTHON: C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat
-      QGIS_INSTALLER_NAME: QGIS-OSGeo4W-4.2.3-2.msi
-      # Published at https://download.qgis.org/downloads/QGIS-OSGeo4W-4.2.3-2.sha256sum
-      QGIS_INSTALLER_SHA256: c9b4b837350d00eecb77ae5c965219b3f74776e1921f7460b3859c898f38b1cf
+      QGIS_PYTHON: C:\Program Files\QGIS ${{ matrix.qgis.version }}\bin\${{ matrix.qgis.launcher }}
+      QGIS_INSTALLER_NAME: ${{ matrix.qgis.installer }}
+      QGIS_INSTALLER_SHA256: ${{ matrix.qgis.sha256 }}
+      QGIS_VERSION_INT: ${{ matrix.qgis.version_int }}
       QT_QPA_PLATFORM: offscreen
       PYTHONUTF8: '1'
     steps:
@@ -67,7 +83,7 @@ jobs:
         with:
           path: ${{ runner.temp }}/${{ env.QGIS_INSTALLER_NAME }}
           key: ${{ runner.os }}-qgis-installer-${{ env.QGIS_INSTALLER_SHA256 }}
-      - name: Install QGIS 4.2.3
+      - name: Install QGIS ${{ matrix.qgis.version }}
         run: |
           $installer = Join-Path $env:RUNNER_TEMP $env:QGIS_INSTALLER_NAME
           $baseUrl = 'https://download.qgis.org/downloads'
@@ -89,8 +105,8 @@ jobs:
           }
       - name: Verify QGIS runtime
         run: |
-          & $env:QGIS_PYTHON -c "from qgis.core import Qgis; print(Qgis.QGIS_VERSION); assert Qgis.QGIS_VERSION_INT == 40203"
-          if ($LASTEXITCODE -ne 0) { throw 'Expected QGIS 4.2.3' }
+          & $env:QGIS_PYTHON -c "import os; from qgis.core import Qgis; print(Qgis.QGIS_VERSION); assert Qgis.QGIS_VERSION_INT == int(os.environ['QGIS_VERSION_INT'])"
+          if ($LASTEXITCODE -ne 0) { throw 'Unexpected QGIS runtime version' }
       - name: Install development dependencies
         run: |
           & $env:QGIS_PYTHON -m pip install --user -r requirements-dev.txt
@@ -101,7 +117,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Pylint failed' }
       - name: Test QGIS integration against source
         run: |
-          & $env:QGIS_PYTHON -m unittest discover -s qgis_plugin/tests/qgis -v --durations 10
+          & $env:QGIS_PYTHON scripts/run_qgis_tests.py
           if ($LASTEXITCODE -ne 0) { throw 'Source QGIS integration tests failed' }
       - uses: actions/download-artifact@v8
         with:
@@ -113,13 +129,13 @@ jobs:
           if (@($archive).Count -ne 1) { throw 'Expected one plugin ZIP' }
           $env:RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT = Join-Path $env:RUNNER_TEMP 'qgis-installed-plugin'
           Expand-Archive -LiteralPath $archive.FullName -DestinationPath $env:RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT
-          & $env:QGIS_PYTHON -m unittest discover -s qgis_plugin/tests/qgis -v --durations 10
+          & $env:QGIS_PYTHON scripts/run_qgis_tests.py
           if ($LASTEXITCODE -ne 0) { throw 'Packaged QGIS integration tests failed' }
       - name: Upload QGIS installation diagnostics
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: qgis-install-diagnostics
+          name: qgis-install-diagnostics-${{ matrix.qgis.version }}
           path: ${{ runner.temp }}/qgis-install.log
           if-no-files-found: ignore
 

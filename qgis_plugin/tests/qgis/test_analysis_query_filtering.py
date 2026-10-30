@@ -109,7 +109,7 @@ class AnalysisQueryFilteringTest(unittest.TestCase):
                 self.assertEqual(set(actual), {"0", "3", "4"})
                 self.assertEqual(set(actual), set(expected))
                 for identifier, record in actual.items():
-                    self.assertTrue(record["geometry"].isTopologicallyEqual(expected[identifier]["geometry"]))
+                    self.assertTrue(record["geometry"].isGeosEqual(expected[identifier]["geometry"]))
                     self.assertEqual(record["attributes"], expected[identifier]["attributes"])
                 self.assertEqual(result["coverage"][0]["spatial_filter"], "aoi_intersects")
                 self.assertEqual(baseline["coverage"][0]["spatial_filter"], "bbox_filter_size")
@@ -159,7 +159,8 @@ class AnalysisQueryFilteringTest(unittest.TestCase):
             self.assertEqual(len(result["source_features"][GRID]), 1)
             queries = [q for q in fixture.requests if q.get("request", "").lower() == "getfeature"]
             self.assertTrue(all("bbox" in q and "filter" not in q for q in queries))
-            original = next(layer.getFeatures())
+            # Finish the provider download before measuring snapshot-only reads.
+            original, = list(layer.getFeatures())
             fixture.requests.clear()
             selected = self.read(layer, aoi, selected_source_feature_snapshots={GRID: (
                 (original.id(), bytes(original.geometry().asWkb()), tuple(original.attributes())),

@@ -23,8 +23,9 @@ The [component inventory](../../qgis_plugin/savonia_responsible_forest_planning_
 The [GitHub Actions workflow](../../.github/workflows/build-and-release.yml)
 tests and packages pull requests and pushes to `main`. Separate build and QGIS
 quality jobs check the source and extracted installation ZIP; a main release
-depends on both succeeding. QGIS integration uses a versioned official Windows
-installer, verifies its published checksum and runtime version, and runs
+depends on the build and both QGIS baseline jobs succeeding. QGIS integration
+uses versioned official Windows installers for 3.44.0 and 4.2.3, verifies their
+published checksums and runtime versions, and runs
 offscreen without live analysis services. These checks leave desktop acceptance
 separate. Exact tooling versions and cache options belong to the workflow;
 [development](development.md#automatic-github-builds-and-releases) owns commands,

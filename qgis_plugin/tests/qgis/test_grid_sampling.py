@@ -100,7 +100,7 @@ class GridSamplingTest(unittest.TestCase):
                         "source_display_names": {source: source for source in SERVICE_DEFINITIONS},
                     }, retrieved)
                     row, = classified["result_rows"]
-                    self.assertTrue(row["geometry"].isTopologicallyEqual(polygon))
+                    self.assertTrue(row["geometry"].isGeosEqual(polygon))
                     self.assertAlmostEqual(row["indicators"]["grid_total_volume_m3_ha"], 100)
                     self.assertEqual(row["indicators"]["share_under_20"], 100)
                     for metric in ("grid_total_volume_m3_ha", "peatland_area_ha", "natural_mire_area_ha"):
@@ -139,6 +139,10 @@ class GridSamplingTest(unittest.TestCase):
         sampler = GridCellSampler([first, duplicate], "en")
         self.assertEqual(len(sampler.sample(rectangle(0, 0, 16, 16))), 1)
         self.assertEqual(sampler.duplicate_count, 1)
+        # The same footprint with a different ring start/order is still a duplicate.
+        duplicate = record("cell-1", QgsGeometry.fromWkt("POLYGON ((16 16,16 0,0 0,0 16,16 16))"))
+        self.assertFalse(first["geometry"].equals(duplicate["geometry"]))
+        self.assertEqual(GridCellSampler([first, duplicate], "en").duplicate_count, 1)
         for language in ("fi", "en"):
             with self.subTest(language=language):
                 with self.assertRaises(QgsProcessingException) as conflict:

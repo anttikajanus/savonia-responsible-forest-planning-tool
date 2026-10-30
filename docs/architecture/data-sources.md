@@ -128,7 +128,7 @@ fallback and legacy exception handling are outside the planned scope.
 
 A single AOI-bounded read retrieves each source; selected-feature snapshots
 bypass that provider read. Ordinary reads use a literal AOI polygon expression
-alongside the bbox; QGIS 4.2.3 translates this to a server-side FES `Intersects`.
+alongside the bbox; both tested QGIS baselines translate this to a server-side FES `Intersects`.
 Coordinates are transformed to the source CRS before serialization, and QGIS
 handles WFS axis order. The existing GET transport is retained, including
 connection parameters and subsets. A conservative encoded-filter budget falls
@@ -154,7 +154,7 @@ responses stop publication.
 The [retrieval adapter](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/source_loading.py)
 and its [workflow regressions](../../qgis_plugin/tests/qgis/test_workflow_contracts.py)
 own the QGIS-specific cache and event handling. Verification covers the QGIS
-4.2.3 WFS boundary; it is not a guarantee for arbitrary providers.
+3.44.0 and 4.2.3 WFS boundaries; it is not a guarantee for arbitrary providers.
 
 Successful empty retrieval is `AVAILABLE` but is not certification of complete geographic coverage. Source request/iteration failures stop the run. Metric nulls are handled independently as documented in [indicators](indicators.md).
 

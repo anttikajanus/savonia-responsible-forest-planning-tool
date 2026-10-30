@@ -16,7 +16,7 @@ Unless explicitly marked partial, deferred or retired, stories describe implemen
 | US-004 | As a planner, I want each successful run added to Results with its exact clipped inputs while preserving earlier runs and configured sources, so I can compare analyses. | [IO-06](indicators-and-outputs.md#io-06-map-review-and-run-retention) |
 | US-005 | As a planner, I want tier/class filtered map views with distinct sensitive, economic and unknown colors and tier switching through layer-tree group visibility, so I can inspect each classification independently. | [IO-06](indicators-and-outputs.md#io-06-map-review-and-run-retention) |
 | US-006 | As a GIS analyst, I want the interface, project labels and new outputs to follow QGIS's Finnish/English language choice, so reports and interactions use a consistent language. | [HL-01](help-and-language.md#hl-01-language-selection-and-consistency) |
-| US-007 | As a QGIS administrator, I want the plugin's compatibility and experimental status visible before installation, so I can choose a suitable QGIS environment. | [WF-01](workflow.md#wf-01-installation-and-runtime) |
+| US-007 | As a QGIS administrator, I want to use the plugin on QGIS 3.44 or 4.x with compatibility and experimental status visible before installation, so I can choose a suitable QGIS environment. | [WF-01](workflow.md#wf-01-installation-and-runtime) |
 
 ## Choosing the area and sources
 

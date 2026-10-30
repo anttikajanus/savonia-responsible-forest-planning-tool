@@ -74,15 +74,15 @@ def qgis_application():
 
     if QgsApplication.instance() is not None:
         raise RuntimeError("Initialize the shared QGIS test environment before creating QgsApplication.")
-    if not 40203 <= Qgis.QGIS_VERSION_INT < 50000:
-        raise RuntimeError(f"QGIS 4.2.3 or newer 4.x is required; found {Qgis.QGIS_VERSION}.")
+    if not 34400 <= Qgis.QGIS_VERSION_INT < 50000:
+        raise RuntimeError(f"QGIS 3.44 or newer 3.x/4.x is required; found {Qgis.QGIS_VERSION}.")
     QSettings.setDefaultFormat(QSettings.Format.IniFormat)
     QSettings.setPath(QSettings.Format.IniFormat, QSettings.Scope.UserScope, str(_ROOT / "settings"))
     QSettings.setPath(QSettings.Format.IniFormat, QSettings.Scope.SystemScope, str(_ROOT / "system-settings"))
     QCoreApplication.setOrganizationName("SavoniaTests")
     QCoreApplication.setOrganizationDomain("savonia-tests.invalid")
     QCoreApplication.setApplicationName("QgisIntegration")
-    # External QGIS 4.2 applications resolve their profile during initQgis()
+    # External QGIS applications resolve their profile during initQgis()
     # using QGIS_CUSTOM_CONFIG_PATH. Set provider preferences after that step.
     application = QgsApplication([], True)
     application.initQgis()

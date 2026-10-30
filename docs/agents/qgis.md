@@ -5,9 +5,10 @@ documenting code under `qgis_plugin/`. It owns the plugin implementation,
 verification and Finnish/English localization workflow. The
 [documentation map](README.md) identifies the other owners.
 
-Keep `metadata.txt` authoritative for the installation range. Use QGIS 4.2.3 as
-the verification baseline and repeat the suites and packaged lifecycle/Processing
-checks on newer targeted releases before recording them as verified.
+Keep `metadata.txt` authoritative for the installation range. Run the suites and
+packaged lifecycle/Processing checks on both verification baselines listed in
+[development](../architecture/development.md#shared-qgis-test-environment).
+Repeat those checks on other targeted releases before recording them as verified.
 
 ## Read the affected contract
 

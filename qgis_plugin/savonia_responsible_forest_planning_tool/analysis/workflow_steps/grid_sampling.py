@@ -43,7 +43,7 @@ def deduplicate_grid_records(records, language="en", feedback=None):
             same_geometry = (
                 previous["source_geometry_wkb"] == record["source_geometry_wkb"]
                 if "source_geometry_wkb" in previous and "source_geometry_wkb" in record
-                else previous["geometry"].isTopologicallyEqual(record["geometry"])
+                else previous["geometry"].isGeosEqual(record["geometry"])
             )
             if not same_geometry or previous["attributes"] != record["attributes"]:
                 raise QgsProcessingException(tr(language, "error_grid_conflicting_id", source_id=source_id))

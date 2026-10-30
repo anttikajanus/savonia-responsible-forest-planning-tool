@@ -29,8 +29,8 @@ accepting planning assumptions or establishing provider completeness.
    [packaging instructions](../architecture/development.md#check-packaging-separately).
    Check that the installed version matches the intended ZIP. Use a separate
    QGIS profile so the development checkout cannot supply imports.
-2. Use QGIS 4.2.3 as the baseline. Repeat applicable checks when targeting a newer
-   QGIS release or a different browser/Excel environment.
+2. Check both QGIS 3.44.0 and 4.2.3 baselines. Repeat applicable checks when
+   targeting another QGIS release or a different browser/Excel environment.
 3. Start with an empty project and disposable output folder. Keep test projects,
    output copies and any debugging artifacts under ignored `.local/<effort>/`
    when working in the repository. Use copies for failure/recovery checks.

@@ -10,7 +10,7 @@ Open the [full-size diagram](technical-architecture.svg), or edit the [Draw.io s
 
 ## Deployment and runtime
 
-This is a Python plugin running inside QGIS Desktop. QGIS supplies Python, Qt/PyQt, geometry operations, coordinate transformations and vector providers. There is no application server or server-side analysis worker in this repository. The external runtime connections are data-provider services; results and operational logs are written locally. The declared target is QGIS 4.2.3 and newer 4.x releases, as recorded in [metadata.txt](../../qgis_plugin/savonia_responsible_forest_planning_tool/metadata.txt); QGIS 4.2.3 remains the verification baseline.
+This is a Python plugin running inside QGIS Desktop. QGIS supplies Python, Qt/PyQt, geometry operations, coordinate transformations and vector providers. There is no application server or server-side analysis worker in this repository. The external runtime connections are data-provider services; results and operational logs are written locally. The declared target is QGIS 3.44 and newer 3.x/4.x releases, as recorded in [metadata.txt](../../qgis_plugin/savonia_responsible_forest_planning_tool/metadata.txt). The verification baselines are QGIS 3.44.0 with Qt 5 and QGIS 4.2.3 with Qt 6; other permitted releases need their own runtime checks.
 
 Plugin initialization owns Processing, menu/dock and logging registrations;
 unload releases those resources and cancels active analysis. Project setup is
@@ -80,6 +80,14 @@ so export requires neither Excel nor an external spreadsheet package. Existing
 output names are rejected before writing. Caught write failures or cancellation
 trigger cleanup of both outputs; deletion can fail and a process crash is
 outside that guarantee. See the [publication coordinator](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/publishing.py).
+
+Required GeoPackage field/form presentation is saved through the QGIS 3.44
+error-string API or the QGIS 4 structured-result API, selected in the
+[GeoPackage adapter](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/geopackage_writer.py).
+Either API reporting an error stops paired publication; both baselines check
+the saved presentation after reopening the file.
+[QGIS 3.44 style API](https://api.qgis.org/api/3.44/classQgsMapLayer.html),
+[QGIS 4 style API](https://api.qgis.org/api/4.0/classQgsMapLayer.html).
 
 ## Data flow and policy boundaries
 

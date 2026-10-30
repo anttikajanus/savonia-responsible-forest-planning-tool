@@ -5,7 +5,7 @@ source-roots = ["qgis_plugin", "qgis_plugin/tests", "qgis_plugin/tests/qgis", "s
 init-hook = "import sys; sys.path[:0] = ['qgis_plugin', 'qgis_plugin/tests/qgis', 'scripts']"
 ignore = [".git", ".scratch", ".local", ".venv", "venv", "__pycache__", "dist"]
 # PyQGIS and Qt expose compiled APIs. Only load these known extensions.
-extension-pkg-allow-list = ["qgis", "PyQt6"]
+extension-pkg-allow-list = ["qgis", "PyQt5", "PyQt6"]
 persistent = false
 
 [tool.pylint.messages_control]

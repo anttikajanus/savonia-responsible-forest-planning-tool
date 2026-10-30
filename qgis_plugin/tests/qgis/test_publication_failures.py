@@ -39,9 +39,13 @@ class PublicationFailureTests(WorkflowFixtureMixin, unittest.TestCase):
                 self.assertEqual(list(Path(self.temp.name).iterdir()), [])
 
     def test_required_style_persistence_failure_fails_paired_publication(self):
+        if hasattr(QgsVectorLayer, "saveStyleToDatabaseV2"):
+            method, failure = "saveStyleToDatabaseV2", (1, "controlled style failure")
+        else:
+            method, failure = "saveStyleToDatabase", "controlled style failure"
         for language in ("en", "fi"):
             with self.subTest(language=language), self.scenario([]) as (_, layers, aoi), \
-                    patch.object(QgsVectorLayer, "saveStyleToDatabaseV2", return_value=(1, "controlled style failure")) as save:
+                    patch.object(QgsVectorLayer, method, return_value=failure) as save:
                 with self.assertRaises(QgsProcessingException) as error:
                     self.run_algorithm(layers, aoi, language, "style-failure")
                 save.assert_called_once()

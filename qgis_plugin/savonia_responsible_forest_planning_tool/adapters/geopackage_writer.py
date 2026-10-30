@@ -50,11 +50,15 @@ def _save_result_presentation(path, result_layer):
         style = QgsMapLayerStyle()
         style.readFromLayer(result_layer)
         style.writeToLayer(saved)
-        result, message = saved.saveStyleToDatabaseV2(
-            "classified_forest_polygons", "", True, "",
-            QgsMapLayer.Fields | QgsMapLayer.Forms,
-        )
-        if result != QgsMapLayer.SaveStyleResult.Success:
+        arguments = ("classified_forest_polygons", "", True, "", QgsMapLayer.Fields | QgsMapLayer.Forms)
+        if hasattr(saved, "saveStyleToDatabaseV2"):
+            result, message = saved.saveStyleToDatabaseV2(*arguments)
+            failed = result != QgsMapLayer.SaveStyleResult.Success
+        else:
+            # QGIS 3.44 returns only the error string; an empty string is success.
+            message = saved.saveStyleToDatabase(*arguments)
+            failed = bool(message)
+        if failed:
             raise IOError("Could not save GeoPackage result field presentation: {0}".format(message))
     finally:
         # An exception traceback keeps this frame alive during paired cleanup.
