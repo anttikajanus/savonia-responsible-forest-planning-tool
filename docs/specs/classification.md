@@ -41,6 +41,10 @@ no geometric boundary, buffer or external potential-site source.
 - Preserve matched rule IDs and source IDs per tier, original stand identity, Section 10 promotion and available programme context. An economic result means no included trigger was found under the available evidence; it does not establish that no constraint exists on the ground.
 - Provide ordinary attributes for protected-area, Section 10 promotion, programme, groundwater, other-habitat and potential-protection-by-age checks. Store stable `MATCH`, `NO_MATCH` and `UNKNOWN` codes with bilingual presentation; unavailable evidence is never a no-match. Section 10 reports parent promotion even outside the mapped habitat footprint. The age check retains the parent stand ID in matched rule provenance. Superprotection's remaining-forest policy stays in its existing provenance rather than becoming another source check.
 
+Check display labels describe the criterion without calculation formulas or
+thresholds. Preserve the age formula and its interpretation in run metadata
+and workbook calculation notes, following the [output schema](../architecture/output-schema.md).
+
 Acceptance examples: a 1 ha stand aged 80 or younger with a qualifying protected strip of 0.25 ha and no other trigger has 0.25 sensitive/0.75 economic ha in All out through Protection, and 1 sensitive ha in Superprotection. An age over 80 makes the full stand sensitive in Protection and Superprotection while leaving lower tiers unchanged. A qualifying Section 10 strip instead promotes the whole clipped parent stand in every tier containing Section 10. Verify threshold behavior below, at and above 1 m² and 80 years, unknown ages, positive-trigger precedence and cumulative membership across all tiers.
 
 Overlapping protected records retain only the identifiers that match each piece.

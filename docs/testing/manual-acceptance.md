@@ -98,14 +98,15 @@ Expected behavior: [WF-04–07](../specs/workflow.md#wf-04-analysis-area-and-des
 ## Map review and saved results
 
 Expected behavior: [IO-04–06](../specs/indicators-and-outputs.md#io-04-labels-order-and-precision).
+Field and metadata definitions: [output schema](../architecture/output-schema.md).
 US-005's accepted interaction is switching tier groups in QGIS's layer tree.
 
 | ID | Actions | Expected result |
 | --- | --- | --- |
 | MT-16 | Expand a completed run. Turn All out off and each other tier on; enable the snapshots group. | Six tier groups contain eighteen checked class views; initially only All out is enabled. Sensitive is red/orange, economic green and unknown grey. Hidden groups reveal checked children when enabled; empty class views are valid. Snapshots remain initially hidden. |
-| MT-17 | Open tables/forms/Identify, add the complete classified dataset manually from the GeoPackage, close/reopen the files and save/reopen the project. | Field aliases, order, groups, units, nulls and all six class fields remain readable. Filtered views share one stored result dataset; every snapshot/view can still be read. |
+| MT-17 | Open tables/forms/Identify, add the complete classified dataset manually from the GeoPackage, close/reopen the files and save/reopen the project. Compare criterion labels with the output schema in both languages. | Field aliases, order, groups, units, nulls and all six class fields remain readable. Criterion labels follow the shared naming convention without formulas or thresholds. Filtered views share one stored result dataset; every snapshot/view can still be read. |
 | MT-18 | Add a second run, inspect both runs and change reference visibility/scale. | Earlier runs and configured sources remain intact; readers and filters stay usable. Results remain above References above Basemaps; presentation changes do not alter saved analysis. |
-| MT-19 | Open the workbook in Microsoft Excel, inspect all four localized sheets, save a disposable copy and reopen it. | Excel raises no repair warning. Summaries, source coverage, metric coverage and notes are readable with correct units, dates, nulls, attribution and prototype notice. Another XLSX reader is useful evidence but does not close Microsoft Excel acceptance. |
+| MT-19 | Open the workbook in Microsoft Excel, inspect all four localized sheets, save a disposable copy and reopen it. Compare saved calculation definitions with GeoPackage run metadata. | Excel raises no repair warning. Summaries, source coverage, metric coverage and notes are readable with correct units, dates, nulls, attribution and prototype notice. Calculation definitions agree across both formats and with the output schema. Another XLSX reader is useful evidence but does not close Microsoft Excel acceptance. |
 
 ## Numerical interpretation and exceptional evidence
 
@@ -124,7 +125,7 @@ required values.
 | MT-23 | Use tiny standalone, multipart and split result polygons below/at/above 0.01 m², a larger polygon whose hectares round to zero, and an all-excluded case. | Final connected polygons of <= 0.01 m² are excluded before summaries; count/area are reported and retained in metadata; source snapshots remain intact. Larger polygons remain. All-excluded runs fail before publication. |
 | MT-24 | Trigger a required-source/field failure, uninterpretable classification record, unrepairable geometry or controlled output-write failure. | The failed source/stage and corrective action are understandable and localized. No assumed economic class/valid zero replaces failure, and paired publication leaves no apparently successful partial output. Check original inputs remain unchanged. |
 | MT-25 | Compare a successful empty grid response, missing numeric values and an actual provider request/paging failure. Also exercise a repairable returned polygon. | Empty/missing numeric evidence can leave grid metrics unavailable while usable classification completes; a request/iteration failure stops publication. Repair is reported on the analysis copy without modifying source data. |
-| MT-30 | Compare stand MEANAGE below, exactly at and above 80 years, including a split stand, missing age and another positive criterion. Inspect the age check, tier reasons and workbook summaries in Finnish and English. | Only ages strictly over 80 match potential protection across all parent pieces in Protection and Superprotection. Active-protection checks stay separate. Unknown ages remain unknown without another positive trigger, including in Superprotection; matched age reasons retain the parent stand ID. Grid age indicators do not drive this check. |
+| MT-30 | Compare stand MEANAGE below, exactly at and above 80 years, including a split stand, missing age and another positive criterion. Inspect check codes, tier reasons and summaries in both languages. | Threshold outcomes, unknown handling and positive-trigger precedence follow [CL-02/03](../specs/classification.md#cl-02-six-cumulative-tiers). Age matches apply to every parent piece and retain its ID; active-protection checks stay independent. Use MT-17/19 for shared label and metadata checks. |
 
 ## Help, offline use and notices
 

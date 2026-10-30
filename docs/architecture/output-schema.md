@@ -27,7 +27,7 @@ Criteria accumulate from one tier to the next.
 | `class_bau` | BAU / `bau` | Same criteria as All out; retained as a separate tier. |
 | `class_light` | Light / `light` | Same criteria as All out and BAU. |
 | `class_balance` | Balance / `balance` | Light criteria plus nature conservation programme areas and groundwater areas. |
-| `class_protection` | Protection / `protection` | Balance criteria plus other valuable habitats and potential protection where stand mean age exceeds 80 years. |
+| `class_protection` | Protection / `protection` | Balance criteria plus other valuable habitats and potential protected areas based on forest age. |
 | `class_superprotection` | Superprotection / `superprotection` | Protection criteria plus all remaining analyzed forest with available required evidence. |
 
 Protected areas include state-owned protected areas, private-land protected
@@ -46,8 +46,9 @@ Each `class_*` field stores one of these exact values:
 | `UNKNOWN` | No positive criterion matched and evidence required to establish a no-hit decision was unavailable. | A data-quality state: classification cannot be resolved from the available evidence. It is neither a forest type nor a numeric zero. |
 
 The current application publishes results only when required sources are
-available, so `UNKNOWN` is part of the class vocabulary but is not expected in
-a successful current run. Indicator availability is recorded independently.
+available. Missing or invalid individual stand ages can still leave Protection
+and Superprotection `UNKNOWN` when no other positive criterion matches.
+Indicator availability is recorded independently.
 
 ### Classification reasons and context
 
@@ -61,7 +62,7 @@ lists use these codes; several reasons can apply to one piece.
 | `programme` | Match to a recognized nature conservation programme polygon. Programme membership is distinct from established protection. |
 | `groundwater` | Match to a groundwater-area footprint. |
 | `other_habitat` | Match to another valuable habitat. |
-| `potential_protected_age` | Parent stand `MEANAGE > 80` years; all derived pieces inherit the match and parent stand ID. Potential protection based on age, independent of active legal protection. |
+| `potential_protected_age` | Parent stand matches the potential-protection criterion based on forest age. This is distinct from established legal protection. |
 | `remaining_analyzed_forest` | Superprotection's rule for analyzed forest with no more specific sensitivity match and available required evidence. This is a policy reason and has no matched source-feature identifier. |
 
 Ordinary source-check attributes complement the structured reasons:
@@ -73,16 +74,17 @@ Ordinary source-check attributes complement the structured reasons:
 | `check_programme` | Conservation programme match. |
 | `check_groundwater` | Groundwater footprint match. |
 | `check_other_habitat` | Other valuable habitat match. |
-| `check_potential_protected_age` | Potential protected area due to parent stand mean age over 80 years. Exactly 80 is `NO_MATCH`; missing/invalid ages are `UNKNOWN`, even when Stand is available. |
+| `check_potential_protected_age` | Potential protected-area match based on parent stand age. |
 
 Each stores `MATCH`, `NO_MATCH` or `UNKNOWN`, with localized presentation.
-Unavailable dependencies are unknown rather than no-match. Superprotection's
-remaining-forest rule remains in `tier_rule_ids` rather than another check field.
-Without another positive criterion, unknown stand age leaves Protection and
-Superprotection unknown. Age-based provenance uses the parent stand ID; it does
-not set `check_protected`. Run metadata records the age rule under
-`classification_semantics`, also included in workbook calculation notes;
-workbook tier/class summaries reflect the age classifications.
+Display labels describe the criterion without embedding formulas or thresholds.
+Unavailable dependencies are unknown rather than no-match; the age check also
+remains unknown for missing or invalid stand ages. Each check reports its own
+criterion independently, even when another criterion determines a tier's class.
+Superprotection's remaining-forest rule stays in `tier_rule_ids` rather than
+another check field. Exact matching rules are defined in
+[geometry and classification](calculations.md#classification); saved calculation
+definitions are described under [Supporting metadata](#supporting-metadata).
 
 Additional fields describe classification and parent geometry context:
 
@@ -230,7 +232,7 @@ stored in text fields.
 | --- | --- |
 | `source_stand_id` | Parent stand identifier, using the provider feature ID when `standid` is absent/null. Distinct from the result row's GeoPackage feature ID. |
 | `tier_rule_ids` | Object keyed by tier. Each entry contains `criteria` (reason codes), `source_ids` (supporting feature identifiers) and `unknown_sources` (unavailable dependencies for an unmatched decision). Empty lists mean no entries of that kind. |
-| `source_ids` | Matched feature identifiers grouped by classification reason, independently of tier. `{}` means no matched classification identifiers, rather than no source data used. Section 10 identifiers apply to all promoted pieces. |
+| `source_ids` | Matched feature identifiers grouped by classification reason, independently of tier. `{}` means no matched classification identifiers, rather than no source data used. Section 10 identifiers apply to all promoted pieces; age-based matches identify the parent stand on every derived piece. |
 | `programme_info` | List of retained programme records: `LsoAlueTunnus` (identifier), `Luokka` (class), `Subtype` (subtype), `Nimi` (name), `MuutosPvm` (source change date) and `Lisatieto` (additional information), where available. `[]` means no retained programme records. |
 
 There is no per-indicator diagnostic result field or corresponding metadata
@@ -241,6 +243,14 @@ records, operational errors and stand-overlap logs remain separate.
 The file also contains AOI-clipped source snapshots, a `source_coverage` table
 with retrieval/interpretation details and exclusions, and a `run_metadata`
 table with run identity, parameters, source dates, limitations and attribution.
+Calculation definitions are stored in its JSON members and included unchanged
+in workbook calculation notes:
+
+| Run metadata member | Meaning |
+| --- | --- |
+| `classification_semantics` | Criterion definitions. `potential_protected_age` records source `forest_centre_stand`, field `MEANAGE`, unit `years`, rule `MEANAGE > 80`, tiers `protection` and `superprotection`, scope covering all parent-stand pieces, the missing/invalid-age policy and the interpretation as potential rather than legal protection. Exactly 80 does not match; accepted ages and unknown handling follow the [classification input contract](source-layer-requirements.md#accepted-classification-values). |
+| `indicator_semantics` | Indicator formulas, source groupings, units, weighting, rounding, completeness rules and interpretation of the supplied sawlog price and calculated sawlog value. Exact methods are defined in [indicator calculations](indicator-calculations.md). |
+
 Its `result_geometry_filter` JSON object records `maximum_excluded_area_m2`
 (`0.01`), `excluded_piece_count`, full-precision `excluded_area_m2` and
 `excluded_stand_count` (parents with no retained result polygon) for final

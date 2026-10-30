@@ -42,17 +42,30 @@ class StandAgeProtectionTests(WorkflowFixtureMixin, unittest.TestCase):
                 rules = json.loads(features["over-80"]["tier_rule_ids"])
                 self.assertEqual(rules["protection"]["criteria"], ["potential_protected_age"])
                 self.assertEqual(rules["protection"]["source_ids"], ["over-80"])
+                expected_alias = ("Metsän ikään perustuvan mahdollisen suojelualueen tarkistus"
+                                  if language == "fi" else "Potential protected-area check based on forest age")
                 self.assertEqual(layer.attributeAlias(layer.fields().indexFromName("check_potential_protected_age")),
-                                 tr(language, "check_potential_protected_age"))
+                                 expected_alias)
+                metadata = QgsVectorLayer(result["RESULT"].split("|", 1)[0] + "|layername=run_metadata", "metadata", "ogr")
+                self.assertTrue(metadata.isValid())
+                semantics = json.loads(next(metadata.getFeatures())["classification_semantics"])
+                self.assertEqual(semantics["potential_protected_age"], {
+                    "source_id": "forest_centre_stand", "field": "MEANAGE", "unit": "years",
+                    "rule": "MEANAGE > 80", "tiers": ["protection", "superprotection"],
+                    "scope": "all pieces of the parent stand",
+                    "unknown": "missing, nonnumeric, boolean, nonfinite or negative age",
+                    "interpretation": "potential protection based on age; not legal protection",
+                })
                 sheets = workbook_rows(result["EXCEL"])
                 summary = sheets[tr(language, "sheet_summary")]
                 for class_code in ("SENSITIVE", "ECONOMIC", "UNKNOWN"):
                     row = next(row for row in summary if row[:2] == [tr(language, "tier_protection"),
                                                                  tr(language, "class_" + class_code.lower())])
                     self.assertEqual(float(row[2]), 1)
-                notes = str(sheets[tr(language, "sheet_notes")])
-                self.assertIn("MEANAGE > 80", notes)
-                self.assertIn("classification_semantics", notes)
+                notes = sheets[tr(language, "sheet_notes")]
+                workbook_semantics = json.loads("".join(row[2] for row in notes
+                                                       if row[0] == "classification_semantics"))
+                self.assertEqual(workbook_semantics, semantics)
 
 
 if __name__ == "__main__":
