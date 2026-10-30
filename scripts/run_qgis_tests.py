@@ -1,6 +1,7 @@
 """Run isolated PyQGIS preflight and integration checks in the QGIS runtime."""
 
 import argparse
+import faulthandler
 from pathlib import Path
 import sys
 import unittest
@@ -10,6 +11,7 @@ TEST_ROOT = Path(__file__).resolve().parents[1] / "qgis_plugin" / "tests" / "qgi
 
 
 def main(argv=None):
+    faulthandler.enable()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--preflight-only", action="store_true")
     parser.add_argument("--pattern", default="test*.py")

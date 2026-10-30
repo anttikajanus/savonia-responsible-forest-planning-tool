@@ -5,6 +5,19 @@ documenting code under `qgis_plugin/`. It owns the plugin implementation,
 verification and Finnish/English localization workflow. The
 [documentation map](README.md) identifies the other owners.
 
+## Documentation-only verification
+
+For wording, navigation or link corrections, including README edits, check local
+paths/anchors, requirement references, ownership links and agreement with the
+affected contracts. Report the checks performed and that product behavior is
+unchanged; the implementation workflow and runtime checks below apply to code
+changes. Changes to packaged manuals or resources also need the affected
+help/package checks from [Testing and debugging](#testing-and-debugging) and the
+[development guide](../architecture/development.md).
+
+For code changes, continue with the affected contracts and implementation workflow
+below.
+
 Keep `metadata.txt` authoritative for the installation range. Run the suites and
 packaged lifecycle/Processing checks on both verification baselines listed in
 [development](../architecture/development.md#shared-qgis-test-environment).
@@ -91,10 +104,10 @@ payloads, destinations, rotation, handler lifecycle and source rationale.
 Use the [development guide](../architecture/development.md) for commands and
 runtime setup. For a read-only review, report compliance and gaps without claiming
 tests were executed. For code changes, run the relevant checks below and the
-required bilingual/package checks. Documentation navigation alone needs link and
-contract-consistency checks; changes to packaged manuals or resources also need
-the affected help/package checks. Report checks performed and untested areas in
-the task result. Use the [personal manual checklist](../testing/manual-acceptance.md)
+required bilingual/package checks. For documentation changes, use the
+[documentation-only route](#documentation-only-verification). Report checks
+performed and untested areas in the task result. Use the
+[personal manual checklist](../testing/manual-acceptance.md)
 for GUI checks and its lightweight workflow.
 
 Keep tests deterministic and independent of live data services wherever possible.

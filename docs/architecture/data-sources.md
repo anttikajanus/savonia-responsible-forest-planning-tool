@@ -128,11 +128,15 @@ fallback and legacy exception handling are outside the planned scope.
 
 A single AOI-bounded read retrieves each source; selected-feature snapshots
 bypass that provider read. Ordinary reads use a literal AOI polygon expression
-alongside the bbox; both tested QGIS baselines translate this to a server-side FES `Intersects`.
+alongside the bbox; both tested QGIS baselines translate this to server-side FES `Intersects`
+predicates. Multipart AOIs use one Polygon predicate per part, combined with
+`Or`, preserving holes. This avoids QGIS's GML 3.2 `MultiPolygon` encoding,
+which the Forest Centre stand service rejects with a null-expression exception.
 Coordinates are transformed to the source CRS before serialization, and QGIS
 handles WFS axis order. The existing GET transport is retained, including
-connection parameters and subsets. A conservative encoded-filter budget falls
-back to the bbox for large geometries, preserving exact local clipping and all
+connection parameters and subsets. A conservative encoded-filter budget for
+the complete combined expression falls back to the bbox for large geometries,
+preserving exact local clipping and all
 pages. This budget is an application policy, not a verified provider URL limit.
 [QGIS expression conversion](https://github.com/qgis/QGIS/blob/final-4_2_3/src/providers/wfs/qgswfsshareddata.cpp#L112),
 [filter composition](https://github.com/qgis/QGIS/blob/final-4_2_3/src/providers/wfs/qgswfsfeaturedownloaderimpl.cpp#L174).

@@ -1,3 +1,6 @@
 # Development tools only; never included in the QGIS plugin ZIP.
 # Requires Astroid 4.3.4+, which fixes Qt 5 live-class introspection loops.
 pylint==4.1.3
+markdown-it-py==4.0.0
+PyYAML==6.0.3
+astroid>=4.3.4

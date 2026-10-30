@@ -33,9 +33,20 @@ MAX_ENCODED_POLYGON_FILTER_BYTES = 6000
 
 def _polygon_request_expression(geometry, source_crs):
     """Return a pushable AOI expression, or a bounded-read fallback for large filters."""
-    expression = "intersects($geometry, geom_from_wkt({0}))".format(
-        QgsExpression.quotedString(geometry.asWkt(17)),
+    # QGIS emits GML 3.2 MultiPolygon for multipart WKT, which the Forest
+    # Centre service rejects with a null-expression exception. Polygon
+    # predicates joined with OR preserve the AOI, including each part's holes.
+    parts = geometry.asGeometryCollection() if geometry.isMultipart() else [geometry]
+    expression = " OR ".join(
+        "intersects($geometry, geom_from_wkt({0}))".format(
+            QgsExpression.quotedString(part.asWkt(17)),
+        ) for part in parts
     )
+    # QGIS 3.44 only pushes function/unary roots through its expression
+    # serializer. Double negation preserves the OR predicate's meaning and
+    # lets both supported baselines send the complete filter to the server.
+    if len(parts) > 1:
+        expression = "NOT (NOT ({0}))".format(expression)
     document = QDomDocument()
     element = QgsOgcUtils.expressionToOgcExpression(
         QgsExpression(expression), document, QgsOgcUtils.GML_3_2_1,

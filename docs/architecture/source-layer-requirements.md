@@ -46,7 +46,8 @@ without a total feature cap. Setup discovers metadata and provider fields
 without downloading sample features or counting records. Analysis retrieves
 each source once for the AOI and clips it exactly; the grid is reused locally
 across result polygons. Ordinary WFS reads combine the bounding rectangle with
-an `Intersects` predicate against the actual AOI in the source CRS. This retains
+`Intersects` predicates against the actual AOI in the source CRS, combining
+individual polygon parts with `Or` for multipart AOIs. This retains
 holes and multipart geometry, original fields, existing provider subsets and
 authentication. The expression belongs to the feature request, leaving project
 layer connections unchanged. Oversized serialized polygon filters use the

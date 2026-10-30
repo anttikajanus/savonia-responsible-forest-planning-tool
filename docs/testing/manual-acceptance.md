@@ -87,7 +87,7 @@ Expected behavior: [WF-04–07](../specs/workflow.md#wf-04-analysis-area-and-des
 
 | ID | Actions | Expected result |
 | --- | --- | --- |
-| MT-09 | Run each AOI mode: drawn polygon, polygon layer and captured map extent. Use selected-only with a nonempty selection. | The intended AOI/CRS is captured, inputs remain intact, overlapping AOI polygons are dissolved, and outputs use EPSG:3067. |
+| MT-09 | Run each AOI mode: drawn polygon, polygon layer and captured map extent. Use selected-only with a nonempty selection, including two separate polygons from the same parcel and an AOI with a hole. | The intended AOI/CRS is captured, both selected parts are retrieved without a multipart WFS filter error, holes remain excluded, inputs remain intact, overlapping AOI polygons are dissolved, and outputs use EPSG:3067. |
 | MT-10 | Change selection, manually toggle selected-only, clear/restore selection and change/remove a required source or output destination. | Run readiness updates without feature downloads. A manually selected empty selection disables Run until restored or unchecked; automatic selection handling follows WF-05. |
 | MT-11 | Try blank, positive, zero and invalid prices; clear a remembered entry. Test decimal-comma input in Finnish, hide/reopen and restart. Omit the Processing price once. | Only a finite positive current price permits execution. Valid wizard values are remembered; clearing blocks the run. Processing requires its own explicit price. |
 | MT-12 | Use writable/unwritable destinations and a conflicting existing output basename through Processing. | Invalid destinations/names fail clearly; existing files are not overwritten and remain unchanged. The wizard remembers its output folder. |

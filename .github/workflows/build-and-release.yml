@@ -19,14 +19,26 @@ jobs:
     name: Test and build installable ZIP
     runs-on: windows-latest
     timeout-minutes: 20
+    outputs:
+      qgis-runtimes: ${{ steps.runtimes.outputs.matrix }}
+      qgis-base-url: ${{ steps.runtimes.outputs.base-url }}
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Read shared QGIS runtime pins
+        id: runtimes
+        run: |
+          $manifest = Get-Content scripts/qgis-runtimes.json -Raw | ConvertFrom-Json
+          $matrix = ConvertTo-Json -InputObject @($manifest.runtimes) -Depth 10 -Compress
+          "matrix=$matrix" >> $env:GITHUB_OUTPUT
+          "base-url=$($manifest.base_url)" >> $env:GITHUB_OUTPUT
       - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
-      - name: Test build tooling
+      - name: Install development dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Test build tooling and repository consistency
         run: python -m unittest discover -s scripts/tests -v
       - name: Test plugin and bilingual resources
         run: python -m unittest discover -s qgis_plugin/tests -v
@@ -54,23 +66,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        qgis:
-          - version: 3.44.0
-            version_int: 34400
-            launcher: python-qgis.bat
-            installer: QGIS-OSGeo4W-3.44.0-1.msi
-            # https://download.qgis.org/downloads/QGIS-OSGeo4W-3.44.0-1.sha256sum
-            sha256: 440408a79806b993a7ee12b18a5176e8007848be83a8775ee4b187e120cf04cd
-          - version: 4.2.3
-            version_int: 40203
-            launcher: python-qgis.bat
-            installer: QGIS-OSGeo4W-4.2.3-2.msi
-            # https://download.qgis.org/downloads/QGIS-OSGeo4W-4.2.3-2.sha256sum
-            sha256: c9b4b837350d00eecb77ae5c965219b3f74776e1921f7460b3859c898f38b1cf
+        qgis: ${{ fromJSON(needs.build.outputs.qgis-runtimes) }}
     env:
       QGIS_PYTHON: C:\Program Files\QGIS ${{ matrix.qgis.version }}\bin\${{ matrix.qgis.launcher }}
       QGIS_INSTALLER_NAME: ${{ matrix.qgis.installer }}
       QGIS_INSTALLER_SHA256: ${{ matrix.qgis.sha256 }}
+      QGIS_INSTALLER_BASE_URL: ${{ needs.build.outputs.qgis-base-url }}
       QGIS_VERSION_INT: ${{ matrix.qgis.version_int }}
       QT_QPA_PLATFORM: offscreen
       PYTHONUTF8: '1'
@@ -86,7 +87,7 @@ jobs:
       - name: Install QGIS ${{ matrix.qgis.version }}
         run: |
           $installer = Join-Path $env:RUNNER_TEMP $env:QGIS_INSTALLER_NAME
-          $baseUrl = 'https://download.qgis.org/downloads'
+          $baseUrl = $env:QGIS_INSTALLER_BASE_URL
           if (-not (Test-Path -LiteralPath $installer)) {
             Invoke-WebRequest "$baseUrl/$env:QGIS_INSTALLER_NAME" -OutFile $installer -MaximumRetryCount 3
           }

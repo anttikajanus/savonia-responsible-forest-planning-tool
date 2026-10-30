@@ -184,6 +184,12 @@ See the [output examples](docs/examples/classified-forest-polygons.md) and
 
 ## Development setup
 
+For workspace-only Windows QGIS test runtimes, use
+`./scripts/setup-qgis-runtime.ps1 -Version 3.44.0` (or `4.2.3`). It reuses CI's
+installer pins, caches verified downloads and prints the correct Python launcher.
+See [runtime setup](docs/architecture/development.md#workspace-runtime-setup)
+for prerequisites and existing-download reuse.
+
 After cloning the complete repository, run the reference downloader from the
 repository root with Python 3.10 or newer:
 

@@ -14,6 +14,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import check
+import run_qgis_tests
 
 
 class CheckRunnerTests(unittest.TestCase):
@@ -39,6 +40,90 @@ class CheckRunnerTests(unittest.TestCase):
         self.assertIn("PASS verbose-success", self.output.getvalue())
         self.assertNotIn("detail", self.output.getvalue())
 
+    def test_failed_test_names_are_reported_even_outside_the_log_tail(self):
+        probe = """import sys, unittest
+class Case(unittest.TestCase):
+    def test_bad(self):
+        with self.subTest(value=3):
+            self.fail('controlled failure')
+    def test_error(self):
+        raise RuntimeError('controlled error')
+result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Case))
+print('detail\\n'*30, file=sys.stderr)
+sys.exit(not result.wasSuccessful())
+"""
+        command = [sys.executable, "-c", probe]
+        with self.assertRaises(check.CheckFailure) as failure:
+            check.execute_check("failed-tests", command, self.root, os.environ.copy())
+        self.assertIn("Failing tests:", str(failure.exception))
+        self.assertIn("FAIL: test_bad (__main__.Case.test_bad) (value=3)", str(failure.exception))
+        self.assertIn("ERROR: test_error (__main__.Case.test_error)", str(failure.exception))
+
+    def test_timeout_preserves_output_and_identifies_the_last_test(self):
+        command = [sys.executable, "-c", "import time; print('test_hung (suite.Case) ... ', flush=True); time.sleep(60)"]
+        with self.assertRaises(check.CheckFailure) as failure:
+            check.execute_check("hung", command, self.root, os.environ.copy(), timeout=0.5)
+        self.assertIn("timed out after 0.5s", str(failure.exception))
+        self.assertIn("Last test reported: test_hung (suite.Case)", str(failure.exception))
+        self.assertIn("test_hung", (self.root / "hung.log").read_text())
+
+    def test_timeout_must_be_positive_and_finite(self):
+        for value in ("0", "-1", "nan", "inf"):
+            with self.subTest(value=value), self.assertRaises(SystemExit) as failure:
+                check.main(["--timeout", value, "--logs-dir", str(self.root)])
+            self.assertEqual(failure.exception.code, 2)
+        self.assertIn("--timeout must be positive and finite", self.error.getvalue())
+        self.assertEqual(list(self.root.iterdir()), [])
+
+    def test_direct_qgis_runner_enables_fault_handler_before_bootstrap(self):
+        probe = (
+            "import faulthandler, sys, types; faulthandler.disable(); "
+            f"sys.path.insert(0, {str(Path(run_qgis_tests.__file__).parent)!r}); "
+            "bootstrap = types.ModuleType('qgis_test_environment'); "
+            "exec(\"def initialize():\\n"
+            "    assert faulthandler.is_enabled(), 'fault handler disabled'\\n"
+            "    raise RuntimeError('controlled bootstrap failure')\", "
+            "{'faulthandler': faulthandler}, bootstrap.__dict__); "
+            "bootstrap.qgis_application = bootstrap.initialize; bootstrap.environment_root = lambda: ''; "
+            "sys.modules['qgis_test_environment'] = bootstrap; "
+            "import run_qgis_tests; sys.exit(run_qgis_tests.main(['--preflight-only']))"
+        )
+        result = subprocess.run([sys.executable, "-c", probe], capture_output=True, text=True, check=False, timeout=10)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("controlled bootstrap failure", result.stderr)
+        self.assertNotIn("fault handler disabled", result.stderr)
+
+    @unittest.skipUnless(os.name == "nt", "Windows batch launcher process tree")
+    def test_timeout_stops_the_python_child_of_a_batch_launcher(self):
+        marker = self.root / "child-open-file"
+        child = self.root / "child.py"
+        child.write_text("import time\n" + f"with open({str(marker)!r}, 'w') as output:\n"
+                         "    print('child running', flush=True)\n    time.sleep(60)\n", encoding="utf-8")
+        launcher = self.root / "launcher.bat"
+        launcher.write_text(f'@echo off\n"{sys.executable}" "{child}"\n', encoding="utf-8")
+        with self.assertRaisesRegex(check.CheckFailure, "timed out") as failure:
+            check.execute_check("batch-hung", [str(launcher)], self.root, os.environ.copy(), timeout=1.5)
+        self.assertNotIn("cleanup failed", str(failure.exception))
+        self.assertIn("child running", (self.root / "batch-hung.log").read_text())
+        # The child keeps this handle open while running; Windows denies deletion.
+        marker.unlink()
+
+    @unittest.skipUnless(shutil.which("powershell"), "Windows entry point requires PowerShell")
+    def test_windows_entry_point_forwards_timeout_and_saves_failure_summary(self):
+        launcher = self.root / "hung.bat"
+        launcher.write_text('@echo off\n"' + sys.executable + '" -c "import time; time.sleep(60)"\n', encoding="utf-8")
+        runner = Path(check.__file__).with_suffix(".ps1")
+        result = subprocess.run([
+            "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(runner),
+            "-Python", sys.executable, "-Checks", "qgis", "-QgisPython", str(launcher),
+            "-LogsDir", str(self.root), "-TimeoutSeconds", "0.5",
+        ], capture_output=True, text=True, check=False, timeout=15)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("preflight-qgis timed out after 0.5s", result.stderr)
+        summary = next(self.root.glob("*/failure.log")).read_text()
+        self.assertIn("timed out after 0.5s", summary)
+        self.assertNotIn("cleanup failed", summary)
+
     def test_missing_git_stops_before_selected_suites(self):
         with patch.object(check.shutil, "which", return_value=None), patch.object(check, "execute_check") as execute:
             result = check.main(["--checks", "tooling", "--logs-dir", str(self.root)])
@@ -52,20 +137,25 @@ class CheckRunnerTests(unittest.TestCase):
         launcher.touch()
         calls = []
 
-        def record(name, command, _logs, environment):
-            calls.append((name, command[0], dict(environment)))
+        def record(name, command, _logs, environment, timeout):
+            calls.append((name, command[0], dict(environment), timeout))
+            if name == "preflight-lint":
+                (_logs / "preflight-lint.log").write_text("Pylint/Astroid import details\n", encoding="utf-8")
 
         with patch.object(check, "execute_check", side_effect=record), patch.dict(os.environ, {
                 "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT": "stale-installed-plugin"}):
-            result = check.main(["--qgis-python", str(launcher), "--logs-dir", str(self.root)])
+            result = check.main(["--qgis-python", str(launcher), "--logs-dir", str(self.root), "--timeout", "42"])
         self.assertEqual(result, 0)
-        by_name = {name: (runtime, environment) for name, runtime, environment in calls}
+        self.assertIn("Pylint/Astroid import details", self.output.getvalue())
+        by_name = {name: (runtime, environment) for name, runtime, environment, _timeout in calls}
         for name in ("tooling", "unit"):
             self.assertEqual(by_name[name][0], sys.executable)
-        for name in ("preflight-qgis", "lint", "qgis"):
+        for name in ("preflight-qgis", "preflight-lint", "lint", "qgis"):
             self.assertEqual(by_name[name][0], str(launcher.resolve()))
-        for _name, _runtime, environment in calls:
+        for _name, _runtime, environment, timeout in calls:
             self.assertNotIn("RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT", environment)
+            self.assertEqual(environment["PYTHONFAULTHANDLER"], "1")
+            self.assertEqual(timeout, 42)
         self.assertIn("RESPONSIBLE_FOREST_PLANNING_TEST_ENV_ROOT", by_name["qgis"][1])
 
     def test_qgis_preflight_failure_stops_before_product_checks(self):
@@ -76,6 +166,50 @@ class CheckRunnerTests(unittest.TestCase):
         self.assertEqual(result, 1)
         self.assertEqual([call.args[0] for call in execute.call_args_list], ["preflight-qgis"])
         self.assertIn("unwritable cache", self.error.getvalue())
+
+    def test_lint_preflight_failure_stops_before_all_selected_suites(self):
+        launcher = self.root / "qgis-launcher.bat"
+        launcher.touch()
+
+        def reject_stale_tools(name, *_arguments, **_options):
+            if name == "preflight-lint":
+                raise check.CheckFailure("Astroid 4.0.4 is too old; upgrade requirements-dev.txt")
+
+        with patch.object(check, "execute_check", side_effect=reject_stale_tools) as execute:
+            result = check.main(["--qgis-python", str(launcher), "--logs-dir", str(self.root)])
+        self.assertEqual(result, 1)
+        self.assertIn("Astroid 4.0.4", self.error.getvalue())
+        self.assertNotIn("tooling", [call.args[0] for call in execute.call_args_list])
+        self.assertEqual(execute.call_args_list[-1].args[1],
+                         [str(launcher.resolve()), "scripts/check_lint_environment.py",
+                          "--qgis-python", str(launcher.resolve())])
+
+    def test_lint_dependencies_are_not_checked_for_other_selections(self):
+        launcher = self.root / "qgis-launcher.bat"
+        launcher.touch()
+        for selection, names in (("unit", ["unit"]), ("qgis", ["preflight-qgis", "qgis"])):
+            with self.subTest(selection=selection), patch.object(check, "execute_check") as execute:
+                result = check.main(["--checks", selection, "--qgis-python", str(launcher),
+                                     "--logs-dir", str(self.root)])
+                self.assertEqual(result, 0)
+                self.assertEqual([call.args[0] for call in execute.call_args_list], names)
+
+    @unittest.skipUnless(os.name == "nt", "Batch launcher requires Windows")
+    def test_launcher_replacing_pythonpath_cannot_hide_stale_imported_tools(self):
+        shadow = self.root / "launcher-tools"
+        shadow.mkdir()
+        (shadow / "pylint.py").write_text("__version__ = '4.1.3'\n", encoding="utf-8")
+        (shadow / "astroid.py").write_text("__version__ = '4.0.4'\n", encoding="utf-8")
+        launcher = self.root / "qgis-launcher.bat"
+        launcher.write_text(f'@echo off\nset "PYTHONPATH={shadow}"\n"{sys.executable}" %*\n', encoding="utf-8")
+        with patch.object(check, "qgis_check"), patch.dict(os.environ, {"PYTHONPATH": "discarded-override"}):
+            result = check.main(["--checks", "lint", "--qgis-python", str(launcher),
+                                 "--logs-dir", str(self.root)])
+        self.assertEqual(result, 1)
+        self.assertIn("Astroid: 4.0.4", self.error.getvalue())
+        self.assertIn(str(shadow / "astroid.py"), self.error.getvalue())
+        self.assertIn("-m pip install --user --upgrade", self.error.getvalue())
+        self.assertEqual(list(self.root.glob("*/lint.log")), [])
 
     @unittest.skipUnless(shutil.which("powershell"), "Windows entry point requires PowerShell")
     def test_windows_entry_point_propagates_preflight_failure_from_another_directory(self):

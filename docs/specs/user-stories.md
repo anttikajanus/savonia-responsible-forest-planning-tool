@@ -105,7 +105,7 @@ Unless explicitly marked partial, deferred or retired, stories describe implemen
 | US-065 | As a maintainer or agent, I want one command to cache official source descriptions and provider documents locally, so I can inspect them offline without committing downloaded artifacts. | [WF-08](workflow.md#wf-08-local-development-reference-material) |
 | US-066 | As a QGIS user, I want an installable ZIP downloadable from GitHub Releases, so I can install the plugin without building it. | [WF-01](workflow.md#wf-01-installation-and-runtime) |
 | US-067 | As a maintainer, I want each push to main to test, build and publish the next minor release, so distribution is automatic and retains the major version. | [WF-01](workflow.md#wf-01-installation-and-runtime) |
-| US-070 | As a maintainer, I want one command for checks with isolated QGIS settings/cache, correct runtimes and complete logs with test timings, so I can identify environment faults and slow tests before debugging plugin behavior. | [WF-09](workflow.md#wf-09-isolated-developer-checks) |
+| US-070 | As a maintainer, I want reusable pinned workspace runtimes and one command for checks with isolated QGIS settings/cache, correct runtimes, validated imported lint tools, configurable timeouts and complete logs with fault traces, failing test names and timings, so I can reproduce the test environment and diagnose crashes, hangs, environment faults and slow tests. | [WF-09](workflow.md#wf-09-isolated-developer-checks) |
 
 ## Completing inputs and inspecting results
 

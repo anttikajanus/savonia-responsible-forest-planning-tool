@@ -22,6 +22,19 @@ from workflow_fixture import fixture_sources, source_record
 GRID = "forest_centre_gridcell"
 
 
+class PolygonFilterWfs(LocalWfs):
+    """Model the live Forest Centre rejection of QGIS's GML 3.2 MultiPolygon."""
+
+    def features(self, source, query=None):
+        if query and "filter" in query and ET.fromstring(query["filter"]).find(
+                ".//{http://www.opengis.net/gml/3.2}MultiPolygon") is not None:
+            return ('<ows:ExceptionReport xmlns:ows="http://www.opengis.net/ows/1.1" version="2.0.0">'
+                    '<ows:Exception exceptionCode="NoApplicableCode"><ows:ExceptionText>'
+                    'java.lang.NullPointerException: Cannot invoke "Object.getClass()" '
+                    'because "expression" is null</ows:ExceptionText></ows:Exception></ows:ExceptionReport>')
+        return super().features(source, query)
+
+
 def spatial_records(record, query):
     """Interpret the spatial predicates emitted by QGIS, before fixture paging."""
     polygon = QgsGeometry.fromWkt(
@@ -32,7 +45,22 @@ def spatial_records(record, query):
             return False
     if "filter" in query:
         root = ET.fromstring(query["filter"])
-        for predicate in root.findall(".//{*}Intersects"):
+        def matches(predicate):
+            name = predicate.tag.rsplit("}", 1)[-1]
+            if name in ("Filter", "And"):
+                return all(matches(child) for child in predicate)
+            if name == "Or":
+                return any(matches(child) for child in predicate)
+            if name == "Not":
+                return not matches(predicate[0])
+            if name == "BBOX":
+                lower = [float(x) for x in predicate.find(".//{*}lowerCorner").text.split()]
+                upper = [float(x) for x in predicate.find(".//{*}upperCorner").text.split()]
+                return polygon.intersects(rectangle(lower[0], lower[1], upper[0] - lower[0], upper[1] - lower[1]))
+            if name == "PropertyIsGreaterThan":
+                field = predicate.find("{*}ValueReference").text.split(":")[-1]
+                return float(record["attributes"][field]) > float(predicate.find("{*}Literal").text)
+            assert name == "Intersects", name
             shape = predicate.find("{*}Polygon")
             if shape is None:
                 shape = predicate.find("{*}MultiSurface")
@@ -48,17 +76,8 @@ def spatial_records(record, query):
                     rings.append([QgsPointXY(x, y) for x, y in zip(values[::2], values[1::2])])
                 parts.append(rings)
             geometry = QgsGeometry.fromMultiPolygonXY(parts)
-            if not polygon.intersects(geometry):
-                return False
-        for bounds in root.findall(".//{*}BBOX"):
-            lower = [float(x) for x in bounds.find(".//{*}lowerCorner").text.split()]
-            upper = [float(x) for x in bounds.find(".//{*}upperCorner").text.split()]
-            if not polygon.intersects(rectangle(lower[0], lower[1], upper[0] - lower[0], upper[1] - lower[1])):
-                return False
-        for predicate in root.findall(".//{*}PropertyIsGreaterThan"):
-            field = predicate.find("{*}ValueReference").text.split(":")[-1]
-            if float(record["attributes"][field]) <= float(predicate.find("{*}Literal").text):
-                return False
+            return polygon.intersects(geometry)
+        return matches(root)
     return True
 
 
@@ -90,7 +109,7 @@ class AnalysisQueryFilteringTest(unittest.TestCase):
             "((350100 6900000,350120 6900000,350120 6900020,350100 6900020,350100 6900000)))")
         self.assertTrue(aoi.isGeosValid())
         for language in ("en", "fi"):
-            with self.subTest(language=language), LocalWfs({GRID: fields}, records={GRID: records},
+            with self.subTest(language=language), PolygonFilterWfs({GRID: fields}, records={GRID: records},
                     version="2.0.0", page_size=2, record_filter=spatial_records) as fixture:
                 bounded = self.layer(fixture)
                 with patch.object(source_loading, "MAX_ENCODED_POLYGON_FILTER_BYTES", 0):
@@ -104,6 +123,10 @@ class AnalysisQueryFilteringTest(unittest.TestCase):
                 self.assertLess(sum(count for _, count in fixture.returned_counts), baseline_count)
                 self.assertEqual([int(q.get("startindex", 0)) for q in queries], [0, 2])
                 self.assertTrue(all(request_has_bbox(q) and "Intersects" in q["filter"] for q in queries))
+                for query in queries:
+                    root = ET.fromstring(query["filter"])
+                    self.assertEqual(len(root.findall(".//{*}Or/{*}Intersects")), 2)
+                    self.assertIsNone(root.find(".//{*}MultiPolygon"))
                 actual = {r["source_id"]: r for r in result["source_features"][GRID]}
                 expected = {r["source_id"]: r for r in baseline["source_features"][GRID]}
                 self.assertEqual(set(actual), {"0", "3", "4"})
@@ -148,6 +171,48 @@ class AnalysisQueryFilteringTest(unittest.TestCase):
             self.assertAlmostEqual(positions[0], first.y())
             self.assertAlmostEqual(positions[1], first.x())
             self.assertEqual(result["coverage"][0]["status"], "AVAILABLE")
+
+    def test_multipart_predicates_preserve_subset_and_combined_filter_budget(self):
+        fields = fixture_sources()[GRID]
+        records = [source_record({**fields, "GRIDCELLID": str(index), "VOLUME": volume},
+                                 x=350000 + index * 20, width=10, height=10)
+                   for index, volume in enumerate((100, 200, 0))]
+        aoi = QgsGeometry.fromMultiPolygonXY([
+            rectangle(350000, 6900000, 10, 10).asPolygon(),
+            rectangle(350040, 6900000, 10, 10).asPolygon(),
+        ])
+        for language in ("en", "fi"):
+            with self.subTest(language=language), PolygonFilterWfs(
+                    {GRID: fields}, records={GRID: records}, version="2.0.0",
+                    record_filter=spatial_records) as fixture:
+                expression, _ = source_loading._polygon_request_expression(aoi, "EPSG:3067")
+                self.assertIn(" OR ", expression)
+                # Each part fits this budget; the combined expression does not.
+                with patch.object(source_loading, "MAX_ENCODED_POLYGON_FILTER_BYTES", 1000):
+                    self.assertTrue(source_loading._polygon_request_expression(
+                        aoi.asGeometryCollection()[0], "EPSG:3067")[0])
+                    baseline = self.read(self.layer(fixture, subset='"VOLUME" > 0'), aoi, language)
+                self.assertEqual(baseline["coverage"][0]["spatial_filter"], "bbox_filter_size")
+                fixture.requests.clear()
+                result = self.read(self.layer(fixture, subset='"VOLUME" > 0'), aoi, language)
+                self.assertEqual([r["source_id"] for r in result["source_features"][GRID]], ["0"])
+                self.assertEqual([r["source_id"] for r in baseline["source_features"][GRID]], ["0"])
+                queries = [q for q in fixture.requests if q.get("request", "").lower() == "getfeature"]
+                self.assertTrue(queries)
+                self.assertTrue(all("PropertyIsGreaterThan" in q["filter"] and "Or" in q["filter"]
+                                    and request_has_bbox(q) for q in queries))
+
+    def test_one_part_multipolygon_uses_polygon_literal(self):
+        fields = fixture_sources()[GRID]
+        aoi = rectangle(350000, 6900000, 100, 100)
+        aoi.convertToMultiType()
+        with PolygonFilterWfs({GRID: fields}, version="2.0.0", record_filter=spatial_records) as fixture:
+            result = self.read(self.layer(fixture), aoi)
+            self.assertEqual(len(result["source_features"][GRID]), 1)
+            query = next(q for q in fixture.requests if q.get("request", "").lower() == "getfeature")
+            root = ET.fromstring(query["filter"])
+            self.assertEqual(len(root.findall(".//{*}Intersects/{*}Polygon")), 1)
+            self.assertIsNone(root.find(".//{*}Or"))
 
     def test_large_polygon_uses_bounded_fallback_and_captured_selection_needs_no_read(self):
         fields = fixture_sources()[GRID]

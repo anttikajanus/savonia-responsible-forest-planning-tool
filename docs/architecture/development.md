@@ -26,6 +26,7 @@ Use the Windows entry point for the source checks, or include package validation
 ./scripts/check.ps1 -Package
 ./scripts/check.ps1 -Checks tooling,unit
 ./scripts/check.ps1 -Checks qgis -QgisPattern test_parcel_reference.py
+./scripts/check.ps1 -Checks qgis -TimeoutSeconds 900
 ```
 
 [check.ps1](../../scripts/check.ps1) selects a plain Python executable from PATH,
@@ -38,14 +39,31 @@ directly keeps tooling out of the QGIS launcher's modified environment.
 
 [check.py](../../scripts/check.py) checks Git when tooling is selected and the
 isolated QGIS runtime when lint or integration is selected, before starting
-test suites. Missing dependencies or failed checks return nonzero and identify
+test suites. When lint is selected, it also imports Pylint and Astroid through
+the selected QGIS launcher, reports their versions and module paths, and checks
+the stable versions against `requirements-dev.txt`. An unsupported or missing
+tool stops preflight with a PowerShell upgrade command for that launcher.
+Import details appear on the console and in `preflight-lint.log`; an inherited
+`PYTHONPATH` override is not evidence of which tools the launcher imports.
+Missing dependencies or failed checks return nonzero and identify
 the failed stage. Complete stdout/stderr goes to separate UTF-8 logs under a
 unique ignored `.local/checks/<UTC timestamp>-<id>/` directory; the console shows
-elapsed times and a short failure tail. `-LogsDir` changes the parent directory;
+elapsed times, failing unittest names and a short failure tail. If a crash or
+timeout prevents unittest's failure report, the summary includes the last test
+reported when available. `failure.log` retains the same failure summary.
+`-LogsDir` changes the parent directory;
 use `.local/` for repository-local output. Directory ownership is defined in the
 [local artifact guidance](../agents/issue-tracker.md#local-development-artifacts).
 Selected checks run in order: tooling, unit, lint, QGIS. Source checks clear
 inherited installed-plugin overrides so they always exercise this checkout.
+
+Each subprocess has a 600-second deadline, including prerequisites, lint and
+packaging. Set `-TimeoutSeconds` (Python: `--timeout`) to a positive finite
+number of seconds to override it for every stage. A timeout stops the process
+tree, returns nonzero and preserves existing output; Windows batch launchers'
+Python children are stopped before isolated test storage is removed. Process
+termination diagnostics share the stage log. Python fault handling is enabled
+in check subprocesses so fatal native faults can retain Python stacks in logs.
 
 `-Package` invokes the existing current-version packaging command, extracts its
 ZIP into the run directory, and repeats the selected unit and QGIS suites on
@@ -62,6 +80,52 @@ For direct `unittest` commands on Python 3.12+, append `--durations 10` to obtai
 the same report ([Python documentation](https://docs.python.org/3.12/library/unittest.html#command-line-options)).
 
 ## Shared QGIS test environment
+
+### Workspace runtime setup
+
+To prepare either baseline without a machine-wide QGIS installation, run:
+
+```powershell
+./scripts/setup-qgis-runtime.ps1 -Version 3.44.0
+./scripts/setup-qgis-runtime.ps1 -Version 4.2.3
+./scripts/setup-qgis-runtime.ps1 -List
+```
+
+[setup-qgis-runtime.ps1](../../scripts/setup-qgis-runtime.ps1) uses Windows
+CPython **3.10–3.12** and an existing **7-Zip** installation. The wrapper selects
+Python from PATH, falling back to a QGIS installation's bundled executable.
+Supply `-Python 'C:\path\to\python.exe'` or `-SevenZip 'C:\path\to\7z.exe'`
+when needed. Python 3.13+ removed the `_msi` module used to read MSI tables;
+an existing QGIS `apps/Python312/python.exe` works without its batch launcher.
+The equivalent Python entry point is `python scripts/setup_qgis_runtime.py --help`.
+Omitting `-Version` selects the manifest's default baseline, currently 4.2.3.
+
+Local setup and CI read the same [runtime manifest](../../scripts/qgis-runtimes.json).
+It owns versions, installer revisions, launcher names and SHA-256 pins. When
+updating a pin, obtain its checksum from the installer's official sibling
+`.sha256sum` file and verify the resulting runtime before adopting the change.
+Downloads can exceed 1 GB; allow several GB of free space for extraction.
+
+All setup artifacts remain in ignored `.local/qgis-runtimes/`. Verified downloads
+are cached by SHA-256 and rechecked on every run. To reuse an already downloaded
+MSI, add `-Installer 'C:\path\to\QGIS-OSGeo4W-3.44.0-1.msi'`; the file is copied
+into the cache and checked against the selected pin. A partial or mismatched
+download is never promoted to a cache hit. Setup reads MSI tables and extracts
+files with 7-Zip; it does not run installer actions, change machine installations,
+install Python dependencies or open QGIS user profiles.
+
+Setup validates the shipped Python launcher by importing QGIS and checking its
+exact pinned version, then prints its absolute path, a check-runner command and
+an optional session-only `QGIS_PYTHON` assignment. Use that output with
+`./scripts/check.ps1 -QgisPython '…'`; the launcher's basename comes from the
+selected installer. Repeated setup validates and reuses the completed extraction
+without network access. A failed setup exits nonzero with diagnostics; extraction
+and version-check logs stay in its local stage. `-Rebuild` creates a fresh stage
+while preserving earlier extractions. A checksum mismatch requires removing the
+reported invalid cache file before retrying. Failed/rebuilt stages are retained
+for inspection and may be removed manually when no longer needed.
+
+### Baseline checks
 
 Run source and packaged checks on both **QGIS 3.44.0 (Qt 5)** and
 **QGIS 4.2.3 (Qt 6)**. The default launcher remains 4.2.3; select the other
@@ -92,7 +156,9 @@ settings persistence/containment, the supported QGIS range and required
 provider availability are checked before product tests.
 
 [run_qgis_tests.py](../../scripts/run_qgis_tests.py) supports `--preflight-only`
-and `--pattern`; direct unittest and CI use the same bootstrap. The runner
+and `--pattern`, and enables Python fault handling before QGIS initialization,
+including direct and CI invocations. Direct unittest uses the same isolation
+bootstrap. The runner
 allocates a fresh temporary environment for each child and cleans it up after
 process exit. Direct runs use best-effort exit cleanup.
 `RESPONSIBLE_FOREST_PLANNING_TEST_ENV_ROOT` is available for a caller-owned
@@ -106,7 +172,7 @@ and development scripts. Install the pinned
 environment's user site, then run from the repository root:
 
 ```powershell
-& 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' -m pip install --user -r requirements-dev.txt
+& 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' -m pip install --user --upgrade -r requirements-dev.txt
 & 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' -m pylint qgis_plugin scripts
 ```
 
@@ -139,12 +205,21 @@ Maintain this manifest alongside the [source registry contract](data-sources.md)
 when endpoints or required layers change. The downloader deliberately does not
 import the plugin or require QGIS to read development reference material.
 
-Run tooling checks separately from plugin tests with Python 3.10+ and Git
-available on PATH. They cover HTTP fixtures and release-version Git fixtures:
+Run tooling checks separately from plugin tests with Python 3.10+, the pinned
+development dependencies and Git available on PATH:
 
 ```powershell
+python -m pip install -r requirements-dev.txt
 python -m unittest discover -s scripts/tests -v
 ```
+
+The tooling suite includes offline [repository consistency checks](../../scripts/check_consistency.py)
+for local Markdown links/anchors (including README images and HTML destinations),
+the documented QGIS minimum, metadata/CI matrix agreement, required-check names and release dependencies and
+serialization. Exact provider-cache paths in the reference manifest may be absent.
+Run just these checks with `python scripts/check_consistency.py`; they also run
+with `-Checks tooling` and in CI's required build job. The existing help/package
+tests cover installed manuals and preservation of source metadata in the ZIP.
 
 The downloader checks file formats; representative feature values and provider
 completeness require separate checks. Local retrieval details remain in ignored

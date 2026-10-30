@@ -24,7 +24,7 @@ current provider values or geographic completeness.
 
 | Item | Current limit and next evidence needed |
 | --- | --- |
-| Analysis polygon queries | Verify representative AOIs on all eight sources, provider handling of malformed polygons before local repair, and deployment-specific GET limits; large filters currently retain bbox retrieval. Bounded sample comparisons do not establish completeness or a performance guarantee. |
+| Analysis polygon queries | A bounded stand probe reproduces the rejection of QGIS's GML 3.2 MultiPolygon and succeeds with OR-combined Polygon predicates; multipart queries now use that encoding. Verify the original parcel selection interactively, representative AOIs on all eight sources, provider handling of malformed polygons before local repair, and deployment-specific GET limits; large filters retain bbox retrieval. Bounded sample comparisons do not establish completeness or a performance guarantee. |
 | Setup responsiveness | Setup remains synchronous; the reported minute-long desktop stall has not been reproduced end to end. Use the manual checklist's MT-08 to investigate waits separately from map rendering. |
 | MML property context | Cached parcel and identifier-point models do not establish current live schemas. Verify both live collections/schemas, paging, representative formatted identifiers and network errors with an authorized key. |
 | Representative classification values | Saved XSDs are not feature samples. Check sanitized habitat codes, active/inactive protected statuses/categories, programme identifiers/classes and null formats across all three protected sources. Current code rejects unrecognized values; a policy accepting inactive records would require an explicit change. |

@@ -29,12 +29,19 @@ tracker, labels and document destinations.
 | Planner instructions | [English manual](../help/manual_en.html) and [Finnish manual](../help/manual_fi.html) | Maintain equivalent user instructions; [QGIS guidance](qgis.md) owns localization and package checks. |
 | Local working proposals, issues and verification records | Ignored `.scratch/<feature-slug>/` | Follow the [local tracker](issue-tracker.md) and [triage mapping](triage-labels.md). Publish current behavior and remaining gaps in maintained documentation. |
 | Local scripts, debugging and generated artifacts | Ignored `.local/` | Follow the [local artifact guidance](issue-tracker.md#local-development-artifacts); the [development guide](../architecture/development.md#local-check-runner) owns check-runner commands. |
-| Research evidence | [Research directory](../research/README.md) | Follow [research guidance](research.md); promote adopted requirements, decisions and unresolved questions to their maintained owners. |
+| Research evidence | [Research guidance](research.md) | Save findings under ignored `docs/research/`; promote adopted requirements, decisions and unresolved questions to their maintained owners. |
 | External source material | [Reference index](../references/README.md) | Procurement PDFs are versioned under `procurement/629864/`; provider evidence has a separate cache. |
 | Provider capabilities, schemas and PDF/XLSX documents | [Service metadata](../references/service-metadata/README.md) | Read cached files first. The manifest and instructions are versioned; downloads and retrieval metadata are ignored. |
 | Project-wide gaps, provider questions, pending acceptance and deferred choices | [Open questions](../open-questions.md) | Keep unresolved questions and limitations explicit; implementation completion does not close acceptance. |
 
 ## Reading and handoff
+
+Keep inspection bounded: locate headings or filenames first, then read the
+relevant section or line range. Reuse guidance already loaded in the current
+context. Scope `rg` to relevant paths and file types; use `rg -l` for filenames or
+`rg -n -m 10 --max-columns 200 --max-columns-preview` for bounded content matches.
+Search SVGs and other assets containing embedded images only when relevant, using
+filename-only results or bounded content previews.
 
 1. Use the relevant [root task pointer](../../AGENTS.md#read-the-guidance-for-your-task),
    then read the affected maintained owner above. If a requested local work item

@@ -41,7 +41,7 @@ Scope and status follow the [specification index](README.md). These requirements
 - Setup discovers/verifies configured feature types and schema information. Before analysis, all eight sources must be valid polygon layers with usable coordinate systems, the expected provider/source identity and required provider fields. Report all source-readiness failures together where preflight can collect them.
 - Current provider fields determine readiness and interpretation. Match accepted names case-insensitively, ignore extra fields/order and apply the documented alias priority independently for each source. Saved discovery schemas are provenance and cannot override usable provider fields. Exact aliases, fields and value sets belong to [source-layer requirements](../architecture/source-layer-requirements.md).
 - Saved discovery properties have a [known XSD parser limitation](../open-questions.md#raw-xsd-metadata-parser). They must not be interpreted as a verified list of fields belonging only to the selected feature type; provider-field readiness remains the current validation authority.
-- Retrieve AOI-bounded evidence and clip it exactly. Ordinary WFS reads additionally filter by the actual AOI polygon, including its holes and separate parts, to reduce transferred candidates. Oversized polygon filters retain the bounding-box read and exact local clipping. Keep every response page and record the chosen spatial filter in source coverage. Reuse the retrieved grid for all result pieces rather than requesting each piece separately or downloading the national grid; its snapshot still covers the AOI rather than only the forest stands.
+- Retrieve AOI-bounded evidence and clip it exactly. Ordinary WFS reads additionally filter by the actual AOI polygon, including its holes and separate parts, to reduce transferred candidates. Multiple selected polygons must remain usable when a service rejects multipart filter geometry; the [retrieval contract](../architecture/data-sources.md#wfs-retrieval-success) defines compatible polygon predicates. Oversized polygon filters retain the bounding-box read and exact local clipping. Keep every response page and record the chosen spatial filter in source coverage. Reuse the retrieved grid for all result pieces rather than requesting each piece separately or downloading the national grid; its snapshot still covers the AOI rather than only the forest stands.
 - Cache initialization must not duplicate source evidence in observed counts or retained snapshots.
 - Retain original source attributes, identifiers, dates, source identity and clipped snapshots. Distinguish measurement dates from database update dates.
 - A successful empty response is different from a request failure. Counts and observed mapped overlaps do not prove complete inventory coverage or absence of an unmapped habitat.
@@ -126,16 +126,38 @@ This requirement covers maintainer tooling; planner behavior is unchanged.
 
 - A maintainer can run selected tooling, unit, lint and QGIS checks from one
   local command, with an optional current-version package validation pass.
+- A maintainer can prepare either pinned Windows QGIS baseline inside the
+  checkout using one setup command. CI and local setup share installer versions,
+  launcher names and checksums. Downloads and extracted runtimes stay in ignored
+  workspace storage; setup does not run installer actions or change system QGIS
+  installations or user profiles.
+- Runtime setup verifies cached or new installers against the shared checksum,
+  validates the shipped launcher against the pinned QGIS version, and reports
+  its absolute path and a usable check command. Repeated setup reuses verified
+  downloads and completed extractions. Interrupted or invalid downloads and
+  failed extraction/version checks never establish a completed runtime; failures
+  return nonzero with corrective guidance and retain extraction diagnostics.
 - Tooling/unit checks use plain Python; lint/integration use QGIS Python.
   Required executables and writable test storage are checked before suites run.
+- Selecting lint also checks the Pylint and Astroid modules actually imported
+  through that QGIS launcher, reporting their versions and paths on the console
+  and in logs. Missing, broken or unsupported stable versions stop preflight
+  before suites run, with a dependency-upgrade command for the selected launcher.
+  Other selections do not require lint tools.
 - QGIS tests use a shared offscreen application with temporary settings,
   profile, authentication and cache storage. Tests do not use or change the
   planner's QGIS settings or credentials. Direct unittest and CI runs share this
   isolation.
 - A failed prerequisite or selected check returns nonzero with an actionable
   stage summary. Full stdout/stderr remains in unique ignored local logs.
+  Failure summaries include failing unittest names from the complete log; when
+  no failure report is available, they identify the last reported test if known.
   Keep generated logs and extracted packages separate from working tickets and specs.
   Focused QGIS runs fail if no tests match their pattern.
+- Integration entry-point runs enable Python fault handling before native QGIS
+  initialization. Local checks enable it in subprocesses and bound each stage
+  with a configurable positive timeout (600 seconds by default). Timeouts stop
+  the process tree, return nonzero and retain diagnostics before cleanup.
 - Integration logs report the slowest test cases on Python 3.12+ so maintainers
   can identify performance bottlenecks without changing the selected coverage.
 - Package validation preserves the plugin version and repeats selected unit

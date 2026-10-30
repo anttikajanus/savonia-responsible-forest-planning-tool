@@ -1,0 +1,20 @@
+{
+  "base_url": "https://download.qgis.org/downloads",
+  "default_version": "4.2.3",
+  "runtimes": [
+    {
+      "version": "3.44.0",
+      "version_int": 34400,
+      "launcher": "python-qgis.bat",
+      "installer": "QGIS-OSGeo4W-3.44.0-1.msi",
+      "sha256": "440408a79806b993a7ee12b18a5176e8007848be83a8775ee4b187e120cf04cd"
+    },
+    {
+      "version": "4.2.3",
+      "version_int": 40203,
+      "launcher": "python-qgis.bat",
+      "installer": "QGIS-OSGeo4W-4.2.3-2.msi",
+      "sha256": "c9b4b837350d00eecb77ae5c965219b3f74776e1921f7460b3859c898f38b1cf"
+    }
+  ]
+}
