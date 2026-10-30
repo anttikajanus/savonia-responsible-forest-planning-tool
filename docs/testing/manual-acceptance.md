@@ -4,7 +4,7 @@ Use this guide to test the installed plugin in QGIS and review its outputs in a
 browser and Microsoft Excel. It owns repeatable manual procedures. The
 [specifications](../specs/README.md) own expected product behavior;
 [development](../architecture/development.md) owns build and automated-test
-commands; [open questions](../architecture/open-questions.md) tracks unresolved
+commands; [open questions](../open-questions.md) tracks unresolved
 defects, provider questions and planning assumptions.
 
 This is a personal checklist for the repository's sole maintainer. Use the steps
@@ -147,7 +147,7 @@ Use these checks to investigate the corresponding open questions:
 | OSM display/distribution attribution | MT-28 | Look for attribution on the map; tile-policy and licence review remain separate. |
 | Section 10 stand-wide planning assumption | Separate planner review | Discuss the register's 10 ha stand/0.2 ha habitat example and intended spatial extent with the planner. Correct rendering alone does not establish that the rule is appropriate. |
 
-The [provider evidence](../architecture/open-questions.md#provider-evidence)
+The [provider evidence](../open-questions.md#provider-evidence)
 questions about representative values, dates, inventory completeness and growth
 meaning require provider samples/documentation or expert clarification. The XSD
 parser gap requires implementation work. Keep substantive unresolved issues in

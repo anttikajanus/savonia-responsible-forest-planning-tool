@@ -47,7 +47,7 @@ policy must permit the token's tag/release writes.
 Install the named plugin ZIP from [GitHub Releases](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/releases);
 GitHub source archives do not provide the bundled installation layout.
 [Hosted checks](#hosted-checks) and
-[remaining questions](open-questions.md#acceptance-and-distribution) are separate
+[remaining questions](../open-questions.md#acceptance-and-distribution) are separate
 from the workflow design.
 
 ### Hosted checks
@@ -109,6 +109,6 @@ preserve attribution on shared maps. Connection and verification limits are in
 
 Setup uses standard raster tiles from `tile.openstreetmap.org`; OSM is not copied to analysis GeoPackage/XLSX outputs. The reviewed [OSM attribution guidance](https://www.openstreetmap.org/copyright) and [tile policy](https://operations.osmfoundation.org/policies/tiles/) require map-visible attribution and impose tile-client conditions such as caching, identification and no bulk/prefetch download. Keep `© OpenStreetMap contributors` with shared maps/screenshots and a route to the copyright/ODbL information. The About/root credits alone do not provide visible canvas attribution.
 
-Project setup does not explicitly arrange that map-visible credit. This remains a follow-up, not a completed compliance claim. QGIS server attribution metadata setters do not establish canvas display. Tile-client behavior and transitive host dependencies also require distribution review. See [remaining work](open-questions.md#acceptance-and-distribution).
+Project setup does not explicitly arrange that map-visible credit. This remains a follow-up, not a completed compliance claim. QGIS server attribution metadata setters do not establish canvas display. Tile-client behavior and transitive host dependencies also require distribution review. See [remaining work](../open-questions.md#acceptance-and-distribution).
 
 The maintainer supplied the public [GitHub repository](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool) and [GitHub Issues tracker](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/issues). Metadata, About and manuals use these destinations; the component inventory records the repository origin. The documentation/homepage link opens the repository's [docs/help directory](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/tree/main/docs/help).

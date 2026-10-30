@@ -59,7 +59,7 @@ defines polygon location. The cached
 defines identifier points (`GM_Point`) and `kiinteistotunnuksenEsitysmuoto`.
 These are older model evidence, not live service schema checks. Live
 credentialed/schema and desktop verification remain in the
-[verification register](open-questions.md#provider-evidence).
+[verification register](../open-questions.md#provider-evidence).
 
 The mandatory MML key is stored in QGIS settings, separately from SYKE access.
 Blank/cancelled input stops setup before project mutation. Connections use the
@@ -83,7 +83,7 @@ The [source-layer contract](source-layer-requirements.md) owns field readiness, 
 
 Saved XSD metadata is provenance rather than a readiness authority. Its known
 parser limitation is tracked separately in the
-[gap register](open-questions.md#known-implementation-gaps).
+[gap register](../open-questions.md#known-implementation-gaps).
 [ADR-0003](adr/0003-provider-field-source-contracts.md).
 
 ## Provider evidence
@@ -142,7 +142,7 @@ still follow the repair contract, but a malformed feature omitted by a remote
 predicate cannot be recovered locally. Fixture checks of representative invalid
 polygons do not certify provider behavior for all malformed data. Query failures
 remain fatal; they are not retried as successful empty evidence. See
-[provider verification gaps](open-questions.md#provider-evidence).
+[provider verification gaps](../open-questions.md#provider-evidence).
 
 Accepting retrieval requires both iterator completion
 and a provider-error check. QGIS can deliver request errors asynchronously, so
@@ -162,4 +162,4 @@ Successful empty retrieval is `AVAILABLE` but is not certification of complete g
 
 For sustained/load-generating SYKE use, obtain the provider-issued application identifier and pass it as `sykeuserid`; keep it outside committed source, fixtures and logs. The plugin saves it in QGIS settings and includes it in SYKE WFS layer URLs. Saving a project intentionally persists those URLs, including the identifier, in `.qgs` or `.qgz` so the layers retain their service connection details. Review layer URLs before sharing or committing a project. This persistence is separate from error-message redaction in [sources.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py). See [SYKE service guidance](https://www.syke.fi/fi/ymparistotieto/avoimet-rajapinnat/paikkatietorajapinnat), [request parameter guidance](https://wwwi4.ymparisto.fi/i4/fin/eowiki/kysymys_wcs.html), and the [plugin setup instructions](../../qgis_plugin/README.md#requirements-and-syke-setup).
 
-When investigating a provider question, identify the exact endpoint/type, CRS, required properties and representative sanitized status/code/null formats. Keep schema evidence distinct from feature values, field readiness distinct from metric coverage, and provider facts distinct from application choices. [Outstanding checks](open-questions.md).
+When investigating a provider question, identify the exact endpoint/type, CRS, required properties and representative sanitized status/code/null formats. Keep schema evidence distinct from feature values, field readiness distinct from metric coverage, and provider facts distinct from application choices. [Outstanding checks](../open-questions.md).

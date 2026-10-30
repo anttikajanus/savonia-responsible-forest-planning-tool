@@ -31,7 +31,7 @@ Scope boundaries are maintained in
 [classification exclusions](classification.md#cl-04-exclusions-and-interpretation)
 and the [indicator catalogue](indicators-and-outputs.md#io-01-indicator-catalogue).
 The latter links adopted scope decisions; the
-[register](../architecture/open-questions.md) separates implementation gaps,
+[register](../open-questions.md) separates implementation gaps,
 deferred scope and evidence/acceptance checks.
 
 ## Maintaining specifications
@@ -50,7 +50,7 @@ or work in progress. Acceptance remains separate from implementation; see the
 [manual checklist](../testing/manual-acceptance.md) for interactive steps,
 expected results and personal checking.
 
-The [verification and deferred-work register](../architecture/open-questions.md)
+The [verification and deferred-work register](../open-questions.md)
 owns current implementation gaps, provider checks and acceptance/release status.
 Stories with outstanding functionality carry an explicit partial/deferred marker.
 
@@ -60,6 +60,6 @@ Use these links to distinguish completed changes from remaining work:
 | --- | --- | --- |
 | Stand overlaps, required price and run readiness | Implemented: [CL-01](classification.md#cl-01-reporting-domain-and-geometry), [WF-04–06](workflow.md#wf-04-analysis-area-and-destination) | [Automated checks](../architecture/development.md#automated-regression-verification); personal [desktop checklist](../testing/manual-acceptance.md#inputs-and-execution). |
 | Calculated sawlog value | Implemented: [IO-01–04](indicators-and-outputs.md#io-01-indicator-catalogue) | [Automated checks](../architecture/development.md#automated-regression-verification); [QGIS/Excel interpretation checks](../testing/manual-acceptance.md#numerical-interpretation-and-exceptional-evidence). |
-| Polygon source queries and negligible result fragments | Implemented: [WF-03](workflow.md#wf-03-source-readiness-and-retrieval), [CL-01](classification.md#cl-01-reporting-domain-and-geometry) | [Automated checks](../architecture/development.md#automated-regression-verification) and bounded [provider evidence](../architecture/open-questions.md#provider-evidence). |
-| US-005 map review | Implemented: [IO-06](indicators-and-outputs.md#io-06-map-review-and-run-retention) | Current scope confirmed by the project owner; visual [desktop checks](../architecture/open-questions.md#interactive-acceptance) remain separate. |
-| Maintainer reference material | Implemented tooling: [WF-08](workflow.md#wf-08-local-development-reference-material) | [Cache integrity and missing authenticated material](../architecture/open-questions.md#reference-material-integrity); cached schemas do not verify feature values. |
+| Polygon source queries and negligible result fragments | Implemented: [WF-03](workflow.md#wf-03-source-readiness-and-retrieval), [CL-01](classification.md#cl-01-reporting-domain-and-geometry) | [Automated checks](../architecture/development.md#automated-regression-verification) and bounded [provider evidence](../open-questions.md#provider-evidence). |
+| US-005 map review | Implemented: [IO-06](indicators-and-outputs.md#io-06-map-review-and-run-retention) | Current scope confirmed by the project owner; visual [desktop checks](../open-questions.md#interactive-acceptance) remain separate. |
+| Maintainer reference material | Implemented tooling: [WF-08](workflow.md#wf-08-local-development-reference-material) | [Cache integrity and missing authenticated material](../open-questions.md#reference-material-integrity); cached schemas do not verify feature values. |

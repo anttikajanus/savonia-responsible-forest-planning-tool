@@ -95,4 +95,4 @@ Pure policy modules interpret normalized attributes, choose sensitivity criteria
 
 Verification follows these boundaries: [ordinary unit tests](../../qgis_plugin/tests/) cover pure policy, workbook serialization, rounding and translations; [PyQGIS tests](../../qgis_plugin/tests/qgis/) exercise adapters, the Processing workflow, persisted outputs and UI integration with local fixtures. Packaged load/run/unload and Finnish/English GUI checks require the supported QGIS runtime. See the [required testing guidance](../agents/qgis.md#testing-and-debugging) and [development guide](development.md).
 
-Remaining provider and QGIS runtime acceptance checks are maintained in [open questions](open-questions.md).
+Remaining provider and QGIS runtime acceptance checks are maintained in [open questions](../open-questions.md).

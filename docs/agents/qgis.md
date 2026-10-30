@@ -145,5 +145,5 @@ maintained owners and use the personal checklist workflow for manual checks.
 
 - [Operations](../architecture/operations.md) — adopted development, logging and bilingual help design with primary sources.
 - [Architecture overview](../architecture/overview.md) — implemented workflow, module ownership, result semantics and limitations.
-- [Remaining verification](../architecture/open-questions.md) — unresolved evidence, acceptance and distribution checks.
+- [Remaining verification](../open-questions.md) — unresolved evidence, acceptance and distribution checks.
 - [Plugin README](../../qgis_plugin/README.md) — current supported version, installation, workflow, and interpretation limits.

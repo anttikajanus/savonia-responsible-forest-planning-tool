@@ -1,19 +1,19 @@
 # Remaining verification and deferred work
 
-These are unresolved implementation gaps, provider questions, acceptance checks
-and deferred choices. Automated procedures belong to
-[development](development.md), interactive procedures to the
-[manual acceptance guide](../testing/manual-acceptance.md), and current behavior to
-[specs](../specs/README.md). Adopted choices are indexed in the
-[ADRs](README.md#architecture-decision-records).
+This project-wide register tracks unresolved implementation gaps, provider
+questions, acceptance checks and deferred choices. Automated procedures belong to
+[development](architecture/development.md), interactive procedures to the
+[manual acceptance guide](testing/manual-acceptance.md), and current behavior to
+[specs](specs/README.md). Adopted choices are indexed in the
+[ADRs](architecture/README.md#architecture-decision-records).
 
 ## Provider evidence
 
 ### Reference material integrity
 
 `mml/wmts/get-capabilities.xml` is absent from the local cache. Its entry in the
-[reference manifest](../references/service-metadata/manifest.json) and link in the
-[reference instructions](../references/service-metadata/README.md#maanmittauslaitos)
+[reference manifest](references/service-metadata/manifest.json) and link in the
+[reference instructions](references/service-metadata/README.md#maanmittauslaitos)
 identify a download destination, not bundled evidence. Populate it using the
 documented `MML_API_KEY` and `--only mml/wmts/` options when an authorized key is
 available. The missing authenticated material does not establish a plugin failure.
@@ -33,13 +33,13 @@ current provider values or geographic completeness.
 | Inventory coverage and dates | Check stand/grid identifiers, measurement/update semantics, null prevalence and selected-product freshness. Successful empty retrieval permits a no-hit in the current application but does not establish authoritative geographic coverage or absence of unmapped habitats. |
 | Growth meaning | Units support relative annual volume growth, but current/periodic, gross/net and denominator timing remain unspecified. Keep the transparent derived indicator until provider semantics support stricter wording. |
 
-Evidence locations and primary sources are in [data sources](data-sources.md) and [indicators](indicators.md); saved XML/XSD/model artifacts remain under [references](../references/service-metadata/README.md).
+Evidence locations and primary sources are in [data sources](architecture/data-sources.md) and [indicators](architecture/indicators.md); saved XML/XSD/model artifacts remain under [references](references/service-metadata/README.md).
 
 ## Scope and source alternatives
 
-Local GeoPackage/raster adapters, open-mire/whole-AOI reporting, potential protection screening, urban-forest/MY interpretation, peat sensitivity and water buffers remain deferred. Candidate sources and unanswered thresholds/denominators are recorded in [deferred sources](deferred-sources.md).
+Local GeoPackage/raster adapters, open-mire/whole-AOI reporting, potential protection screening, urban-forest/MY interpretation, peat sensitivity and water buffers remain deferred. Candidate sources and unanswered thresholds/denominators are recorded in [deferred sources](architecture/deferred-sources.md).
 
-No reviewed repository evidence establishes Savonia acceptance of the prototype's tier rules, interpretations or deliverables. Tender requirements and implementation choices have different authority. [Project context](../project-context.md).
+No reviewed repository evidence establishes Savonia acceptance of the prototype's tier rules, interpretations or deliverables. Tender requirements and implementation choices have different authority. [Project context](project-context.md).
 
 ### Section 10 stand-wide promotion validation
 
@@ -48,8 +48,8 @@ the intended planners whether a qualifying mapped Section 10 habitat overlap
 should make the entire AOI-clipped parent stand sensitive, including result
 pieces outside the mapped habitat, or whether sensitivity should follow only
 the mapped habitat footprint. The current stand-wide assumption is owned by
-[CL-01](../specs/classification.md#cl-01-reporting-domain-and-geometry) and
-[ADR-0004](adr/0004-stand-based-sensitivity-classification.md).
+[CL-01](specs/classification.md#cl-01-reporting-domain-and-geometry) and
+[ADR-0004](architecture/adr/0004-stand-based-sensitivity-classification.md).
 
 Use a concrete example: a 10 ha stand containing a 0.2 ha qualifying habitat
 overlap currently becomes 10 ha of sensitive forest in every tier containing
@@ -58,7 +58,7 @@ planning assumption; it does not establish that all 10 ha are legally a
 Section 10 habitat. Also validate that the explanation of
 `section10_stand_promoted = true` communicates the stand-wide rule, rather than
 claiming that each result piece overlaps the mapped habitat. The
-[field contract](output-schema.md#classification-reasons-and-context) owns its
+[field contract](architecture/output-schema.md#classification-reasons-and-context) owns its
 stored meaning.
 
 Agree the rationale and intended spatial extent. Automated tests of the
@@ -70,7 +70,7 @@ requires a specification change and reconsideration of ADR-0004.
 
 ### Raw XSD metadata parser
 
-[`describe_feature_type()`](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py)
+[`describe_feature_type()`](../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py)
 walks all XML elements into saved properties, including feature declarations
 outside the selected type's property sequence. Provider-field readiness bypasses
 this defect, but discovery provenance can contain misleading properties.
@@ -84,9 +84,9 @@ readiness tests do not establish that this parser is correct.
 
 ### Interactive acceptance
 
-Use the [personal manual checklist](../testing/manual-acceptance.md) for desktop,
+Use the [personal manual checklist](testing/manual-acceptance.md) for desktop,
 language, Excel, browser and offline-help checks. Its
-[open-question mapping](../testing/manual-acceptance.md#use-the-checklist-with-open-questions)
+[open-question mapping](testing/manual-acceptance.md#use-the-checklist-with-open-questions)
 connects relevant checks to investigation topics.
 
 Verification histories and individual test-completion records are not maintained
@@ -96,9 +96,9 @@ register.
 ### Release and distribution verification
 
 - Optional merge blocking needs administrator activation of the checked-in
-  ruleset. See [required merge checks](development.md#required-merge-checks).
+  ruleset. See [required merge checks](architecture/development.md#required-merge-checks).
 - Compatibility with newer QGIS 4.x releases remains unverified; recorded
   runtime evidence covers QGIS 4.2.3. Repeat the source and packaged checks on
   each newer targeted release before recording compatibility.
 - Arrange explicit map-visible OpenStreetMap attribution for the basemap and shared maps/screenshots; the reviewed setup and About credits do not establish that display. Separately review tile-client usage-policy behavior if preparing distribution.
-- A full ownership and host/transitive licence-compatibility audit remains outstanding. Recheck inventory and dataset-specific terms when adding copied material, runtime bundles, custom data or a public distribution destination. [Distribution boundaries](distribution.md).
+- A full ownership and host/transitive licence-compatibility audit remains outstanding. Recheck inventory and dataset-specific terms when adding copied material, runtime bundles, custom data or a public distribution destination. [Distribution boundaries](architecture/distribution.md).

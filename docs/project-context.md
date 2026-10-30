@@ -25,7 +25,7 @@ Annex 2 requests a repeatable QGIS tool accepting an area boundary, applying cri
 Use [GLOSSARY.md](../GLOSSARY.md) for domain meanings, the maintained [user stories and functional specifications](specs/README.md) for current product behavior, and the [architecture index](architecture/README.md) for technical contracts and adopted design decisions.
 
 The [maintained specifications](specs/README.md) record current requirements and
-[open discrepancies and verification](architecture/open-questions.md), with
+[open discrepancies and verification](open-questions.md), with
 implementation status kept separate from acceptance.
 
 The prototype also reports a calculated sawlog euro amount under

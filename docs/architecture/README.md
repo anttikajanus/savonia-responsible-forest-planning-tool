@@ -1,6 +1,6 @@
 # Architecture
 
-These documents describe the implemented architecture and adopted design decisions of **Savonia - Responsible Forest Planning**. User stories and functional requirements live in [specifications](../specs/README.md); outstanding validation and release work is listed in [open questions](open-questions.md).
+These documents describe the implemented architecture and adopted design decisions of **Savonia - Responsible Forest Planning**. User stories and functional requirements live in [specifications](../specs/README.md); outstanding validation and release work is listed in [open questions](../open-questions.md).
 
 The overview explains boundaries and trade-offs; technical references retain
 the contracts needed to interpret inputs and outputs. For documentation edits,
@@ -43,7 +43,7 @@ Start with the [technical architecture diagram and explanation](overview.md#syst
 | Repeatable setup, reload, debugging, test and packaging procedures | [Development](development.md) |
 | Personal manual checklist and expected results | [Manual testing](../testing/manual-acceptance.md) |
 | Release mechanics, software inventory, licensing and exported attribution | [Distribution](distribution.md) |
-| Current implementation gaps, provider evidence gaps and pending acceptance | [Open questions](open-questions.md) |
+| Current implementation gaps, provider evidence gaps and pending acceptance | [Open questions](../open-questions.md) |
 
 [Project context](../project-context.md) explains the external use case and procurement scope. [GLOSSARY.md](../../GLOSSARY.md) defines domain terminology.
 

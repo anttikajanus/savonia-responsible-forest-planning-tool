@@ -23,7 +23,7 @@ For working specs, set `Status: implemented` when implementation work is complet
 
 An accepted ADR, implemented spec and passing automated check each establish a
 different fact. Keep substantive acceptance questions and provider-verification
-gaps in the [maintained register](../architecture/open-questions.md). Verification
+gaps in the [maintained register](../open-questions.md). Verification
 reporting follows [specification guidance](specifications.md#scope-verification-to-the-change).
 Manual checks follow the
 [personal checklist](../testing/manual-acceptance.md).

@@ -29,7 +29,7 @@ findings to versioned owners before relying on them in a fresh checkout.
 
 ## Finalizing findings
 
-When a research question is resolved, record adopted consequential choices as ADRs under `docs/architecture/adr/` and move enduring technical guidance, primary-source citations and remaining questions into the appropriate `docs/architecture/` reference. Capture adopted user-facing requirements in `docs/specs/` using the [specification workflow](specifications.md), keeping proposals in `.scratch/`. Put project context outside architecture when it is not technical. Distinguish proposals from implemented decisions; dated verification reports are not required.
+When a research question is resolved, record adopted consequential choices as ADRs under `docs/architecture/adr/` and move enduring technical guidance and primary-source citations into the appropriate `docs/architecture/` reference. Record remaining questions in the [project-wide register](../open-questions.md), linking to their relevant specs, technical contracts and evidence. Capture adopted user-facing requirements in `docs/specs/` using the [specification workflow](specifications.md), keeping proposals in `.scratch/`. Put project context outside architecture when it is not technical. Distinguish proposals from implemented decisions; dated verification reports are not required.
 
 Mark a fully superseded note `Disposition: ready to delete`, link its replacements,
 and redirect incoming project-documentation links before removal. A note with

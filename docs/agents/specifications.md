@@ -76,7 +76,7 @@ The documentation handoff is complete when the affected maintained docs reflect 
 - Summarize checks performed and remaining concerns in the task response.
   Verification reports, date-stamped evidence summaries and test-history
   documentation are not required. Keep substantive unresolved questions in
-  [open questions](../architecture/open-questions.md). Source measurement/update
+  [open questions](../open-questions.md). Source measurement/update
   dates and machine-generated retrieval provenance retain their product meaning.
 - Manual testing follows the [personal checklist](../testing/manual-acceptance.md).
   Its lightweight workflow governs manual checks. Local notes may help debugging; keep

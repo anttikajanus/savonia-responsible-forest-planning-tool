@@ -11,7 +11,7 @@ This guide owns setup, reload, debugger, test and packaging instructions for the
 This guide owns repeatable development, automated verification and packaging
 procedures. The [manual checklist](../testing/manual-acceptance.md) owns
 interactive steps and expected results for personal use. Current
-outstanding checks belong to the [verification register](open-questions.md).
+outstanding checks belong to the [verification register](../open-questions.md).
 Automated headless/offscreen checks do not establish interactive acceptance.
 The maximum uses QGIS's major-version-plus-`.99` convention. QGIS documents [plugin metadata ranges](https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/plugins/plugins.html#metadata-txt)
 separately from [runtime testing](https://docs.qgis.org/4.2/en/docs/developers_guide/unittesting.html)
@@ -284,7 +284,7 @@ The reusable procedure is now consolidated in the
 [inputs/execution](../testing/manual-acceptance.md#inputs-and-execution) and
 [numerical interpretation](../testing/manual-acceptance.md#numerical-interpretation-and-exceptional-evidence).
 This heading retains existing links. The
-[register](open-questions.md#interactive-acceptance) owns current status.
+[register](../open-questions.md#interactive-acceptance) owns current status.
 
 ## Automatic GitHub builds and releases
 
@@ -317,7 +317,7 @@ Continue Finnish/English desktop acceptance using the
 [manual guide](../testing/manual-acceptance.md).
 Offscreen CI does not establish interactive acceptance or compatibility with
 newer QGIS releases. Inspect [hosted checks](distribution.md#hosted-checks) for CI
-results and [open questions](open-questions.md#acceptance-and-distribution)
+results and [open questions](../open-questions.md#acceptance-and-distribution)
 for remaining repository-setting work.
 
 ### Required merge checks
@@ -341,7 +341,7 @@ gh api --method POST repos/anttikajanus/savonia-responsible-forest-planning-tool
 Create it once; inspect the existing repository rulesets before applying it
 again. If an equivalent ruleset already exists, update that rule through
 GitHub settings instead of creating a duplicate. This adds requirements without
-replacing existing protection. The [verification register](open-questions.md#acceptance-and-distribution)
+replacing existing protection. The [verification register](../open-questions.md#acceptance-and-distribution)
 records activation and hosted enforcement separately from the checked-in
 workflow and ruleset.
 
@@ -371,7 +371,7 @@ Interactive locale/lifecycle checks and offline/browser/notices checks are owned
 by the [manual acceptance guide](../testing/manual-acceptance.md#installation-lifecycle-and-language)
 and its [help section](../testing/manual-acceptance.md#help-offline-use-and-notices).
 Automated offscreen widget checks supplement those observations. Keep substantive
-defects or unanswered questions in the [register](open-questions.md#interactive-acceptance).
+defects or unanswered questions in the [register](../open-questions.md#interactive-acceptance).
 
 ## Related guidance
 

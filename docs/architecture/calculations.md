@@ -136,4 +136,4 @@ These links preserve the previous section anchors and lead to their current owne
 - <a id="grid-ages-and-categorical-area-totals"></a>[Grid ages and categorical area totals](indicator-calculations.md#grid-ages-and-categorical-area-totals).
 - <a id="tierclass-summaries-and-metric-coverage"></a>[Tier/class summaries and metric coverage](indicator-calculations.md#tierclass-summaries-and-metric-coverage).
 - <a id="outputs-and-coverage"></a>[Outputs and coverage](output-schema.md#outputs-and-coverage).
-- <a id="remaining-source-verification"></a>[Remaining source verification](open-questions.md#provider-evidence).
+- <a id="remaining-source-verification"></a>[Remaining source verification](../open-questions.md#provider-evidence).
