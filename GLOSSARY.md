@@ -59,11 +59,11 @@ _Avoid_: basal area as a synonym for land area
 ## Sensitivity evidence
 
 **Sensitivity criterion**:
-A mapped condition used by one or more tiers to identify sensitive forest. Its inclusion is a planning rule, not by itself a finding of legal protection.
+A mapped condition or stand attribute used by one or more tiers to identify sensitive forest. Its inclusion is a planning rule, not by itself a finding of legal protection.
 _Avoid_: legal prohibition as a synonym for criterion
 
 **Criterion match**:
-A qualifying overlap between forest and mapped sensitivity evidence. In the agreed classification, an overlap must exceed one square metre; smaller overlaps and boundary-only contact do not qualify.
+A condition satisfying a sensitivity criterion. For mapped polygon evidence, an overlap must exceed one square metre; smaller overlaps and boundary-only contact do not qualify. A stand-attribute criterion applies to the forest represented by that stand.
 _Avoid_: proximity match, buffer match
 
 **Forest Act Section 10 habitat (metsälain 10 §:n elinympäristö)**:
@@ -87,7 +87,10 @@ A mapped Metsäkeskus habitat in the other-valuable-habitat category, distinct f
 A mapped SYKE groundwater-area footprint used as sensitivity evidence in Balance and higher tiers. Its planning interpretation includes the returned footprints without filtering by groundwater class or subtype.
 
 **Potential protected site (potentiaalinen suojelukohde)**:
-An area identified as potentially suitable for protection, rather than evidence of an established protected area or a conservation programme designation. It is excluded from the agreed sensitivity criteria.
+An area identified as potentially suitable for protection, distinct from an established protected area or a conservation programme designation. The agreed classification includes screening based on stand mean age; external candidate-site datasets remain excluded.
+
+**Potential protection due to forest age (mahdollinen suojelualue metsän iän perusteella)**:
+A potential protected site identified by the mean age of its parent forest stand. It is planning evidence for considering older forest for protection, without establishing legal protection or ecological suitability.
 
 **Context layer**:
 Geographic information provided for map interpretation without contributing sensitivity evidence. Property boundaries, property identifiers and basemaps do not create criterion matches.

@@ -79,7 +79,8 @@ Scope and status follow the [specification index](README.md). These requirements
 | --- | --- |
 | Invalid AOI, unusable transform, missing/invalid required source or required field, failed source request/iteration | Stop before publishing results and identify the problem. |
 | Missing, nonpositive or non-finite sawlog price | Reject before source retrieval or output mutation in both entry points. |
-| Returned classification values cannot be interpreted | Stop publication; do not turn the source into a no-hit or publish an assumed economic class. |
+| Returned protected, habitat or programme classification values cannot be interpreted | Stop publication; do not turn the source into a no-hit or publish an assumed economic class. |
+| Individual stand mean age is missing/invalid | Publish an unknown age check; without another positive trigger, Protection and Superprotection remain unknown under [CL-03](classification.md#cl-03-classes-and-evidence-policy). Missing required field names still stop validation. |
 | Repairable invalid nonempty source polygon | Repair the analysis copy, retain polygonal components and report repaired IDs/counts; preserve original input data. |
 | Null/empty or unrepairable returned geometry, failed overlay, grid-cell conflict/overlap beyond numerical tolerance or internal invariant failure | Stop publication with source identifiers and diagnostics. |
 | AOI-clipped forest stands overlap beyond numerical tolerance | Continue with original clipped geometry and duplicate contributions. After successful publication, report a localized completion warning explaining this limit and giving the technical log destination in both entry points. |
@@ -139,6 +140,14 @@ This requirement covers maintainer tooling; planner behavior is unchanged.
   return nonzero with corrective guidance and retain extraction diagnostics.
 - Tooling/unit checks use plain Python; lint/integration use QGIS Python.
   Required executables and writable test storage are checked before suites run.
+- Selecting tooling first verifies actual Markdown and YAML parser imports and
+  basic parsing using the selected plain interpreter. Console output and a
+  dedicated log identify the interpreter and imported module paths. Missing,
+  broken or incomplete packages stop all selected suites before test discovery;
+  diagnostics include source-file access errors when available, a dependency
+  installation command for that interpreter, and file-permission guidance.
+  Other selections do not require these parser dependencies. The hosted tooling
+  job uses the same preflight; checks never install packages or repair permissions.
 - Selecting lint also checks the Pylint and Astroid modules actually imported
   through that QGIS launcher, reporting their versions and paths on the console
   and in logs. Missing, broken or unsupported stable versions stop preflight

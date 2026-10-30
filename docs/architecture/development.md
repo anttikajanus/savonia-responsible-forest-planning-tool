@@ -45,6 +45,16 @@ the stable versions against `requirements-dev.txt`. An unsupported or missing
 tool stops preflight with a PowerShell upgrade command for that launcher.
 Import details appear on the console and in `preflight-lint.log`; an inherited
 `PYTHONPATH` override is not evidence of which tools the launcher imports.
+Selecting tooling also runs [the parser probe](../../scripts/check_tooling_environment.py)
+through the selected plain Python executable before test discovery. It verifies
+`markdown_it.MarkdownIt` and `yaml.safe_load` with basic parsing, reporting the
+interpreter and imported file paths on the console and in `preflight-tooling.log`.
+Missing/broken imports, incomplete namespace packages and unusable parsers stop
+all selected suites. Failure diagnostics probe source-file readability, retain
+the original exception, and give an install command using that interpreter and
+`requirements-dev.txt`. Existing-package failures also point to the file-access
+troubleshooting below. Checks do not install packages or change permissions.
+To run the probe alone, use `python scripts/check_tooling_environment.py`.
 Missing dependencies or failed checks return nonzero and identify
 the failed stage. Complete stdout/stderr goes to separate UTF-8 logs under a
 unique ignored `.local/checks/<UTC timestamp>-<id>/` directory; the console shows
@@ -70,6 +80,17 @@ ZIP into the run directory, and repeats the selected unit and QGIS suites on
 that installation. It preserves the metadata version. The same QGIS pattern
 applies to source and installed checks. The runner also works as
 `python scripts/check.py --help`; detailed/direct commands remain below.
+
+On Windows, workspace-local dependencies unpacked under another execution
+account can retain temporary-directory permissions. An unreadable package
+`__init__.py` may appear as a namespace package and cause `cannot import name`
+with `unknown location`, even when the directory and package metadata exist.
+Compare `Get-Acl` and direct file reads under the account running the failed
+check. For a disposable local dependency directory whose parent already has
+the intended workspace permissions, restore inheritance with
+`icacls '<workspace-local dependency directory>' /reset /T /Q`, then verify a
+real import and rerun the combined suite under that same account. Keep this
+repair scoped to the affected local dependencies.
 
 For a short development loop, select the affected checks or QGIS test file with
 `-Checks` and `-QgisPattern` as above; use the complete `-Package` run for final
@@ -210,7 +231,7 @@ development dependencies and Git available on PATH:
 
 ```powershell
 python -m pip install -r requirements-dev.txt
-python -m unittest discover -s scripts/tests -v
+python scripts/check.py --checks tooling
 ```
 
 The tooling suite includes offline [repository consistency checks](../../scripts/check_consistency.py)

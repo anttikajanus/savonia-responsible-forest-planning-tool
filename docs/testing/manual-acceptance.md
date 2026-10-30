@@ -111,7 +111,7 @@ US-005's accepted interaction is switching tier groups in QGIS's layer tree.
 
 Expected behavior: [CL-01–03](../specs/classification.md#cl-01-reporting-domain-and-geometry)
 and [IO-01–04](../specs/indicators-and-outputs.md#io-01-indicator-catalogue).
-Use controlled inputs with independently calculated expected results for MT-20–25.
+Use controlled inputs with independently calculated expected results for MT-20–25 and MT-30.
 The [worked examples](../examples/classified-forest-polygons.md) help interpret
 fields; they are not a runnable service or proof that a chosen live AOI has the
 required values.
@@ -124,6 +124,7 @@ required values.
 | MT-23 | Use tiny standalone, multipart and split result polygons below/at/above 0.01 m², a larger polygon whose hectares round to zero, and an all-excluded case. | Final connected polygons of <= 0.01 m² are excluded before summaries; count/area are reported and retained in metadata; source snapshots remain intact. Larger polygons remain. All-excluded runs fail before publication. |
 | MT-24 | Trigger a required-source/field failure, uninterpretable classification record, unrepairable geometry or controlled output-write failure. | The failed source/stage and corrective action are understandable and localized. No assumed economic class/valid zero replaces failure, and paired publication leaves no apparently successful partial output. Check original inputs remain unchanged. |
 | MT-25 | Compare a successful empty grid response, missing numeric values and an actual provider request/paging failure. Also exercise a repairable returned polygon. | Empty/missing numeric evidence can leave grid metrics unavailable while usable classification completes; a request/iteration failure stops publication. Repair is reported on the analysis copy without modifying source data. |
+| MT-30 | Compare stand MEANAGE below, exactly at and above 80 years, including a split stand, missing age and another positive criterion. Inspect the age check, tier reasons and workbook summaries in Finnish and English. | Only ages strictly over 80 match potential protection across all parent pieces in Protection and Superprotection. Active-protection checks stay separate. Unknown ages remain unknown without another positive trigger, including in Superprotection; matched age reasons retain the parent stand ID. Grid age indicators do not drive this check. |
 
 ## Help, offline use and notices
 
@@ -142,7 +143,7 @@ Use these checks to investigate the corresponding open questions:
 | Open item | Relevant checks | What to examine |
 | --- | --- | --- |
 | Installed desktop, language and resources | MT-01–06, MT-09–19, MT-26–27 | Check the installed plugin in each applicable language; offscreen tests do not show desktop layout or browser behavior. |
-| Result interpretation and edge behavior | MT-16–25 | Compare known inputs and independently expected results in QGIS and Excel. |
+| Result interpretation and edge behavior | MT-16–25, MT-30 | Compare known inputs and independently expected results in QGIS and Excel. |
 | MML live context and WFS initialization/query behavior | MT-07–08, MT-14, MT-25 | Try authorized live access and inspect requests when needed. Fixture behavior is separate from live-provider behavior. |
 | OSM display/distribution attribution | MT-28 | Look for attribution on the map; tile-policy and licence review remain separate. |
 | Section 10 stand-wide planning assumption | Separate planner review | Discuss the register's 10 ha stand/0.2 ha habitat example and intended spatial extent with the planner. Correct rendering alone does not establish that the rule is appropriate. |

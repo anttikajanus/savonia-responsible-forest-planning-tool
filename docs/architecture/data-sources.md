@@ -21,7 +21,7 @@ Eight WFS layers are required. The three protected-area layers form one interpre
 
 Metsäkeskus and SYKE list their services in the [Metsäkeskus interface directory](https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto/aineistot-paikkatieto-ohjelmille/rajapinnat) and [SYKE service directory](https://www.syke.fi/fi/ymparistotieto/avoimet-rajapinnat/paikkatietorajapinnat). WMS is map context; analysis uses vector WFS. `inspire_ps` contains multiple feature families: a Natura type does not satisfy the required protected/wilderness contract. Compare the provider's [Natura dictionary](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Natura.pdf) with the [protected/wilderness dictionary](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Luonnonsuojelujaeramaaalueet.pdf).
 
-MML WMTS basemaps and OpenStreetMap are display context and do not enter classifications or exported analysis snapshots. MY, potential protected sites, recreation, water buffers and peatland sensitivity sources are excluded; [deferred sources](deferred-sources.md) records alternatives without activating them.
+MML WMTS basemaps and OpenStreetMap are display context and do not enter classifications or exported analysis snapshots. Stand mean age supplies the included potential-protection screen. MY, external potential-protected-site datasets, recreation, water buffers and peatland sensitivity sources are excluded; [deferred sources](deferred-sources.md) records alternatives without activating them.
 
 ## MML basemap context
 

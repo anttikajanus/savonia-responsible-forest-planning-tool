@@ -110,6 +110,9 @@ def preflight(arguments, logs, environment):
                 raise CheckFailure("Git is missing from plain Python's PATH. Install Git or add its cmd directory to PATH.")
             details.append(f"Git: {git}")
             execute_check("preflight-git", [git, "--version"], logs, environment, arguments.timeout)
+            execute_check("preflight-tooling", [sys.executable, "scripts/check_tooling_environment.py"],
+                          logs, environment, arguments.timeout)
+            print((logs / "preflight-tooling.log").read_text(encoding="utf-8"), end="", flush=True)
         if {"lint", "qgis"}.intersection(arguments.checks):
             if not Path(arguments.qgis_python).is_file():
                 raise CheckFailure(f"QGIS Python launcher is missing: {arguments.qgis_python}. Use --qgis-python to select it.")

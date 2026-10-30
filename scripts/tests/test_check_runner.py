@@ -141,14 +141,17 @@ sys.exit(not result.wasSuccessful())
             calls.append((name, command[0], dict(environment), timeout))
             if name == "preflight-lint":
                 (_logs / "preflight-lint.log").write_text("Pylint/Astroid import details\n", encoding="utf-8")
+            if name == "preflight-tooling":
+                (_logs / "preflight-tooling.log").write_text("Markdown/YAML import details\n", encoding="utf-8")
 
         with patch.object(check, "execute_check", side_effect=record), patch.dict(os.environ, {
                 "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT": "stale-installed-plugin"}):
             result = check.main(["--qgis-python", str(launcher), "--logs-dir", str(self.root), "--timeout", "42"])
         self.assertEqual(result, 0)
         self.assertIn("Pylint/Astroid import details", self.output.getvalue())
+        self.assertIn("Markdown/YAML import details", self.output.getvalue())
         by_name = {name: (runtime, environment) for name, runtime, environment, _timeout in calls}
-        for name in ("tooling", "unit"):
+        for name in ("preflight-tooling", "tooling", "unit"):
             self.assertEqual(by_name[name][0], sys.executable)
         for name in ("preflight-qgis", "preflight-lint", "lint", "qgis"):
             self.assertEqual(by_name[name][0], str(launcher.resolve()))
@@ -171,7 +174,9 @@ sys.exit(not result.wasSuccessful())
         launcher = self.root / "qgis-launcher.bat"
         launcher.touch()
 
-        def reject_stale_tools(name, *_arguments, **_options):
+        def reject_stale_tools(name, _command, logs, *_arguments):
+            if name == "preflight-tooling":
+                (logs / "preflight-tooling.log").write_text("parser imports checked\n", encoding="utf-8")
             if name == "preflight-lint":
                 raise check.CheckFailure("Astroid 4.0.4 is too old; upgrade requirements-dev.txt")
 
@@ -184,7 +189,23 @@ sys.exit(not result.wasSuccessful())
                          [str(launcher.resolve()), "scripts/check_lint_environment.py",
                           "--qgis-python", str(launcher.resolve())])
 
-    def test_lint_dependencies_are_not_checked_for_other_selections(self):
+    def test_tooling_preflight_failure_stops_before_all_selected_suites(self):
+        launcher = self.root / "qgis-launcher.bat"
+        launcher.touch()
+
+        def reject_parsers(name, *_arguments):
+            if name == "preflight-tooling":
+                raise check.CheckFailure("markdown_it initializer: PermissionError: access denied")
+
+        with patch.object(check, "execute_check", side_effect=reject_parsers) as execute:
+            result = check.main(["--qgis-python", str(launcher), "--logs-dir", str(self.root)])
+        self.assertEqual(result, 1)
+        self.assertIn("PermissionError", self.error.getvalue())
+        self.assertEqual([call.args[0] for call in execute.call_args_list], ["preflight-git", "preflight-tooling"])
+        self.assertEqual(execute.call_args_list[-1].args[1],
+                         [sys.executable, "scripts/check_tooling_environment.py"])
+
+    def test_tooling_and_lint_dependencies_are_not_checked_for_other_selections(self):
         launcher = self.root / "qgis-launcher.bat"
         launcher.touch()
         for selection, names in (("unit", ["unit"]), ("qgis", ["preflight-qgis", "qgis"])):

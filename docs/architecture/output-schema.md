@@ -27,7 +27,7 @@ Criteria accumulate from one tier to the next.
 | `class_bau` | BAU / `bau` | Same criteria as All out; retained as a separate tier. |
 | `class_light` | Light / `light` | Same criteria as All out and BAU. |
 | `class_balance` | Balance / `balance` | Light criteria plus nature conservation programme areas and groundwater areas. |
-| `class_protection` | Protection / `protection` | Balance criteria plus other valuable habitats. |
+| `class_protection` | Protection / `protection` | Balance criteria plus other valuable habitats and potential protection where stand mean age exceeds 80 years. |
 | `class_superprotection` | Superprotection / `superprotection` | Protection criteria plus all remaining analyzed forest with available required evidence. |
 
 Protected areas include state-owned protected areas, private-land protected
@@ -61,6 +61,7 @@ lists use these codes; several reasons can apply to one piece.
 | `programme` | Match to a recognized nature conservation programme polygon. Programme membership is distinct from established protection. |
 | `groundwater` | Match to a groundwater-area footprint. |
 | `other_habitat` | Match to another valuable habitat. |
+| `potential_protected_age` | Parent stand `MEANAGE > 80` years; all derived pieces inherit the match and parent stand ID. Potential protection based on age, independent of active legal protection. |
 | `remaining_analyzed_forest` | Superprotection's rule for analyzed forest with no more specific sensitivity match and available required evidence. This is a policy reason and has no matched source-feature identifier. |
 
 Ordinary source-check attributes complement the structured reasons:
@@ -72,10 +73,16 @@ Ordinary source-check attributes complement the structured reasons:
 | `check_programme` | Conservation programme match. |
 | `check_groundwater` | Groundwater footprint match. |
 | `check_other_habitat` | Other valuable habitat match. |
+| `check_potential_protected_age` | Potential protected area due to parent stand mean age over 80 years. Exactly 80 is `NO_MATCH`; missing/invalid ages are `UNKNOWN`, even when Stand is available. |
 
 Each stores `MATCH`, `NO_MATCH` or `UNKNOWN`, with localized presentation.
 Unavailable dependencies are unknown rather than no-match. Superprotection's
 remaining-forest rule remains in `tier_rule_ids` rather than another check field.
+Without another positive criterion, unknown stand age leaves Protection and
+Superprotection unknown. Age-based provenance uses the parent stand ID; it does
+not set `check_protected`. Run metadata records the age rule under
+`classification_semantics`, also included in workbook calculation notes;
+workbook tier/class summaries reflect the age classifications.
 
 Additional fields describe classification and parent geometry context:
 

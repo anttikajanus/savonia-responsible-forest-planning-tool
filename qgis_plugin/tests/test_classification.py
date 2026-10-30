@@ -18,22 +18,23 @@ from savonia_responsible_forest_planning_tool.analysis.classification import ass
 class ClassificationTests(unittest.TestCase):
     tiers = ("all_out", "bau", "light", "balance", "protection", "superprotection")
     sources = ("syke_protected_areas", "forest_centre_habitat",
-               "syke_nature_conservation_programme_areas", "syke_groundwater_areas")
+               "syke_nature_conservation_programme_areas", "syke_groundwater_areas", "forest_centre_stand")
 
     def test_all_trigger_combinations_have_cumulative_classes_and_exact_rules(self):
         # Expected membership comes from CL-02, independently of implementation constants.
         triggers = (("active_protected", "protected", 0), ("section10", "section10", 0),
                     ("programme_area", "programme", 3), ("groundwater_area", "groundwater", 3),
-                    ("other_valuable_habitat", "other_habitat", 4))
+                    ("other_valuable_habitat", "other_habitat", 4),
+                    ("potential_protected_age", "potential_protected_age", 4))
         states = dict.fromkeys(self.sources, "AVAILABLE")
-        for enabled in itertools.product((False, True), repeat=5):
+        for enabled in itertools.product((False, True), repeat=6):
             evidence = {field: value for (field, _, _), value in zip(triggers, enabled)}
             evidence["source_ids"] = {criterion: ["b-" + criterion, "a-" + criterion,
                                                    "a-" + criterion, None]
                                       for _, criterion, _ in triggers}
             before = copy.deepcopy(evidence)
             classes, rules = classify_tiers(evidence, states)
-            row = assemble_classified_piece("stand", {}, 1, {
+            row = assemble_classified_piece("stand", {"MEANAGE": 81 if enabled[-1] else 80}, 1, {
                 **evidence, "source_ids": {},
             }, states)
             with self.subTest(enabled=enabled):
@@ -52,7 +53,7 @@ class ClassificationTests(unittest.TestCase):
                 self.assertEqual(evidence, before)
 
     def test_missing_dependencies_affect_only_dependent_tiers_and_positive_matches_win(self):
-        for source, first_tier in zip(self.sources, (0, 0, 3, 3)):
+        for source, first_tier in zip(self.sources, (0, 0, 3, 3, 4)):
             for state in (None, "NOT_AVAILABLE", "OUT_OF_SCOPE"):
                 states = dict.fromkeys(self.sources, "AVAILABLE")
                 if state is None:
@@ -60,7 +61,7 @@ class ClassificationTests(unittest.TestCase):
                 else:
                     states[source] = state
                 with self.subTest(source=source, state=state):
-                    classes, rules = classify_tiers({}, states)
+                    classes, rules = classify_tiers({"potential_protected_age": False}, states)
                     for index, tier in enumerate(self.tiers):
                         self.assertEqual(classes[tier], "UNKNOWN" if index >= first_tier else "ECONOMIC")
                         if index >= first_tier:
@@ -96,6 +97,44 @@ class ClassificationTests(unittest.TestCase):
         self.assertEqual(unknown["check_other_habitat"], "UNKNOWN")
         positive = assemble_classified_piece("stand-3", {}, 1, {"section10": True}, {})
         self.assertEqual(positive["check_section10"], "MATCH")
+
+    def test_stand_age_threshold_and_provenance_are_independent_of_grid_age(self):
+        states = dict.fromkeys(self.sources, "AVAILABLE")
+        for field in ("MEANAGE", "MeanAge", "meanage"):
+            for age, match in ((0, False), (79.99, False), (80, False), (80.001, True), (120, True)):
+                with self.subTest(field=field, age=age):
+                    evidence = {"source_ids": {"protected": []}}
+                    original = copy.deepcopy(evidence)
+                    row = assemble_classified_piece("parent", {field: age}, 0.25, evidence, states,
+                        grid_intersections=[{"area_ha": 0.25, "values": {"age": 150 if age <= 80 else 10}}])
+                    self.assertEqual(row["check_potential_protected_age"], "MATCH" if match else "NO_MATCH")
+                    self.assertEqual(row["check_protected"], "NO_MATCH")
+                    self.assertEqual(row["classes"]["protection"], "SENSITIVE" if match else "ECONOMIC")
+                    self.assertEqual(row["classes"]["superprotection"], "SENSITIVE")
+                    for tier in ("all_out", "bau", "light", "balance"):
+                        self.assertEqual(row["classes"][tier], "ECONOMIC")
+                    for tier in ("protection", "superprotection"):
+                        self.assertEqual("potential_protected_age" in row["rules"][tier]["criteria"], match)
+                        self.assertEqual(row["rules"][tier]["source_ids"], ["parent"] if match else [])
+                    self.assertEqual(evidence, original)
+
+    def test_unknown_stand_age_never_becomes_no_match_or_superprotection_catch_all(self):
+        states = dict.fromkeys(self.sources, "AVAILABLE")
+        for age in (None, "81", "invalid", True, False, -1, float("nan"), float("inf"), float("-inf"), 81j):
+            for evidence in ({}, {"other_valuable_habitat": True}):
+                with self.subTest(age=age, evidence=evidence):
+                    row = assemble_classified_piece("parent", {"MEANAGE": age}, 1, evidence, states)
+                    self.assertEqual(row["check_potential_protected_age"], "UNKNOWN")
+                    for tier in ("protection", "superprotection"):
+                        self.assertEqual(row["classes"][tier], "SENSITIVE" if evidence else "UNKNOWN")
+                        if not evidence:
+                            self.assertEqual(row["rules"][tier]["unknown_sources"], ["forest_centre_stand"])
+                    self.assertEqual(row["classes"]["balance"], "ECONOMIC")
+        missing = assemble_classified_piece("parent", {}, 1, {}, states)
+        self.assertEqual(missing["check_potential_protected_age"], "UNKNOWN")
+        unavailable = assemble_classified_piece("parent", {"MEANAGE": 100}, 1, {},
+            {**states, "forest_centre_stand": "NOT_AVAILABLE"})
+        self.assertEqual(unavailable["check_potential_protected_age"], "UNKNOWN")
 
     def test_unrecognized_classification_records_are_diagnostic_not_no_hits(self):
         cases = (

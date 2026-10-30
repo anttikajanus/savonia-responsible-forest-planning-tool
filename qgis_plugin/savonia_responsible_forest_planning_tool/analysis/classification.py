@@ -1,5 +1,8 @@
 """Pure forest evidence interpretation and sensitivity-tier rules."""
 
+import math
+from numbers import Number
+
 from .grid_indicators import calculate_grid_indicators, calculate_stand_indicators
 from .source_readiness import PROTECTED_SOURCE_IDS
 
@@ -19,6 +22,7 @@ CRITERION_FIELDS = (
     ("check_programme", "programme_area", "syke_nature_conservation_programme_areas"),
     ("check_groundwater", "groundwater_area", "syke_groundwater_areas"),
     ("check_other_habitat", "other_valuable_habitat", "forest_centre_habitat"),
+    ("check_potential_protected_age", "potential_protected_age", "forest_centre_stand"),
 )
 SOURCE_STATES = ("AVAILABLE", "NOT_AVAILABLE", "OUT_OF_SCOPE")
 
@@ -34,6 +38,19 @@ PROGRAMME_CLASS_CODES = frozenset(("AMO", "HSO", "LHO", "LVO", "MAO", "PMO", "KL
 
 def _status(value):
     return " ".join(str(value or "").strip().lower().split())
+
+
+def potential_protection_by_age(stand_attributes, source_status):
+    """Return a stand-wide age match, or None when MEANAGE is unusable."""
+    values = {str(field).lower(): value for field, value in stand_attributes.items()}
+    value = values.get("meanage")
+    if source_status != "AVAILABLE" or isinstance(value, bool) or not isinstance(value, Number):
+        return None
+    try:
+        age = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return age > 80 if math.isfinite(age) and age >= 0 else None
 
 
 def interpret_sources(source_features, source_states):
@@ -157,14 +174,15 @@ def classify_tiers(evidence, source_states):
         "programme": bool(evidence.get("programme_area")),
         "groundwater": bool(evidence.get("groundwater_area")),
         "other_habitat": bool(evidence.get("other_valuable_habitat")),
+        "potential_protected_age": evidence.get("potential_protected_age"),
     }
     tier_criteria = {
         "all_out": ("protected", "section10"),
         "bau": ("protected", "section10"),
         "light": ("protected", "section10"),
         "balance": ("protected", "section10", "programme", "groundwater"),
-        "protection": ("protected", "section10", "programme", "groundwater", "other_habitat"),
-        "superprotection": ("protected", "section10", "programme", "groundwater", "other_habitat"),
+        "protection": ("protected", "section10", "programme", "groundwater", "other_habitat", "potential_protected_age"),
+        "superprotection": ("protected", "section10", "programme", "groundwater", "other_habitat", "potential_protected_age"),
     }
     dependencies = {
         "protected": ("syke_protected_areas",),
@@ -172,6 +190,7 @@ def classify_tiers(evidence, source_states):
         "programme": ("syke_nature_conservation_programme_areas",),
         "groundwater": ("syke_groundwater_areas",),
         "other_habitat": ("forest_centre_habitat",),
+        "potential_protected_age": ("forest_centre_stand",),
     }
     classes = {}
     rules = {}
@@ -196,9 +215,13 @@ def classify_tiers(evidence, source_states):
             for criterion in criteria
             for source_id in dependencies[criterion]
         }
+        unknown_values = {
+            source_id for criterion in criteria if triggers[criterion] is None
+            for source_id in dependencies[criterion]
+        }
         unknown_sources = sorted(
             source_id for source_id in required_sources
-            if source_states.get(source_id) != "AVAILABLE"
+            if source_states.get(source_id) != "AVAILABLE" or source_id in unknown_values
         )
         if unknown_sources:
             classes[tier] = "UNKNOWN"
@@ -217,6 +240,12 @@ def classify_tiers(evidence, source_states):
 def assemble_classified_piece(stand_id, stand_attributes, area_ha, evidence, source_states,
                               grid_intersections=None, sawlog_price_eur_m3=None):
     """Turn normalized piece evidence into a complete, QGIS-independent result row."""
+    age_match = potential_protection_by_age(
+        stand_attributes, source_states.get("forest_centre_stand"),
+    )
+    evidence = {**evidence, "potential_protected_age": age_match,
+                "source_ids": {**evidence.get("source_ids", {}),
+                               "potential_protected_age": [stand_id] if age_match else []}}
     classes, rules = classify_tiers(evidence, source_states)
     for tier in rules:
         rules[tier]["unknown_sources"] = rules[tier].get("unknown_sources", [])
@@ -235,7 +264,8 @@ def assemble_classified_piece(stand_id, stand_attributes, area_ha, evidence, sou
     return {
         "source_stand_id": stand_id,
         **{field: "MATCH" if evidence.get(evidence_key) else
-           "NO_MATCH" if source_states.get(source_id) == "AVAILABLE" else "UNKNOWN"
+           "NO_MATCH" if source_states.get(source_id) == "AVAILABLE"
+           and evidence.get(evidence_key, False) is not None else "UNKNOWN"
            for field, evidence_key, source_id in CRITERION_FIELDS},
         "classes": classes,
         "rules": rules,

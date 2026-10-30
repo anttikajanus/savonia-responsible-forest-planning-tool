@@ -117,6 +117,15 @@ def prepare_publication(inputs, retrieved, classified, run_id):
             inputs["service_ids"], tr(language, "data_attribution_changes"),
         ),
         "grid_source_dates": source_dates,
+        "classification_semantics": {
+            "potential_protected_age": {
+                "source_id": "forest_centre_stand", "field": "MEANAGE", "unit": "years",
+                "rule": "MEANAGE > 80", "tiers": ["protection", "superprotection"],
+                "scope": "all pieces of the parent stand",
+                "unknown": "missing, nonnumeric, boolean, nonfinite or negative age",
+                "interpretation": "potential protection based on age; not legal protection",
+            },
+        },
         "metric_coverage": summarize_indicator_rows(classified["result_rows"])["indicator_coverage"],
         "indicator_semantics": {
             "result_field_rounding": {"decimals": RESULT_DECIMALS, "mode": "ROUND_HALF_UP", "stage": "after_aggregation"},

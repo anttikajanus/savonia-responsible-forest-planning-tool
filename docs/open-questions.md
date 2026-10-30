@@ -37,7 +37,7 @@ Evidence locations and primary sources are in [data sources](architecture/data-s
 
 ## Scope and source alternatives
 
-Local GeoPackage/raster adapters, open-mire/whole-AOI reporting, potential protection screening, urban-forest/MY interpretation, peat sensitivity and water buffers remain deferred. Candidate sources and unanswered thresholds/denominators are recorded in [deferred sources](architecture/deferred-sources.md).
+Local GeoPackage/raster adapters, open-mire/whole-AOI reporting, external potential-protected-site datasets, urban-forest/MY interpretation, peat sensitivity and water buffers remain deferred. Candidate sources and unanswered thresholds/denominators are recorded in [deferred sources](architecture/deferred-sources.md).
 
 No reviewed repository evidence establishes Savonia acceptance of the prototype's tier rules, interpretations or deliverables. Tender requirements and implementation choices have different authority. [Project context](project-context.md).
 

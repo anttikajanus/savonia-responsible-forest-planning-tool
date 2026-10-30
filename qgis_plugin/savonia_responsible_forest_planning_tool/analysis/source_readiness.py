@@ -11,7 +11,8 @@ _PROTECTED_FIELD_GROUPS = (("olotila",), ("tyyppilyhenne", "kohdetyyppi"))
 
 _REQUIRED_FIELD_GROUPS = {
     # Keep optional indicators out of the readiness gate; their absent values are
-    # reported as unknown, while these fields support the core stand calculations.
+    # reported as unknown, while these fields support stand calculations and
+    # the MEANAGE potential-protection criterion.
     "forest_centre_stand": (
         ("volume",), ("sawlogvolume",), ("volumegrowth",), ("meanage",),
     ),

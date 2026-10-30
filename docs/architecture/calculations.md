@@ -70,7 +70,8 @@ before publication under the existing no-stands policy.
 The [output schema](output-schema.md#classification-fields-and-values) owns the
 six stored tier fields, class-code meanings and reason-code dictionary so that
 output recipients can interpret the GeoPackage from one reference. Unrecognized
-returned classification inputs stop the run.
+returned protected, habitat and programme classification inputs stop the run;
+invalid individual stand ages follow the explicit unknown policy below.
 
 The cumulative criteria are evaluated independently for each output piece. A
 recognized positive match makes the tier `SENSITIVE`, even if another required
@@ -83,9 +84,10 @@ complete service coverage.
 
 These dependency rules describe the pure classification policy. The application
 workflow requires all eight sources and stops before publication on a required
-source or interpretation failure; it does not publish a partial-source run using
-these `UNKNOWN` rules. Missing numeric indicator evidence can still produce
-partial or unknown metrics in a successful run.
+source or fatal interpretation failure; it does not publish a partial-source run
+using these `UNKNOWN` rules. Missing numeric indicator evidence can still produce
+partial or unknown metrics in a successful run. Missing/invalid individual stand
+ages can produce unknown classifications under CL-03 without a source failure.
 
 The criterion membership is defined in
 [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers). The
@@ -95,12 +97,23 @@ those tiers to machine fields. Required source groups for a no-hit decision are:
 | Tiers | Required source groups |
 | --- | --- |
 | All out, BAU, Light | Protected + Habitat |
-| Balance, Protection, Superprotection | Protected + Habitat + Programme + Groundwater |
+| Balance | Protected + Habitat + Programme + Groundwater |
+| Protection, Superprotection | Protected + Habitat + Programme + Groundwater + valid stand mean age |
 
 Protected combines the three required protected-area products in the
 [source inventory](data-sources.md#required-sources). Habitat, Programme and
 Groundwater refer to their semantic source groups, not display-layer names.
 Excluded criteria follow [CL-04](../specs/classification.md#cl-04-exclusions-and-interpretation).
+
+The stand-age criterion consumes case-insensitive stand `MEANAGE` in years.
+Finite nonnegative numeric values are valid; booleans and numeric text are not.
+The unrounded value must be strictly greater than 80. Every piece of that
+parent stand inherits the match and stand ID under `potential_protected_age`,
+without a geometry split or overlap threshold. Missing/invalid individual
+ages leave this criterion unknown even when Stand is available. Without any
+positive trigger, Protection and Superprotection are `UNKNOWN`, identifying
+`forest_centre_stand` in `unknown_sources`; a positive trigger still wins.
+This rule uses no grid age substitute or age extrapolation.
 
 The [input contract](source-layer-requirements.md#accepted-classification-values)
 owns accepted statuses, categories, habitat codes and programme identifiers.

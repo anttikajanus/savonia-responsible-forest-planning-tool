@@ -41,7 +41,7 @@ def classify(stands, evidence, language):
 class ClassificationGeometryTests(unittest.TestCase):
     def test_protected_strip_splits_only_matching_pieces_and_conserves_area(self):
         geometry = rectangle(0, 0, 100, 100)
-        stand = record("forest_centre_stand", "stand-1", geometry, {"volume": 100})
+        stand = record("forest_centre_stand", "stand-1", geometry, {"volume": 100, "meanage": 40})
         strip = record("syke_protected_areas_state_owned", "strip", rectangle(0, 0, 25, 100),
                        {"olotila": "Voimassa", "tyyppilyhenne": "VSA"})
         for language in ("en", "fi"):
@@ -55,6 +55,26 @@ class ClassificationGeometryTests(unittest.TestCase):
                     self.assertAlmostEqual(sum(row["area_ha"] for row in rows
                                                if row["classes"][tier] == "SENSITIVE"), 0.25)
                 self.assertTrue(all(row["classes"]["superprotection"] == "SENSITIVE" for row in rows))
+
+    def test_age_check_is_inherited_by_split_pieces_only_in_protection_tiers(self):
+        stand = record("forest_centre_stand", "old-stand", rectangle(0, 0, 100, 100), {"MEANAGE": 80.01})
+        protected = record("syke_protected_areas_state_owned", "protected-strip", rectangle(0, 0, 25, 100),
+                           {"olotila": "Voimassa", "tyyppilyhenne": "VSA"})
+        for language in ("en", "fi"):
+            with self.subTest(language=language):
+                rows = classify([stand], [protected], language)
+                self.assertEqual(len(rows), 2)
+                self.assertAlmostEqual(sum(row["area_ha"] for row in rows), 1)
+                for row in rows:
+                    self.assertEqual(row["check_potential_protected_age"], "MATCH")
+                    self.assertEqual(row["source_ids"]["potential_protected_age"], ["old-stand"])
+                    for tier in ("protection", "superprotection"):
+                        self.assertEqual(row["classes"][tier], "SENSITIVE")
+                        self.assertIn("potential_protected_age", row["rules"][tier]["criteria"])
+                        self.assertIn("old-stand", row["rules"][tier]["source_ids"])
+                outside, = [row for row in rows if row["check_protected"] == "NO_MATCH"]
+                self.assertEqual(outside["rules"]["protection"]["source_ids"], ["old-stand"])
+                self.assertEqual(outside["classes"]["balance"], "ECONOMIC")
 
     def test_criterion_threshold_excludes_small_overlaps_edges_and_points(self):
         stand = record("forest_centre_stand", "stand", rectangle(0, 0, 10, 10))

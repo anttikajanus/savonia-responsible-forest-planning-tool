@@ -7,6 +7,11 @@ its purpose, denominator and rule.
 
 ## Potential protected sites
 
+External candidate-site datasets remain deferred. The included stand-age
+screen uses existing stand `MEANAGE > 80` in Protection and Superprotection;
+see [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers). It does not
+activate any external dataset or establish legal protection.
+
 Candidate screening, established protected sites, programme membership and mapped Section 10 habitats are distinct. Existing protected/programme/habitat records must not be counted again as a new potential-site layer. Screening scores do not establish legal protection or exact habitat boundaries.
 
 | Candidate | Source evidence | Decision still needed |
@@ -15,7 +20,7 @@ Candidate screening, established protected sites, programme membership and mappe
 | Potential flood forests / wooded flood meadows 2023 | [SYKE product/resources](https://luontotieto.syke.fi/aineisto/potentiaalisen-tulvametsan-tai-metsaluhdan-esiintymistodennakoisyys-2023/) describes a habitat-specific predictive product, with a 0.25 ha mapping unit. | Verify operational schema, access, prediction threshold and resolution. This is not a general protected-site mask. |
 | Natural and old forest inventory-support data | [SYKE project](https://www.syke.fi/fi/projektit/luonnontilaiset-ja-vanhat-metsat-eun-bd-strategian-maaritelman-paikkatietoaineistojen-ja) describes support data from the 2021–2023 project. | An operational open layer/schema remains unverified; check permitted use, date, coverage and delivery. |
 
-A policy discussion could inspect score distributions in representative AOIs, retain score/version provenance and compare candidate flags with existing evidence. Neither a threshold nor an active sensitivity rule has been selected.
+A policy discussion could inspect score distributions in representative AOIs, retain score/version provenance and compare candidate flags with existing evidence. No threshold or sensitivity rule has been selected for these external candidates.
 
 ## Taajamametsät, planning boundaries and MY
 
