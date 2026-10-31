@@ -92,7 +92,7 @@ def _polygon_parts(geometry):
         return [QgsGeometry(part) for part in geometry.asGeometryCollection() if not part.isEmpty() and part.area() > _MINIMUM_OUTPUT_PIECE_AREA_M2]
     return [geometry]
 
-def _split_stand(stand_geometry, criteria, language):
+def _split_stand(stand_geometry, criteria, language, run_id="unknown"):
     pieces = [(stand_geometry, set(), {})]
     for criterion in criteria:
         next_pieces = []
@@ -100,10 +100,17 @@ def _split_stand(stand_geometry, criteria, language):
             try:
                 split_parts = _split_geometry(geometry, criterion["geometry"])
             except Exception as exc:
+                if criterion["criterion"] == "riparian_buffer":
+                    logger.exception(
+                        "run_id=%s stage=spatial_classification source=water event=water_split_failed feature_id=%s",
+                        run_id, criterion.get("source_id", "derived_riparian_buffer_evidence"),
+                    )
                 raise QgsProcessingException(
                     tr(language, "error_criterion_overlay", criterion=criterion["criterion"],
-                       source_id=criterion["source_id"], detail=exc)
-                )
+                       source_id=criterion["source_id"],
+                       detail=tr(language, "water_geometry_failed_detail")
+                       if criterion["criterion"] == "riparian_buffer" else exc)
+                ) from exc
             for part, inside in split_parts:
                 new_matched = set(matched)
                 # Each branch owns its ID sets; adding a later overlapping
@@ -222,11 +229,21 @@ def classify_source_features(inputs, retrieved, feedback=None):
                 and _has_criterion_overlap_above_threshold(clipped, c["geometry"])
             ]
         except Exception as exc:
-            raise QgsProcessingException(tr(language, "error_geometry_overlay", detail=exc))
+            has_water = any(c["criterion"] == "riparian_buffer" for c in criteria)
+            if has_water:
+                logger.exception(
+                    "run_id=%s stage=spatial_classification source=water event=water_candidate_overlay_failed stand_id=%s",
+                    inputs.get("run_id", "unknown"), stand_id,
+                )
+            raise QgsProcessingException(tr(
+                language, "error_geometry_overlay",
+                detail=tr(language, "water_geometry_failed_detail") if has_water else exc,
+            )) from exc
         # Section 10 promotion is stand-wide, so any positive-area overlap marks
         # every split piece even when a piece itself lies outside the habitat.
         previous_result_count = len(result_rows)
-        for piece, matched, source_ids in _split_stand(clipped, stand_criteria, language):
+        for piece, matched, source_ids in _split_stand(
+                clipped, stand_criteria, language, inputs.get("run_id", "unknown")):
             reporting_area_m2 = projected_area_m2(piece, language)
             if reporting_area_m2 <= _MINIMUM_REPORTING_AREA_M2:
                 excluded_areas.append(reporting_area_m2)
@@ -245,9 +262,20 @@ def classify_source_features(inputs, retrieved, feedback=None):
                     try:
                         intersection = piece.intersection(record["geometry"])
                     except Exception as exc:
-                        raise QgsProcessingException(tr(language, "error_geometry_overlay", detail=exc)) from exc
+                        logger.exception(
+                            "run_id=%s stage=spatial_classification source=%s event=water_piece_intersection_failed "
+                            "feature_id=%s stand_id=%s",
+                            inputs.get("run_id", "unknown"), record["service_id"], record["source_id"], stand_id,
+                        )
+                        raise QgsProcessingException(tr(
+                            language, "error_geometry_overlay",
+                            detail=tr(language, "water_geometry_failed_detail"),
+                        )) from exc
                     if intersection.isNull():
-                        raise QgsProcessingException(tr(language, "error_geometry_overlay", detail="Null water-buffer intersection"))
+                        raise QgsProcessingException(tr(
+                            language, "error_geometry_overlay",
+                            detail=tr(language, "water_intersection_null_detail"),
+                        ))
                     if not intersection.isEmpty() and intersection.area() > 0:
                         riparian_refs.add("{0}:{1}".format(record["service_id"], record["source_id"]))
                 if not riparian_refs:

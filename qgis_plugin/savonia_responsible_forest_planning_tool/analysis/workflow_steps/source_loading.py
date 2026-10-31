@@ -262,26 +262,34 @@ def _clip_source_geometry(context, source_feature, transform, filter_rect):
         if is_water:
             geometry = geometry.buffer(WATER_BUFFER_DISTANCE_M, 8)
             if geometry.isNull() or geometry.isEmpty() or not geometry.isGeosValid():
-                raise ValueError("Water buffer did not produce valid polygon geometry.")
+                raise ValueError(tr(language, "water_buffer_invalid_detail"))
             derived_buffered = True
         clipped = geometry.intersection(context.aoi)
     except Exception as exc:
         raise QgsProcessingException(tr(
             language, "source_feature_geometry_failed",
-            source=service_id, feature_id=source_feature.id(), detail=exc,
+            source=service_id, feature_id=source_feature.id(),
+            detail=tr(language, "water_geometry_failed_detail") if is_water else exc,
         ))
     if clipped.isNull():
         raise QgsProcessingException(tr(
             language, "source_feature_geometry_failed",
-            source=service_id, feature_id=source_feature.id(), detail="null intersection result",
+            source=service_id, feature_id=source_feature.id(),
+            detail=tr(language, "water_intersection_null_detail") if is_water else "null intersection result",
         ))
     try:
         polygonal_clipped = _polygonal_geometry(clipped)
     except Exception as exc:
+        if is_water:
+            logger.exception(
+                "run_id=%s stage=source_retrieval source=%s event=water_clip_geometry_conversion_failed feature_id=%s",
+                context.run_id, service_id, source_feature.id(),
+            )
         raise QgsProcessingException(tr(
             language, "source_feature_geometry_failed",
-            source=service_id, feature_id=source_feature.id(), detail=exc,
-        ))
+            source=service_id, feature_id=source_feature.id(),
+            detail=tr(language, "water_geometry_failed_detail") if is_water else exc,
+        )) from exc
     if polygonal_clipped is None:
         return None, repaired, "non_polygonal", source_bbox_matches_request, derived_buffered
 
@@ -291,7 +299,8 @@ def _clip_source_geometry(context, source_feature, transform, filter_rect):
     if not clipped.isGeosValid():
         raise QgsProcessingException(tr(
             language, "source_feature_geometry_failed",
-            source=service_id, feature_id=source_feature.id(), detail="invalid intersection result",
+            source=service_id, feature_id=source_feature.id(),
+            detail=tr(language, "water_geometry_failed_detail") if is_water else "invalid intersection result",
         ))
     minimum_area = 0.0 if is_water else AREA_TOLERANCE_M2
     if clipped.area() <= minimum_area:
@@ -396,7 +405,7 @@ def _source_coverage(context, source_id_strategy, features,
     return coverage
 
 
-def _combined_water_evidence(source_features, coverage, language):
+def _combined_water_evidence(source_features, coverage, language, run_id="unknown"):
     """Dissolve AOI-clipped water buffers and retain source-qualified references."""
     records = [
         record for service_id in sorted(WATER_SOURCE_IDS)
@@ -421,9 +430,13 @@ def _combined_water_evidence(source_features, coverage, language):
             geometry = QgsGeometry.unaryUnion([record["geometry"] for record in records])
             geometry = _polygonal_geometry(geometry)
         except Exception as exc:
+            logger.exception(
+                "run_id=%s stage=source_retrieval event=water_evidence_union_failed sources=%s",
+                run_id, ",".join(sorted(WATER_SOURCE_IDS)),
+            )
             raise QgsProcessingException(tr(
                 language, "error_geometry_overlay",
-                detail="Could not combine buffered water evidence: {0}".format(exc),
+                detail=tr(language, "water_evidence_union_failed"),
             )) from exc
     combined_output_feature_count = int(not geometry.isNull() and not geometry.isEmpty())
     return {
@@ -801,7 +814,9 @@ def retrieve_sources(inputs, feedback=None):
         feedback.pushInfo(tr(language, "progress_prepare_water_buffers"))
         if hasattr(feedback, "setProgressText"):
             feedback.setProgressText(tr(language, "progress_prepare_water_buffers"))
-    water_evidence = _combined_water_evidence(source_features, coverage, language)
+    water_evidence = _combined_water_evidence(
+        source_features, coverage, language, run_id=inputs.get("run_id", "unknown"),
+    )
     return {
         "coverage": coverage,
         "source_features": source_features,

@@ -10,10 +10,11 @@ APP = qgis_application()
 
 from qgis.core import (QgsCoordinateReferenceSystem, QgsCoordinateTransform,
                        QgsCoordinateTransformContext, QgsDataSourceUri, QgsGeometry,
-                       QgsPointXY, QgsProcessingException, QgsProcessingFeedback, QgsVectorLayer)
+                       QgsFeature, QgsPointXY, QgsProcessingException, QgsProcessingFeedback, QgsVectorLayer)
 
 from savonia_responsible_forest_planning_tool.adapters.sources import qgis_wfs_uri
 from savonia_responsible_forest_planning_tool.analysis.workflow_steps import source_loading
+from savonia_responsible_forest_planning_tool.i18n import tr
 from test_grid_sampling import retrieval_inputs, rectangle
 from wfs_fixture import LocalWfs, request_has_bbox
 from workflow_fixture import fixture_sources, source_record
@@ -329,6 +330,118 @@ class AnalysisQueryFilteringTest(unittest.TestCase):
             self.assertGreaterEqual(6900000.0 - bounds[1], 30.0)
             self.assertGreaterEqual(bounds[2] - 350100.0, 30.0)
             self.assertGreaterEqual(bounds[3] - 6900100.0, 30.0)
+
+    def test_water_geometry_from_geographic_source_crs_is_transformed_before_buffering(self):
+        source = "syke_rantaviiva_lake"
+        fields = {"objectid": "lake-4326"}
+        projected = rectangle(350040, 6900040, 20, 20)
+        geographic = QgsGeometry(projected)
+        geographic.transform(QgsCoordinateTransform(QgsCoordinateReferenceSystem("EPSG:3067"),
+                                                    QgsCoordinateReferenceSystem("EPSG:4326"),
+                                                    QgsCoordinateTransformContext()))
+        ring = geographic.asPolygon()[0]
+        coordinates = " ".join("{0},{1}".format(point.x(), point.y()) for point in ring)
+        with LocalWfs({"water": fields}, records={"water": [{
+                "attributes": fields, "coordinates": coordinates,
+        }]}) as fixture:
+            uri = QgsDataSourceUri(qgis_wfs_uri({
+                "endpoint": fixture.endpoint, "feature_type": "fixture:water", "source_crs": "EPSG:4326",
+            }))
+            layer = QgsVectorLayer(uri.uri(), "geographic lake", "WFS")
+            self.assertTrue(layer.isValid(), layer.error().message())
+            aoi = rectangle(350000, 6900000, 100, 100)
+            inputs = retrieval_inputs(layer, aoi)
+            inputs.update(service_ids=(source,), source_display_names={source: "Lake"}, layers={source: layer})
+            inputs["source_metadata"] = {source: {
+                "endpoint": fixture.endpoint, "feature_type": "fixture:water", "properties": None,
+                "query_time": "fixture", "provider_fields": ["objectid"], "field_map": {},
+            }}
+            result = source_loading.retrieve_sources(inputs, QgsProcessingFeedback())
+            evidence = result["water_evidence"]["geometry"]
+            self.assertTrue(evidence.intersects(aoi))
+            self.assertGreater(evidence.area(), projected.area())
+            self.assertLess(evidence.area(), aoi.area())
+            self.assertEqual(result["coverage"][0]["source_crs"], "EPSG:4326")
+
+    def test_water_buffer_failure_has_bilingual_user_message(self):
+        source = "syke_rantaviiva_lake"
+        for language in ("en", "fi"):
+            with self.subTest(language=language):
+                feature = QgsFeature()
+                feature.setGeometry(rectangle(10, 10, 10, 10))
+                aoi = rectangle(0, 0, 100, 100)
+                context = source_loading._SourceReadContext(
+                    layer=None, service_id=source, source_name="Lake", run_id="test", metadata={},
+                    aoi=aoi, query_aoi=aoi, transform_context=QgsCoordinateTransformContext(),
+                    feedback=None, language=language, progress_start=0, progress_end=100,
+                )
+                transform = QgsCoordinateTransform(QgsCoordinateReferenceSystem("EPSG:3067"),
+                                                    QgsCoordinateReferenceSystem("EPSG:3067"),
+                                                    QgsCoordinateTransformContext())
+                with patch.object(source_loading.QgsGeometry, "buffer", return_value=QgsGeometry()):
+                    with self.assertRaises(QgsProcessingException) as error:
+                        source_loading._clip_source_geometry(context, feature, transform, aoi.boundingBox())
+                expected_detail = tr(language, "water_geometry_failed_detail")
+                self.assertIn(expected_detail, str(error.exception))
+                self.assertIn(source, str(error.exception))
+
+    def test_multipart_line_source_is_buffered_with_round_end_coverage(self):
+        source = "syke_rantaviiva_line_river"
+        feature = QgsFeature()
+        feature.setGeometry(QgsGeometry.fromWkt(
+            "MULTILINESTRING ((350010 6900010,350020 6900010),"
+            "(350080 6900080,350090 6900080))"
+        ))
+        aoi = rectangle(350000, 6900000, 100, 100)
+        context = source_loading._SourceReadContext(
+            layer=None, service_id=source, source_name="Line river", run_id="test", metadata={},
+            aoi=aoi, query_aoi=aoi, transform_context=QgsCoordinateTransformContext(),
+            feedback=None, language="en", progress_start=0, progress_end=100,
+        )
+        transform = QgsCoordinateTransform(QgsCoordinateReferenceSystem("EPSG:3067"),
+                                            QgsCoordinateReferenceSystem("EPSG:3067"),
+                                            QgsCoordinateTransformContext())
+        clipped, _, _, _, buffered = source_loading._clip_source_geometry(
+            context, feature, transform, aoi.boundingBox())
+        self.assertTrue(buffered)
+        self.assertTrue(clipped.contains(QgsGeometry.fromPointXY(QgsPointXY(350010, 6900010))))
+        self.assertTrue(clipped.contains(QgsGeometry.fromPointXY(QgsPointXY(350090, 6900080))))
+        self.assertGreater(clipped.area(), 2 * 30 * 10)
+
+    def test_null_water_clip_result_uses_translated_failure_detail(self):
+        source = "syke_rantaviiva_lake"
+        feature = QgsFeature()
+        feature.setGeometry(rectangle(10, 10, 10, 10))
+        aoi = rectangle(0, 0, 100, 100)
+        transform = QgsCoordinateTransform(QgsCoordinateReferenceSystem("EPSG:3067"),
+                                            QgsCoordinateReferenceSystem("EPSG:3067"),
+                                            QgsCoordinateTransformContext())
+        for language in ("en", "fi"):
+            context = source_loading._SourceReadContext(
+                layer=None, service_id=source, source_name="Lake", run_id="test", metadata={},
+                aoi=aoi, query_aoi=aoi, transform_context=QgsCoordinateTransformContext(),
+                feedback=None, language=language, progress_start=0, progress_end=100,
+            )
+            with self.subTest(language=language), patch.object(
+                    source_loading.QgsGeometry, "intersection", return_value=QgsGeometry()):
+                with self.assertRaises(QgsProcessingException) as error:
+                    source_loading._clip_source_geometry(context, feature, transform, aoi.boundingBox())
+            self.assertIn(tr(language, "water_intersection_null_detail"), str(error.exception))
+
+    def test_water_union_failure_is_localized_and_retains_geos_diagnostic(self):
+        source = "syke_rantaviiva_lake"
+        water_record = {"service_id": source, "source_id": "lake-1", "attributes": {},
+                        "geometry": rectangle(0, 0, 10, 10)}
+        for language in ("en", "fi"):
+            with self.subTest(language=language), patch.object(
+                    source_loading.QgsGeometry, "unaryUnion", side_effect=RuntimeError("GEOS fixture diagnostic")):
+                with self.assertLogs(source_loading.logger, level="ERROR") as diagnostics:
+                    with self.assertRaises(QgsProcessingException) as error:
+                        source_loading._combined_water_evidence(
+                            {source: [water_record]}, [], language)
+            self.assertIn(tr(language, "water_evidence_union_failed"), str(error.exception))
+            self.assertNotIn("GEOS fixture diagnostic", str(error.exception))
+            self.assertIn("GEOS fixture diagnostic", "\n".join(diagnostics.output))
 
 
 if __name__ == "__main__":

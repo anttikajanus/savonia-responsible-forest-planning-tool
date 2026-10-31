@@ -171,6 +171,51 @@ class ClassificationGeometryTests(unittest.TestCase):
                 self.assertEqual(bool(matched), expected == "MATCH")
                 self.assertEqual(sum(row["geometry"].area() for row in matched), area if expected == "MATCH" else 0)
 
+    def test_riparian_boundary_touch_does_not_create_a_match(self):
+        stand = record("forest_centre_stand", "stand", rectangle(0, 0, 10, 10))
+        water_polygon = rectangle(40, 0, 5, 10)
+        touching_buffer = water_polygon.buffer(30, 8)
+        self.assertAlmostEqual(touching_buffer.intersection(stand["geometry"]).area(), 0)
+        touching = record("syke_rantaviiva_lake", "touching", touching_buffer)
+        for language in ("en", "fi"):
+            with self.subTest(language=language):
+                rows = classify([stand], [touching], language)
+                self.assertEqual(len(rows), 1)
+                self.assertEqual(rows[0]["check_riparian_buffer"], "NO_MATCH")
+                self.assertEqual(rows[0]["classes"]["balance"], "ECONOMIC")
+
+    def test_riparian_full_polygon_contains_aoi_with_hole_and_disconnected_part(self):
+        aoi = QgsGeometry.fromWkt(
+            "MULTIPOLYGON (((350000 6900000,350010 6900000,350010 6900010,"
+            "350000 6900010,350000 6900000),(350002 6900002,350002 6900004,"
+            "350004 6900004,350004 6900002,350002 6900002)),"
+            "((350020 6900000,350025 6900000,350025 6900005,350020 6900005,350020 6900000)))"
+        )
+        stand = record("forest_centre_stand", "aoi", aoi)
+        containing_water = record("syke_rantaviiva_polygon_river", "large-river",
+                                  rectangle(-10, -10, 60, 40))
+        for language in ("en", "fi"):
+            with self.subTest(language=language):
+                rows = classify([stand], [containing_water], language)
+                self.assertAlmostEqual(sum(row["geometry"].area() for row in rows), 121, places=6)
+                self.assertTrue(all(row["check_riparian_buffer"] == "MATCH" for row in rows))
+                self.assertTrue(all(row["classes"]["balance"] == "SENSITIVE" for row in rows))
+
+    def test_riparian_duplicate_overlaps_are_order_independent_and_counted_once(self):
+        stand = record("forest_centre_stand", "stand", rectangle(0, 0, 100, 100))
+        source = "syke_rantaviiva_lake"
+        west = record(source, "west", rectangle(0, 0, 60, 100))
+        duplicate = record(source, "west-copy", rectangle(0, 0, 60, 100))
+        east = record("syke_rantaviiva_line_river", "east", rectangle(40, 0, 60, 100))
+        signatures = []
+        for evidence in ([west, duplicate, east], [east, duplicate, west]):
+            rows = classify([stand], evidence, "en")
+            union = QgsGeometry.unaryUnion([row["geometry"] for row in rows])
+            matched = [row for row in rows if row["check_riparian_buffer"] == "MATCH"]
+            signatures.append((union.asWkb(), round(sum(row["geometry"].area() for row in matched), 6),
+                               tuple(sorted(matched[0]["source_ids"]["riparian_buffer"]))))
+            self.assertAlmostEqual(sum(row["geometry"].area() for row in matched), 10000)
+        self.assertEqual(signatures[0], signatures[1])
 
 if __name__ == "__main__":
     unittest.main()
