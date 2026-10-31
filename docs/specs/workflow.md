@@ -124,6 +124,20 @@ This requirement covers maintainer tooling; planner behavior is unchanged.
 
 - A maintainer can run selected tooling, unit, lint and QGIS checks from one
   local command, with an optional current-version package validation pass.
+- Every run reports selected, omitted and unexecuted checks explicitly and
+  preserves a machine-readable summary on success or failure. It records stage
+  outcomes, actual interpreter paths, source revision/dirty state and observed
+  unittest counts; an absent count remains unknown. A successful subset never
+  implies that omitted unit/help, tooling or lint checks passed.
+- A local bootstrap prepares pinned dependencies in an isolated shared tools
+  environment, discovers workspace/system runtimes, and probes actual parser
+  and QGIS lint imports before recording readiness. It defaults to both pinned
+  baselines, supports explicit subsets, and keeps missing/failed baselines
+  distinct from ready ones. Linked worktrees reuse the primary checkout's paths.
+- Ticket worktrees use short validated names, an exact base commit and an
+  existing spec. Preparation checks Git metadata write access before branch
+  creation and emits absolute worker context paths. Permission failures identify
+  the failed operation so an authorized owner can handle Git mutations.
 - A maintainer can prepare either pinned Windows QGIS baseline inside the
   checkout using one setup command. CI and local setup share installer versions,
   launcher names and checksums. Downloads and extracted runtimes stay in ignored

@@ -12,10 +12,12 @@ import sys
 import urllib.request
 import uuid
 
+from dev_environment import shared_checkout
+
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = Path(__file__).with_name("qgis-runtimes.json")
-LOCAL_ROOT = ROOT / ".local" / "qgis-runtimes"
+LOCAL_ROOT = shared_checkout(ROOT) / ".local" / "qgis-runtimes"
 
 
 class SetupFailure(RuntimeError):
@@ -199,7 +201,7 @@ def verify_launcher(launcher, runtime, log):
 
 
 def setup_runtime(storage, base_url, runtime, source=None, seven_zip=None, rebuild=False):
-    storage = contained(ROOT, storage)
+    storage = contained(shared_checkout(ROOT), storage)
     storage.mkdir(parents=True, exist_ok=True)
     destination = contained(storage, storage / "runtimes" / f"{runtime['version']}-{runtime['sha256'][:12]}")
     destination.mkdir(parents=True, exist_ok=True)

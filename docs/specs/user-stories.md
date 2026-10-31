@@ -105,7 +105,9 @@ Unless explicitly marked partial, deferred or retired, stories describe implemen
 | US-065 | As a maintainer or agent, I want one command to cache official source descriptions and provider documents locally, so I can inspect them offline without committing downloaded artifacts. | [WF-08](workflow.md#wf-08-local-development-reference-material) |
 | US-066 | As a QGIS user, I want an installable ZIP downloadable from GitHub Releases, so I can install the plugin without building it. | [WF-01](workflow.md#wf-01-installation-and-runtime) |
 | US-067 | As a maintainer, I want each push to main to test, build and publish the next minor release, so distribution is automatic and retains the major version. | [WF-01](workflow.md#wf-01-installation-and-runtime) |
-| US-070 | As a maintainer, I want reusable pinned workspace runtimes and one command for checks with isolated QGIS settings/cache, correct runtimes, validated parser and lint imports with file-access diagnostics, configurable timeouts and complete logs with fault traces, failing test names and timings, so I can reproduce the test environment and diagnose crashes, hangs, environment faults and slow tests. | [WF-09](workflow.md#wf-09-isolated-developer-checks) |
+| US-070 | As a maintainer, I want reusable pinned runtimes, an isolated dependency bootstrap and one check command with validated imports, isolated QGIS state, timeouts and complete logs, so I can reproduce the development environment and diagnose failures. | [WF-09](workflow.md#wf-09-isolated-developer-checks) |
+| US-081 | As a reviewer, I want executed, omitted and blocked verification stages with counts, revision and dirty state in a machine-readable summary, so a passing subset is reported accurately. | [WF-09](workflow.md#wf-09-isolated-developer-checks) |
+| US-082 | As an implementation agent, I want a short prepared worktree with exact base/spec/runtime paths and an early Git write check, so I can start isolated work and identify which operations need an authorized owner. | [WF-09](workflow.md#wf-09-isolated-developer-checks) |
 
 ## Completing inputs and inspecting results
 

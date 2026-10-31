@@ -21,6 +21,9 @@ screenshots, extracted packages, simulations and local tooling in ignored
 `.local/<feature-slug>/`. The shared check runner uses `.local/checks/`; see the
 [development guide](../architecture/development.md#local-check-runner).
 Keep reusable scripts needed by the repository in versioned `scripts/`.
+For isolated ticket worktrees, use the [prepared worktree command](../architecture/development.md#prepared-ticket-worktrees).
+It keeps names short under `.local/wt/`, checks Git access and records absolute
+spec/runtime paths in `.local/task-contexts/` for the implementation agent.
 Keep debugging notes and artifact references only when useful; verification
 reporting follows [specification guidance](specifications.md#scope-verification-to-the-change).
 

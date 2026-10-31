@@ -4,6 +4,7 @@ import argparse
 from collections import deque
 from configparser import ConfigParser
 from datetime import datetime, timezone
+import json
 import math
 import os
 from pathlib import Path
@@ -17,15 +18,21 @@ import time
 from uuid import uuid4
 import zipfile
 
+from check_report import record_stage, source_state, write_summary
+from dev_environment import default_qgis, managed_tools
+
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_QGIS = os.environ.get("QGIS_PYTHON", "C:/Program Files/QGIS 4.2.3/bin/python-qgis.bat")
 PLUGIN_ROOT_KEY = "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT"
 DEFAULT_TIMEOUT = 600
 
 
 class CheckFailure(Exception):
     """An actionable preflight or selected-check failure."""
+
+    def __init__(self, message, stage=None):
+        super().__init__(message)
+        self.stage = stage
 
 
 def failure_details(log):
@@ -84,10 +91,14 @@ def execute_check(name, command, logs, environment, timeout=DEFAULT_TIMEOUT):
     except OSError as error:
         with log.open("a", encoding="utf-8") as output:
             output.write(str(error) + "\n")
-        raise CheckFailure(f"{name} could not start; see {log}: {error}") from error
+        record_stage(logs, name, "failed", time.monotonic() - started)
+        raise CheckFailure(f"{name} could not start; see {log}: {error}", stage=name) from error
+    result = record_stage(logs, name, "timed_out" if failure and "timed out" in failure else
+                          "failed" if failure else "passed", time.monotonic() - started, process.returncode)
     if failure:
-        raise CheckFailure(f"{name} {failure}; see {log}\n{failure_details(log)}")
-    print(f"PASS {name} ({time.monotonic() - started:.1f}s)", flush=True)
+        raise CheckFailure(f"{name} {failure}; see {log}\n{failure_details(log)}", stage=name)
+    count = f"; {result['tests']['run']} tests" if result["tests"] is not None else ""
+    print(f"PASS {name} ({time.monotonic() - started:.1f}s{count})", flush=True)
 
 
 def qgis_check(name, arguments, qgis_python, logs, environment, timeout):
@@ -107,7 +118,8 @@ def preflight(arguments, logs, environment):
         if "tooling" in arguments.checks:
             git = shutil.which("git", path=environment.get("PATH"))
             if git is None:
-                raise CheckFailure("Git is missing from plain Python's PATH. Install Git or add its cmd directory to PATH.")
+                raise CheckFailure("Git is missing from plain Python's PATH. Install Git or add its cmd directory to PATH.",
+                                   stage="preflight-git")
             details.append(f"Git: {git}")
             execute_check("preflight-git", [git, "--version"], logs, environment, arguments.timeout)
             execute_check("preflight-tooling", [sys.executable, "scripts/check_tooling_environment.py"],
@@ -115,12 +127,18 @@ def preflight(arguments, logs, environment):
             print((logs / "preflight-tooling.log").read_text(encoding="utf-8"), end="", flush=True)
         if {"lint", "qgis"}.intersection(arguments.checks):
             if not Path(arguments.qgis_python).is_file():
-                raise CheckFailure(f"QGIS Python launcher is missing: {arguments.qgis_python}. Use --qgis-python to select it.")
+                raise CheckFailure(f"QGIS Python launcher is missing: {arguments.qgis_python}. Use --qgis-python to select it.",
+                                   stage="preflight-qgis")
             details.append(f"QGIS launcher: {arguments.qgis_python}")
             qgis_check("preflight-qgis", ["--preflight-only"], arguments.qgis_python, logs, environment, arguments.timeout)
         if "lint" in arguments.checks:
-            execute_check("preflight-lint", [arguments.qgis_python, "scripts/check_lint_environment.py",
-                                            "--qgis-python", arguments.qgis_python], logs, environment, arguments.timeout)
+            command = [arguments.qgis_python, "scripts/check_lint_environment.py"]
+            if arguments.tools_path:
+                command = [arguments.qgis_python, str(ROOT / "scripts/run_dev_tool.py"),
+                           "--tools-path", arguments.tools_path, "--script",
+                           str(ROOT / "scripts/check_lint_environment.py")]
+            execute_check("preflight-lint", [*command, "--qgis-python", arguments.qgis_python],
+                          logs, environment, arguments.timeout)
             print((logs / "preflight-lint.log").read_text(encoding="utf-8"), end="", flush=True)
         if arguments.package:
             powershell = shutil.which("powershell", path=environment.get("PATH"))
@@ -158,7 +176,11 @@ def run_checks(arguments, logs):
     if "unit" in arguments.checks:
         execute_check("unit", [sys.executable, "-m", "unittest", "discover", "-s", "qgis_plugin/tests", "-v"], logs, environment, arguments.timeout)
     if "lint" in arguments.checks:
-        execute_check("lint", [arguments.qgis_python, "-m", "pylint", "qgis_plugin", "scripts"], logs, environment, arguments.timeout)
+        command = [arguments.qgis_python, "-m", "pylint"]
+        if arguments.tools_path:
+            command = [arguments.qgis_python, str(ROOT / "scripts/run_dev_tool.py"),
+                       "--tools-path", arguments.tools_path, "--module", "pylint"]
+        execute_check("lint", [*command, "qgis_plugin", "scripts"], logs, environment, arguments.timeout)
     if "qgis" in arguments.checks:
         qgis_check("qgis", ["--pattern", arguments.qgis_pattern], arguments.qgis_python, logs, environment, arguments.timeout)
     if arguments.package:
@@ -173,7 +195,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--checks", nargs="+", choices=("tooling", "unit", "lint", "qgis"),
                         default=["tooling", "unit", "lint", "qgis"])
-    parser.add_argument("--qgis-python", default=DEFAULT_QGIS)
+    parser.add_argument("--qgis-python")
+    parser.add_argument("--tools-path", help="Managed dependencies loaded after QGIS initializes Python")
     parser.add_argument("--qgis-pattern", default="test*.py")
     parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT,
                         help="Maximum seconds per subprocess, including preflight and packaging (default: 600)")
@@ -182,18 +205,37 @@ def main(argv=None):
     arguments = parser.parse_args(argv)
     if not math.isfinite(arguments.timeout) or arguments.timeout <= 0:
         parser.error("--timeout must be positive and finite.")
-    arguments.qgis_python = str(Path(arguments.qgis_python).expanduser().resolve())
     if not re.fullmatch(r"[A-Za-z0-9_.*?-]+", arguments.qgis_pattern):
         parser.error("QGIS patterns must contain only letters, digits, _, ., *, ? or -.")
     name = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ-") + uuid4().hex[:8]
     logs = ((arguments.logs_dir or ROOT / ".local/checks") / name).resolve()
     logs.mkdir(parents=True)
+    source = source_state(ROOT)
+    arguments.plain_python = sys.executable
+    status, failure = "failed", None
     try:
+        config = managed_tools(ROOT)
+        arguments.qgis_python = str(Path(arguments.qgis_python or default_qgis(ROOT)).expanduser().resolve())
+        arguments.tools_path = arguments.tools_path or config.get("tooling_path")
+        if arguments.tools_path:
+            arguments.tools_path = str(Path(arguments.tools_path).expanduser().resolve())
         run_checks(arguments, logs)
-    except CheckFailure as error:
+    except (CheckFailure, OSError, ValueError, KeyError, zipfile.BadZipFile) as error:
+        failure = error
         (logs / "failure.log").write_text(str(error) + "\n", encoding="utf-8")
         print(f"FAIL {error}\nLogs: {logs}", file=sys.stderr)
         return 1
+    else:
+        status = "passed"
+    finally:
+        report = write_summary(arguments, logs, source, status, failure)
+        print(f"Selected checks: {', '.join(arguments.checks)}")
+        omitted = [name for name in ("tooling", "unit", "lint", "qgis") if name not in arguments.checks]
+        print("Not selected: " + (", ".join(omitted) or "none"))
+        results = json.loads(report.read_text(encoding="utf-8"))
+        not_run = [name for name, item in results["stages"].items() if item["status"] == "not_run"]
+        print("Not run: " + (", ".join(not_run) or "none"))
+        print(f"Summary: {report}")
     print(f"All selected checks passed. Logs: {logs}")
     return 0
 

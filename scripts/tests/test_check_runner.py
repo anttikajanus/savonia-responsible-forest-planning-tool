@@ -3,6 +3,7 @@
 from contextlib import ExitStack, redirect_stderr, redirect_stdout
 from io import StringIO
 import os
+import json
 from pathlib import Path
 import shutil
 import subprocess
@@ -25,6 +26,7 @@ class CheckRunnerTests(unittest.TestCase):
         self.root = Path(self.directory)
         self.output = context.enter_context(redirect_stdout(StringIO()))
         self.error = context.enter_context(redirect_stderr(StringIO()))
+        context.enter_context(patch.object(check, "managed_tools", return_value={}))
 
     def test_failed_stage_keeps_stdout_stderr_and_reports_nonzero_exit(self):
         command = [sys.executable, "-c", "import sys; print('stdout marker'); print('stderr marker',file=sys.stderr); sys.exit(7)"]
@@ -39,6 +41,16 @@ class CheckRunnerTests(unittest.TestCase):
         self.assertEqual((self.root / "verbose-success.log").read_text().count("detail"), 1000)
         self.assertIn("PASS verbose-success", self.output.getvalue())
         self.assertNotIn("detail", self.output.getvalue())
+
+    def test_expected_failure_is_not_counted_as_an_unexpected_failure(self):
+        code = ("import unittest\nclass Case(unittest.TestCase):\n"
+                "    @unittest.expectedFailure\n    def test_expected(self): self.fail('expected')\n"
+                "unittest.main()\n")
+        check.execute_check("expected", [sys.executable, "-c", code], self.root, os.environ.copy())
+        result = json.loads((self.root / "expected.result.json").read_text())
+        self.assertEqual(result["status"], "passed")
+        self.assertEqual(result["tests"]["expected_failures"], 1)
+        self.assertEqual(result["tests"]["failures"], 0)
 
     def test_failed_test_names_are_reported_even_outside_the_log_tail(self):
         probe = """import sys, unittest
@@ -124,6 +136,19 @@ sys.exit(not result.wasSuccessful())
         self.assertIn("timed out after 0.5s", summary)
         self.assertNotIn("cleanup failed", summary)
 
+    @unittest.skipUnless(shutil.which("powershell"), "Windows entry point requires PowerShell")
+    def test_entry_point_without_git_still_reaches_python_preflight_and_summary(self):
+        powershell = shutil.which("powershell")
+        runner = Path(check.__file__).with_suffix(".ps1")
+        result = subprocess.run([
+            powershell, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(runner),
+            "-Python", sys.executable, "-Checks", "qgis", "-QgisPython", str(self.root / "missing.bat"),
+            "-LogsDir", str(self.root),
+        ], env=dict(os.environ, PATH=""), capture_output=True, text=True, check=False, timeout=20)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("QGIS Python launcher is missing", result.stderr)
+        self.assertEqual(len(list(self.root.glob("*/summary.json"))), 1)
+
     def test_missing_git_stops_before_selected_suites(self):
         with patch.object(check.shutil, "which", return_value=None), patch.object(check, "execute_check") as execute:
             result = check.main(["--checks", "tooling", "--logs-dir", str(self.root)])
@@ -131,6 +156,81 @@ sys.exit(not result.wasSuccessful())
         self.assertIn("Git is missing", self.error.getvalue())
         execute.assert_not_called()
         self.assertEqual(len(list(self.root.glob("*/failure.log"))), 1)
+
+    def test_qgis_subset_summary_identifies_omitted_groups_and_actual_test_count(self):
+        launcher = self.root / "qgis.bat"
+        launcher.touch()
+
+        def qgis_stage(name, _arguments, _launcher, logs, environment, timeout):
+            code = ("import unittest; "
+                    "suite=unittest.TestSuite([unittest.FunctionTestCase(lambda: None)]); "
+                    "unittest.TextTestRunner().run(suite)")
+            check.execute_check(name, [sys.executable, "-c", code], logs, environment, timeout)
+
+        with patch.object(check, "qgis_check", side_effect=qgis_stage):
+            result = check.main(["--checks", "qgis", "--qgis-python", str(launcher),
+                                 "--logs-dir", str(self.root)])
+        self.assertEqual(result, 0)
+        report = json.loads(next(self.root.glob("*/summary.json")).read_text(encoding="utf-8"))
+        self.assertEqual(report["status"], "passed")
+        self.assertEqual(report["selected_checks"], ["qgis"])
+        self.assertEqual(report["not_selected_checks"], ["tooling", "unit", "lint"])
+        self.assertEqual(report["stages"]["unit"]["status"], "not_selected")
+        self.assertEqual(report["stages"]["qgis"]["tests"]["run"], 1)
+        self.assertIsNone(report["stages"]["lint"]["tests"])
+        self.assertIn("Not selected: tooling, unit, lint", self.output.getvalue())
+        self.assertIn("revision", report["source"])
+        self.assertIn("dirty", report["source"])
+
+    def test_preflight_failure_summary_marks_unexecuted_selected_suites(self):
+        result = check.main(["--checks", "qgis", "--qgis-python", str(self.root / "missing.bat"),
+                             "--logs-dir", str(self.root)])
+        self.assertEqual(result, 1)
+        report = json.loads(next(self.root.glob("*/summary.json")).read_text(encoding="utf-8"))
+        self.assertEqual(report["status"], "failed")
+        self.assertEqual(report["stages"]["preflight-qgis"]["status"], "failed")
+        self.assertEqual(report["stages"]["qgis"]["status"], "not_run")
+        self.assertIsNone(report["stages"]["qgis"]["tests"])
+        self.assertIn("missing.bat", report["error"])
+        self.assertIn("Not run: qgis", self.output.getvalue())
+
+    def test_environment_discovery_failure_still_writes_a_failed_summary(self):
+        with patch.object(check, "default_qgis", side_effect=ValueError("fixture invalid runtime inventory")):
+            result = check.main(["--checks", "qgis", "--logs-dir", str(self.root)])
+        self.assertEqual(result, 1)
+        report = json.loads(next(self.root.glob("*/summary.json")).read_text())
+        self.assertEqual(report["status"], "failed")
+        self.assertIn("invalid runtime inventory", report["error"])
+        self.assertEqual(report["stages"]["qgis"]["status"], "not_run")
+
+    def test_failed_unit_suite_summary_preserves_revision_dirty_state_and_failure_counts(self):
+        if not shutil.which("git"):
+            self.skipTest("Git is required")
+        suite = self.root / "qgis_plugin/tests"
+        suite.mkdir(parents=True)
+        (suite / "test_fixture.py").write_text(
+            "import unittest\nclass Case(unittest.TestCase):\n"
+            "    def test_failure(self): self.fail('fixture failure')\n"
+            "    @unittest.skip('fixture skip')\n    def test_skipped(self): pass\n", encoding="utf-8")
+        subprocess.run(["git", "init", str(self.root)], capture_output=True, check=True)
+        subprocess.run(["git", "-C", str(self.root), "add", "."], capture_output=True, check=True)
+        subprocess.run(["git", "-C", str(self.root), "-c", "user.name=Fixture",
+                        "-c", "user.email=fixture@example.invalid", "commit", "-m", "fixture"],
+                       capture_output=True, check=True)
+        revision = subprocess.run(["git", "-C", str(self.root), "rev-parse", "HEAD"],
+                                  capture_output=True, text=True, check=True).stdout.strip()
+        (suite / "test_fixture.py").write_text((suite / "test_fixture.py").read_text() + "\n# edited\n")
+        with patch.object(check, "ROOT", self.root):
+            result = check.main(["--checks", "unit", "--qgis-python", str(self.root / "unused.bat"),
+                                 "--logs-dir", str(self.root / ".local/checks")])
+        self.assertEqual(result, 1)
+        report = json.loads(next(self.root.glob(".local/checks/*/summary.json")).read_text())
+        self.assertEqual(report["source"]["revision"], revision)
+        self.assertTrue(report["source"]["dirty"])
+        self.assertEqual(report["stages"]["unit"]["status"], "failed")
+        self.assertEqual(report["stages"]["unit"]["tests"]["run"], 2)
+        self.assertEqual(report["stages"]["unit"]["tests"]["failures"], 1)
+        self.assertEqual(report["stages"]["unit"]["tests"]["skipped"], 1)
 
     def test_plain_and_qgis_stages_use_separate_runtimes_and_clean_source_environment(self):
         launcher = self.root / "qgis-launcher.bat"
@@ -231,6 +331,25 @@ sys.exit(not result.wasSuccessful())
         self.assertIn(str(shadow / "astroid.py"), self.error.getvalue())
         self.assertIn("-m pip install --user --upgrade", self.error.getvalue())
         self.assertEqual(list(self.root.glob("*/lint.log")), [])
+
+    @unittest.skipUnless(os.name == "nt", "QGIS batch launcher requires Windows")
+    def test_managed_lint_imports_survive_a_launcher_replacing_pythonpath(self):
+        stale, managed = self.root / "stale", self.root / "managed"
+        stale.mkdir()
+        managed.mkdir()
+        for folder, version in ((stale, "4.0.4"), (managed, "4.3.4")):
+            (folder / "astroid.py").write_text(f"__version__ = {version!r}\n", encoding="utf-8")
+            (folder / "pylint.py").write_text(
+                "__version__ = '4.1.3'\nif __name__ == '__main__': print('managed lint ran')\n", encoding="utf-8")
+        launcher = self.root / "launcher.bat"
+        launcher.write_text(f'@echo off\nset "PYTHONPATH={stale}"\n"{sys.executable}" %*\n', encoding="utf-8")
+        with patch.object(check, "qgis_check"):
+            result = check.main(["--checks", "lint", "--qgis-python", str(launcher),
+                                 "--tools-path", str(managed), "--logs-dir", str(self.root)])
+        self.assertEqual(result, 0)
+        log = next(self.root.glob("*/preflight-lint.log")).read_text(encoding="utf-8")
+        self.assertIn(str(managed.resolve() / "astroid.py"), log)
+        self.assertIn("managed lint ran", next(self.root.glob("*/lint.log")).read_text())
 
     @unittest.skipUnless(shutil.which("powershell"), "Windows entry point requires PowerShell")
     def test_windows_entry_point_propagates_preflight_failure_from_another_directory(self):

@@ -17,6 +17,42 @@ The maximum uses QGIS's major-version-plus-`.99` convention. QGIS documents [plu
 separately from [runtime testing](https://docs.qgis.org/4.2/en/docs/developers_guide/unittesting.html)
 and [Processing algorithm tests](https://docs.qgis.org/4.2/en/docs/developers_guide/processingtesting.html).
 
+## Development bootstrap
+
+Prepare the pinned developer tools and both QGIS verification baselines with:
+
+```powershell
+./scripts/setup-dev-environment.ps1
+./scripts/setup-dev-environment.ps1 -Status
+./scripts/setup-dev-environment.ps1 -Version 3.44.0
+```
+
+The default prepares all entries in [the runtime manifest](../../scripts/qgis-runtimes.json).
+An explicit `-Version` selects a subset and reports other baselines as
+`not_selected`. Existing workspace or system launchers are version-checked;
+missing runtimes use the existing checksum-verified extractor. `-SevenZip`
+selects its extraction executable. `-Python` supplies the bootstrap interpreter
+when discovery cannot find one. Runtime extraction requires CPython 3.10–3.12.
+
+The bootstrap installs [requirements-dev.txt](../../requirements-dev.txt) into
+the primary checkout's ignored `.local/dev-environment/venv/`. It probes actual
+Markdown/YAML imports and checks Pylint/Astroid through each selected QGIS
+launcher before recording readiness in `environment.json`. Failure invalidates
+stale readiness and returns nonzero with logs. Repeated setup reuses the venv
+and available runtimes. An environment prepared for a subset does not verify
+the other baseline.
+
+Dependencies remain in that managed environment. A local `sitecustomize.py`
+loads the DLLs required by bundled QGIS Python, including SSL for pip. QGIS lint
+uses [run_dev_tool.py](../../scripts/run_dev_tool.py) to prepend the managed
+dependency directory after the QGIS launcher has configured Python, so a
+launcher that replaces `PYTHONPATH` still imports the pinned tools. Setup does
+not alter system QGIS packages, user-site packages, profiles or machine settings.
+
+Linked worktrees discover the same environment and runtime cache through Git's
+primary checkout. The bootstrap and check commands print the resolved paths;
+runtime readiness is distinct from passing the product test suites.
+
 ## Local check runner
 
 Use the Windows entry point for the source checks, or include package validation:
@@ -29,11 +65,13 @@ Use the Windows entry point for the source checks, or include package validation
 ./scripts/check.ps1 -Checks qgis -TimeoutSeconds 900
 ```
 
-[check.ps1](../../scripts/check.ps1) selects a plain Python executable from PATH,
-falling back to the interpreter bundled with the selected QGIS installation.
+[check.ps1](../../scripts/check.ps1) selects the prepared plain Python when
+available, then PATH, then the interpreter bundled with the selected QGIS installation.
 `-Python` selects an explicit executable. Tooling and unit checks run directly
 with that interpreter; lint and integration checks use `-QgisPython` (default:
-`QGIS_PYTHON`, then the baseline launcher below). Python 3.10+ is required.
+`QGIS_PYTHON`, the prepared default baseline, then available pinned workspace or
+system launchers). Python 3.10+ is required. `-ToolsPath` overrides the managed
+dependency directory used inside the QGIS lint process.
 Plain Python need not be a separate installation: calling the bundled executable
 directly keeps tooling out of the QGIS launcher's modified environment.
 
@@ -67,6 +105,16 @@ use `.local/` for repository-local output. Directory ownership is defined in the
 Selected checks run in order: tooling, unit, lint, QGIS. Source checks clear
 inherited installed-plugin overrides so they always exercise this checkout.
 
+Every run writes `summary.json` alongside its logs, including failures before
+test discovery. Schema version 1 records selected and omitted check groups,
+per-stage status, actual interpreter/dependency paths, source revision and dirty
+state before/after the run, and elapsed time/exit code for executed stages.
+Unittest counts come from the final suite report; missing counts are JSON null.
+Stages are `passed`, `failed`, `timed_out`, `not_run` after an earlier failure,
+or `not_selected`. The console also names omitted groups and unexecuted stages.
+Use this artifact when reporting verification; a passed subset establishes
+only the selected checks. Dirty source must be reported as such alongside HEAD.
+
 Each subprocess has a 600-second deadline, including prerequisites, lint and
 packaging. Set `-TimeoutSeconds` (Python: `--timeout`) to a positive finite
 number of seconds to override it for every stage. A timeout stops the process
@@ -80,6 +128,38 @@ ZIP into the run directory, and repeats the selected unit and QGIS suites on
 that installation. It preserves the metadata version. The same QGIS pattern
 applies to source and installed checks. The runner also works as
 `python scripts/check.py --help`; detailed/direct commands remain below.
+For example, `-Checks qgis -Package` runs the source and installed QGIS suites;
+unit, help-resource, tooling and lint suites remain unselected. Run the default
+command with `-Package` for all four groups plus packaged unit/QGIS suites.
+
+## Prepared ticket worktrees
+
+Prepare an isolated implementation checkout from the primary repository:
+
+```powershell
+./scripts/prepare-worktree.ps1 -Name r01 -Base integration/my-feature -Spec .scratch/my-feature/spec.md
+./scripts/prepare-worktree.ps1 -Probe
+```
+
+Names are 1–16 lowercase letters, digits or hyphens and produce paths under
+`.local/wt/<name>`; new branches default to `ticket/<name>`. `-Branch` sets an
+explicit new branch and `-QgisVersion` requires an available pinned baseline.
+The helper validates the name, existing spec, destination and exact base commit
+before creating a branch. Existing destinations and context files are refused.
+
+Git write probes create and delete uniquely named disposable files in the
+actual common metadata/ref/index directories. A denied probe fails promptly
+and identifies the path and operation. It changes no ACLs, index contents or
+refs. An authorized owner can prepare the worktree and perform Git mutations
+when a worker's context permits only file edits; `-Probe` checks the caller's
+own access independently of the preparation process.
+
+Preparation prints and saves `.local/task-contexts/<name>.json` with absolute
+worktree, primary-checkout, working-spec, interpreter, managed-dependency and
+runtime paths, branch and base revision. Relative spec paths resolve from the
+primary checkout, including when the spec is ignored by Git. Pass this context
+file to the worker rather than copying ignored specs or rediscovering runtime
+paths. Remove clean completed checkouts with `git worktree remove <path>`.
 
 On Windows, workspace-local dependencies unpacked under another execution
 account can retain temporary-directory permissions. An unreadable package
@@ -188,16 +268,16 @@ temporary directory when using the bootstrap directly.
 ## Python linting
 
 [Pylint configuration](../../pyproject.toml) covers the plugin, regression tests
-and development scripts. Install the pinned
-[development dependencies](../../requirements-dev.txt) into the QGIS Python
-environment's user site, then run from the repository root:
+and development scripts. The [development bootstrap](#development-bootstrap)
+prepares the pinned dependencies for both baselines. Run from the repository root:
 
 ```powershell
-& 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' -m pip install --user --upgrade -r requirements-dev.txt
-& 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' -m pylint qgis_plugin scripts
+./scripts/setup-dev-environment.ps1
+./scripts/check.ps1 -Checks lint
+./scripts/check.ps1 -Checks lint -QgisPython 'C:\path\to\QGIS 3.44.0\bin\python-qgis.bat'
 ```
 
-Install the current pins in each baseline runtime before linting. They include
+The current pins include
 Astroid's fix for an infinite loop when inspecting live Qt 5 classes; older
 development-tool installations can stall on the QGIS 3.44 bindings.
 [Upstream fix](https://github.com/pylint-dev/astroid/releases/tag/v4.3.4).
@@ -206,8 +286,10 @@ Use the QGIS launcher so PyQGIS and Qt imports resolve. The repository
 configuration enables fatal/error diagnostics and selected correctness warnings;
 any enabled diagnostic fails the command. It covers plugin code, tests and
 scripts; development dependencies remain outside the installation ZIP. For a
-focused check, replace `qgis_plugin scripts` with a file path. Editors and CI
-must use the same runtime and repository working directory.
+focused direct check, invoke `scripts/run_dev_tool.py --tools-path <managed
+site-packages> --module pylint <file>` through the chosen QGIS launcher. Editors
+and CI must use the same runtime and repository working directory. CI retains
+its isolated dependency installation before linting.
 
 ## Local provider references
 
