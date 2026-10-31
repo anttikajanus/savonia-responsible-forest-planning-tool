@@ -363,6 +363,37 @@ class AnalysisQueryFilteringTest(unittest.TestCase):
             self.assertLess(evidence.area(), aoi.area())
             self.assertEqual(result["coverage"][0]["source_crs"], "EPSG:4326")
 
+    def test_containing_polygon_water_buffer_preserves_aoi_holes_and_disconnected_parts(self):
+        source = "syke_rantaviiva_polygon_river"
+        fields = {"objectid": "river-containing-aoi"}
+        record = {"attributes": fields, "coordinates": "349900,6899900 350200,6899900 "
+                  "350200,6900200 349900,6900200 349900,6899900"}
+        aoi = QgsGeometry.fromWkt(
+            "MULTIPOLYGON (((350000 6900000,350050 6900000,350050 6900050,"
+            "350000 6900050,350000 6900000),(350010 6900010,350010 6900020,"
+            "350020 6900020,350020 6900010,350010 6900010)),"
+            "((350100 6900000,350120 6900000,350120 6900020,350100 6900020,350100 6900000)))"
+        )
+        for language in ("en", "fi"):
+            with self.subTest(language=language), LocalWfs(
+                    {"water": fields}, records={"water": [record]}) as fixture:
+                uri = QgsDataSourceUri(qgis_wfs_uri({
+                    "endpoint": fixture.endpoint, "feature_type": "fixture:water", "source_crs": "EPSG:3067",
+                }))
+                layer = QgsVectorLayer(uri.uri(), "containing polygon river", "WFS")
+                self.assertTrue(layer.isValid(), layer.error().message())
+                inputs = retrieval_inputs(layer, aoi)
+                inputs.update(language=language, service_ids=(source,),
+                              source_display_names={source: "Polygon river"}, layers={source: layer})
+                inputs["source_metadata"] = {source: {
+                    "endpoint": fixture.endpoint, "feature_type": "fixture:water", "properties": None,
+                    "query_time": "fixture", "provider_fields": ["objectid"], "field_map": {},
+                }}
+                result = source_loading.retrieve_sources(inputs, QgsProcessingFeedback())
+                evidence = result["water_evidence"]["geometry"]
+                self.assertLess(evidence.symDifference(aoi).area(), 1e-6)
+                self.assertAlmostEqual(evidence.area(), aoi.area(), places=6)
+
     def test_water_buffer_failure_has_bilingual_user_message(self):
         source = "syke_rantaviiva_lake"
         for language in ("en", "fi"):
