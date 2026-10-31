@@ -117,6 +117,11 @@ class GridPublicationTests(unittest.TestCase):
                     del metadata
 
     def test_shared_publisher_exports_sufficient_statistic_summaries_and_metric_coverage(self):
+        water_source_types = {
+            "syke_rantaviiva_line_river": "syke_rantaviiva:Ranta10_Viivamainen_joki",
+            "syke_rantaviiva_polygon_river": "syke_rantaviiva:Ranta10_Aluemainen_joki",
+            "syke_rantaviiva_lake": "syke_rantaviiva:Ranta10_Jarvi",
+        }
         for language in ("fi", "en"):
             with self.subTest(language=language), tempfile.TemporaryDirectory() as folder:
                 rows = [classified_row(0.25, 100, 100, 19), classified_row(1, 300, 300, 81)]
@@ -131,13 +136,30 @@ class GridPublicationTests(unittest.TestCase):
                     "source_metadata": {
                         "forest_centre_stand": {"provider_fields": ["VOLUME", "SAWLOGVOLUME", "VOLUMEGROWTH", "BASALAREA", "MEANAGE", "PROPORTIONPINE"]},
                         "forest_centre_gridcell": {"provider_fields": ["VOLUME", "AGE", "TREEDATADATE", "UPDATETIME"]}}}
+                inputs["source_metadata"].update({
+                    source_id: {"provider_fields": ["objectid", "muutospvm"]}
+                    for source_id in water_source_types
+                })
                 retrieved = {"source_features": {"forest_centre_stand": [{}, {}], "forest_centre_gridcell": [
                     {"attributes": {"TREEDATADATE": "2020-06-01", "UPDATETIME": "2026-10-25"}},
-                    {"attributes": {"TREEDATADATE": NULL, "UPDATETIME": NULL}}]}, "snapshots": []}
+                    {"attributes": {"TREEDATADATE": NULL, "UPDATETIME": NULL}}]}, "snapshots": [],
+                    "coverage": [
+                        {"service_id": source_id, "feature_type": feature_type,
+                         "endpoint": "https://example.invalid/wfs", "source_crs": "EPSG:3067",
+                         "provider": "WFS", "spatial_filter": "expanded_bbox"}
+                        for source_id, feature_type in water_source_types.items()
+                    ]}
                 classified = {"result_rows": rows, "output_layer": create_classified_result_layer(rows, language),
                     "stand_overlap_summary": {"pair_count": 0, "affected_stand_count": 0, "stand_id_sample": []},
                     "coverage": [{"service_id": "forest_centre_stand", "status": "AVAILABLE"}]}
                 publication = prepare_publication(inputs, retrieved, classified, "grid-test")
+                water_retrieval = publication["run_metadata"][0]["water_buffer_evidence"]["source_retrieval"]
+                self.assertEqual(
+                    {source_id: row["feature_type"] for source_id, row in water_retrieval.items()},
+                    water_source_types,
+                )
+                self.assertTrue(all(row["provider_fields"] == ["objectid", "muutospvm"]
+                                    for row in water_retrieval.values()))
                 self.assertEqual(publication["run_metadata"][0]["grid_source_dates"]["treedatadate"]["observed_values"], ["2020-06-01"])
                 self.assertEqual(publication["run_metadata"][0]["metric_coverage"]["grid_total_volume_m3_ha"]["valid_area_ha"], 1.25)
                 peat_criterion = next(item for item in publication["coverage"] if item["service_id"] == "peatlands")
