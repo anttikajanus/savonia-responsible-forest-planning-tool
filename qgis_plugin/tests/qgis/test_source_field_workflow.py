@@ -39,7 +39,9 @@ class SourceFieldWorkflowChecks:
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
         self.addCleanup(self.temp.cleanup)
-        self.fixture = self.enterContext(LocalWfs(fixture_sources()))
+        self.fixture = self.enterContext(LocalWfs(
+            fixture_sources(), geometry_types={"syke_rantaviiva_line_river": "LineString"},
+        ))
         definitions = {
             source: {**definition, "endpoint": self.fixture.endpoint}
             for source, definition in SERVICE_DEFINITIONS.items()
@@ -47,7 +49,8 @@ class SourceFieldWorkflowChecks:
         self.enterContext(patch.dict(SERVICE_DEFINITIONS, definitions))
         self.layers = {}
         saved_schemas = ("", "null", "not-json", "{}", '[{"name":"obsolete"}]', '"text"', "42", "[]")
-        for source, saved in zip(definitions, saved_schemas):
+        for index, source in enumerate(definitions):
+            saved = saved_schemas[index] if index < len(saved_schemas) else ""
             typename = "fixture:" + source
             uri = "url='{0}' typename='{1}' version='1.0.0' restrictToRequestBBOX='1'".format(self.fixture.endpoint, typename)
             layer = QgsVectorLayer(uri, source, "WFS")
@@ -76,6 +79,12 @@ class SourceFieldWorkflowChecks:
             (algorithm.STANDS, algorithm.HABITATS, algorithm.PROTECTED, algorithm.PROTECTED_PRIVATE,
              algorithm.PROTECTED_WILDERNESS, algorithm.PROGRAMME, algorithm.GROUNDWATER, algorithm.GRIDCELLS),
             SERVICE_DEFINITIONS,
+        ):
+            parameters[parameter] = self.layers[source]
+        for parameter, source in (
+            (algorithm.LINE_RIVER, "syke_rantaviiva_line_river"),
+            (algorithm.POLYGON_RIVER, "syke_rantaviiva_polygon_river"),
+            (algorithm.LAKE, "syke_rantaviiva_lake"),
         ):
             parameters[parameter] = self.layers[source]
         context = QgsProcessingContext()
@@ -185,13 +194,17 @@ class SourceFieldFixtureTest(unittest.TestCase):
                 self.assertTrue(outcome.wasSuccessful(), "\n".join(
                     traceback for _, traceback in outcome.errors + outcome.failures))
                 self.assertEqual(set(source_requests), set(SERVICE_DEFINITIONS))
-                for requests in source_requests.values():
+                for service_id, requests in source_requests.items():
                     self.assertEqual(len(requests), 1, "A preliminary iterator can race the analysis read")
                     request, = requests
                     self.assertEqual(request.filterType(), Qgis.FeatureRequestFilterType.Expression)
                     self.assertIn("intersects($geometry", request.filterExpression().expression())
                     self.assertEqual(request.limit(), -1)
-                    self.assertEqual(request.filterRect(), case.aoi.extent())
+                    expected_extent = case.aoi.extent()
+                    if service_id in ("syke_rantaviiva_line_river", "syke_rantaviiva_polygon_river",
+                                      "syke_rantaviiva_lake"):
+                        expected_extent.grow(31.0)
+                    self.assertEqual(request.filterRect(), expected_extent)
                     self.assertTrue(request.flags() & Qgis.FeatureRequestFlag.ExactIntersect)
 
 

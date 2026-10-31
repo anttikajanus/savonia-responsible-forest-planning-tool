@@ -22,6 +22,9 @@ def fixture_sources():
         "syke_protected_areas_wilderness": {"kohdeid": "wild-1", "olotila": "Voimassa", "kohdetyyppi": "EMA"},
         "syke_nature_conservation_programme_areas": {"LsoAlueTunnus": "programme-1", "Luokka": "AMO", "Subtype": "original"},
         "syke_groundwater_areas": {"tunnus": "groundwater-1", "alueluokka": "unfiltered"},
+        "syke_rantaviiva_line_river": {"objectid": "line-1"},
+        "syke_rantaviiva_polygon_river": {"objectid": "river-1"},
+        "syke_rantaviiva_lake": {"objectid": "lake-1"},
         "forest_centre_gridcell": {"GRIDCELLID": "cell-1", "VOLUME": 250.0,
             "VOLUMEPINE": 70.0, "VOLUMESPRUCE": 130.0, "VOLUMEDECIDUOUS": 50.0,
             "AGE": 19.0, "SOILTYPE": 60, "DRAINAGESTATE": 6,
@@ -48,7 +51,8 @@ class WorkflowFixtureMixin:
         records = {source: [] for source in schemas}
         records["forest_centre_gridcell"] = grid
         records["forest_centre_stand"] = stands if stands is not None else [source_record(schemas["forest_centre_stand"])]
-        with LocalWfs(schemas, records=records, version=version, page_size=page_size) as fixture:
+        with LocalWfs(schemas, records=records, version=version, page_size=page_size,
+                      geometry_types={"syke_rantaviiva_line_river": "LineString"}) as fixture:
             definitions = {source: {**definition, "endpoint": fixture.endpoint}
                            for source, definition in SERVICE_DEFINITIONS.items()}
             with patch.dict(SERVICE_DEFINITIONS, definitions):
@@ -90,6 +94,9 @@ class WorkflowFixtureMixin:
             algorithm.PROTECTED_WILDERNESS: "syke_protected_areas_wilderness",
             algorithm.PROGRAMME: "syke_nature_conservation_programme_areas",
             algorithm.GROUNDWATER: "syke_groundwater_areas",
+            algorithm.LINE_RIVER: "syke_rantaviiva_line_river",
+            algorithm.POLYGON_RIVER: "syke_rantaviiva_polygon_river",
+            algorithm.LAKE: "syke_rantaviiva_lake",
         }.items():
             parameters[parameter] = layers[source]
         context = QgsProcessingContext()

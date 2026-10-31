@@ -73,7 +73,8 @@ class WfsInitializationTests(unittest.TestCase):
 
     def test_managed_setup_and_worker_reopen_do_not_read_features(self):
         fields = fixture_sources()
-        with LocalWfs(fields, version="2.0.0") as fixture:
+        with LocalWfs(fields, version="2.0.0",
+                      geometry_types={"syke_rantaviiva_line_river": "LineString"}) as fixture:
             definitions = {
                 key: {**value, "endpoint": fixture.endpoint, "feature_type": "fixture:" + key}
                 for key, value in sources.SERVICE_DEFINITIONS.items()
@@ -91,7 +92,11 @@ class WfsInitializationTests(unittest.TestCase):
                     for service_id in definitions:
                         layer, status = project_setup._add_or_relabel_wfs(project, group, service_id, language)
                         self.assertEqual(status["status"], "AVAILABLE", status)
-                        self.assertEqual(layer.geometryType(), Qgis.GeometryType.Polygon)
+                        expected_geometry = (
+                            Qgis.GeometryType.Line if definitions[service_id].get("geometry") == "line"
+                            else Qgis.GeometryType.Polygon
+                        )
+                        self.assertEqual(layer.geometryType(), expected_geometry)
                         self.assertTrue(layer.crs().isValid())
                         self.assertEqual(layer.name(), tr(language, definitions[service_id]["name_key"]))
                         identities.setdefault(service_id, layer.id())

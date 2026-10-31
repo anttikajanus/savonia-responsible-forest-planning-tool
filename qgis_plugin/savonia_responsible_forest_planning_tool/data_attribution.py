@@ -8,6 +8,7 @@ languages. Retrieved source identities and dates remain in run metadata.
 CC_BY_URL = "https://creativecommons.org/licenses/by/4.0/"
 FOREST_TERMS = "https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto/avoimen-metsa-ja-luontotiedon-tuotteet"
 SYKE_DATASETS = "https://ckan.ymparisto.fi/dataset/"
+RANTA10_WFS = "https://paikkatiedot.ymparisto.fi/geoserver/syke_rantaviiva/wfs"
 
 _DATASETS = {
     "forest_centre_stand": (
@@ -39,6 +40,15 @@ _DATASETS = {
         "Vesipuitedirektiivin mukaiset vesimuodostumat: VHS2022_Pohjavesi",
         "Syke, Lupa- ja valvontavirasto (rantaviiva-aineisto: MML)",
         SYKE_DATASETS + "vesipuitedirektiivin-mukaiset-vesimuodostumat",
+    ),
+    "syke_rantaviiva_line_river": (
+        "Ranta10: viivamainen joki", "Syke (lähdeaineisto: MML)", RANTA10_WFS,
+    ),
+    "syke_rantaviiva_polygon_river": (
+        "Ranta10: aluemainen joki", "Syke (lähdeaineisto: MML)", RANTA10_WFS,
+    ),
+    "syke_rantaviiva_lake": (
+        "Ranta10: järvi", "Syke (lähdeaineisto: MML)", RANTA10_WFS,
     ),
 }
 

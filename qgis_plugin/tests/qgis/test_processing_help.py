@@ -93,6 +93,7 @@ class ProcessingHelpTests(unittest.TestCase):
                 help_text = self.processing_module.ResponsibleForestPlanningInputsAlgorithm().shortHelpString()
                 for parameter in ("AOI", "SELECTED_ONLY", "STANDS", "GRIDCELLS", "HABITATS", "PROTECTED",
                                   "PROTECTED_PRIVATE", "PROTECTED_WILDERNESS", "PROGRAMME", "GROUNDWATER",
+                                  "LINE_RIVER", "POLYGON_RIVER", "LAKE",
                                   "OUTPUT_FOLDER", "OUTPUT_NAME", "RESULT", "EXCEL"):
                     self.assertIn(parameter, help_text)
                 self.assertIn("GeoPackage", help_text)

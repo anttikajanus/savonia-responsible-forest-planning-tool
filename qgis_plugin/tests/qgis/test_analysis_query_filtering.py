@@ -250,6 +250,84 @@ class AnalysisQueryFilteringTest(unittest.TestCase):
                 with self.subTest(language=language), self.assertRaises(QgsProcessingException):
                     self.read(self.layer(fixture), rectangle(349999, 6899999, 20, 20), language)
 
+    def test_water_line_is_retrieved_from_expanded_extent_then_buffered_before_aoi_clip(self):
+        source = "syke_rantaviiva_line_river"
+        fields = {"OBJECTID": "near"}
+        records = [
+            {"attributes": fields, "coordinates": "349975,6900050 349975,6900090"},
+            {"attributes": {"OBJECTID": "far"}, "coordinates": "349960,6900050 349960,6900090"},
+        ]
+        def bbox_matches(record, query):
+            line = QgsGeometry.fromPolylineXY([
+                QgsPointXY(float(pair.split(",")[0]), float(pair.split(",")[1]))
+                for pair in record["coordinates"].split()
+            ])
+            if "bbox" in query:
+                bounds = [float(value) for value in query["bbox"].split(",")[:4]]
+            else:
+                root = ET.fromstring(query["filter"])
+                bbox = root.find(".//{*}BBOX")
+                lower = [float(value) for value in bbox.find(".//{*}lowerCorner").text.split()]
+                upper = [float(value) for value in bbox.find(".//{*}upperCorner").text.split()]
+                bounds = [lower[0], lower[1], upper[0], upper[1]]
+            if not line.intersects(rectangle(bounds[0], bounds[1], bounds[2] - bounds[0], bounds[3] - bounds[1])):
+                return False
+            if "filter" in query:
+                root = ET.fromstring(query["filter"])
+                positions = [float(value) for value in root.find(".//{*}Intersects//{*}posList").text.split()]
+                candidate = QgsGeometry.fromPolygonXY([[
+                    QgsPointXY(positions[index], positions[index + 1])
+                    for index in range(0, len(positions), 2)
+                ]])
+                if not line.intersects(candidate):
+                    return False
+            return True
+
+        with LocalWfs({"water": fields}, records={"water": records}, version="2.0.0",
+                      geometry_types={"water": "LineString"}, page_size=1,
+                      record_filter=bbox_matches) as fixture:
+            uri = QgsDataSourceUri(qgis_wfs_uri({
+                "endpoint": fixture.endpoint, "feature_type": "fixture:water", "source_crs": "EPSG:3067",
+            }))
+            layer = QgsVectorLayer(uri.uri(), "water line", "WFS")
+            self.assertTrue(layer.isValid(), layer.error().message())
+            aoi = rectangle(350000, 6900000, 100, 100)
+            inputs = retrieval_inputs(layer, aoi)
+            inputs["service_ids"] = (source,)
+            inputs["source_display_names"] = {source: "Line river"}
+            inputs["layers"] = {source: layer}
+            inputs["source_metadata"] = {source: {
+                "endpoint": fixture.endpoint, "feature_type": "fixture:water", "properties": None,
+                "query_time": "fixture", "provider_fields": ["OBJECTID"], "field_map": {},
+            }}
+            result = source_loading.retrieve_sources(inputs, QgsProcessingFeedback())
+            self.assertEqual([item["source_id"] for item in result["source_features"][source]], ["near"])
+            footprint = result["source_features"][source][0]["geometry"]
+            self.assertGreater(footprint.area(), 0)
+            self.assertTrue(footprint.intersects(aoi))
+            water_evidence = result["water_evidence"]
+            self.assertEqual(water_evidence["source_refs"], [source + ":near"])
+            self.assertGreater(water_evidence["geometry"].area(), 0)
+            self.assertEqual(water_evidence["source_retrieved_feature_count"], 1)
+            self.assertEqual(water_evidence["derived_buffer_feature_count"], 1)
+            water_coverage = result["coverage"][0]
+            self.assertEqual(water_coverage["source_retrieved_feature_count"], 1)
+            self.assertEqual(water_coverage["derived_buffer_feature_count"], 1)
+            self.assertEqual(water_coverage["buffer_distance_m"], 30.0)
+            self.assertEqual(water_coverage["query_extent_expansion_m"], 31.0)
+            queries = [q for q in fixture.requests if q.get("request", "").lower() == "getfeature"]
+            self.assertEqual([int(q.get("startindex", 0)) for q in queries], [0, 1])
+            self.assertTrue(all(request_has_bbox(q) and "Intersects" in q.get("filter", "") for q in queries), repr(queries))
+            root = ET.fromstring(queries[0]["filter"])
+            bbox = root.find(".//{*}BBOX")
+            lower = [float(value) for value in bbox.find(".//{*}lowerCorner").text.split()]
+            upper = [float(value) for value in bbox.find(".//{*}upperCorner").text.split()]
+            bounds = [lower[0], lower[1], upper[0], upper[1]]
+            self.assertGreaterEqual(350000.0 - bounds[0], 30.0)
+            self.assertGreaterEqual(6900000.0 - bounds[1], 30.0)
+            self.assertGreaterEqual(bounds[2] - 350100.0, 30.0)
+            self.assertGreaterEqual(bounds[3] - 6900100.0, 30.0)
+
 
 if __name__ == "__main__":
     unittest.main()

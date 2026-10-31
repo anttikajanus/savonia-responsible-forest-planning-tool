@@ -20,6 +20,7 @@ class DataAttributionTests(unittest.TestCase):
             "syke_protected_areas_state_owned", "syke_protected_areas_private_land",
             "syke_protected_areas_wilderness", "syke_nature_conservation_programme_areas",
             "syke_groundwater_areas",
+            "syke_rantaviiva_line_river", "syke_rantaviiva_polygon_river", "syke_rantaviiva_lake",
         )
         for notice in ("Aineisto leikattu; johdettuja tuloksia.", "Data clipped; derived results."):
             with self.subTest(notice=notice):

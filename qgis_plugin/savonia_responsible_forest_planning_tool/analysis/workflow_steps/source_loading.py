@@ -29,6 +29,14 @@ logger = logging.getLogger(LOGGER_NAME + ".analysis.source_loading")
 # A filter-only GET budget, leaving room for endpoint, subset and paging options.
 # This is our conservative request policy, not a claimed service URL limit.
 MAX_ENCODED_POLYGON_FILTER_BYTES = 6000
+WATER_BUFFER_DISTANCE_M = 30.0
+# Query geometry only: the extra metre covers the inscribed chord margin from
+# the eight-segment polygon buffer. Derived evidence still uses exactly 30 m.
+WATER_QUERY_EXPANSION_M = 31.0
+WATER_SOURCE_IDS = frozenset((
+    "syke_rantaviiva_line_river", "syke_rantaviiva_polygon_river",
+    "syke_rantaviiva_lake",
+))
 
 
 def _polygon_request_expression(geometry, source_crs):
@@ -112,6 +120,7 @@ class _SourceReadContext:
     run_id: str
     metadata: dict
     aoi: object
+    query_aoi: object
     transform_context: object
     feedback: object
     language: str
@@ -162,7 +171,7 @@ def _source_feature_iterator(context, filter_rect, selected_feature_id_set,
         request.setFilterRect(filter_rect)
         request.setFlags(Qgis.FeatureRequestFlag.ExactIntersect)
         if layer.providerType().lower() == "wfs":
-            source_aoi = QgsGeometry(context.aoi)
+            source_aoi = QgsGeometry(context.query_aoi)
             try:
                 _apply_coordinate_transform(source_aoi, inverse_transform)
                 if not source_aoi.isGeosValid() or source_aoi.isEmpty():
@@ -212,10 +221,29 @@ def _clip_source_geometry(context, source_feature, transform, filter_rect):
             source=service_id, feature_id=source_feature.id(),
         ))
 
+    is_water = service_id in WATER_SOURCE_IDS
+    geometry_type = QgsWkbTypes.geometryType(geometry.wkbType())
+    if is_water:
+        expected_type = (QgsWkbTypes.LineGeometry if service_id.endswith("line_river")
+                         else QgsWkbTypes.PolygonGeometry)
+        if geometry_type != expected_type:
+            raise QgsProcessingException(tr(
+                language, "source_feature_geometry_invalid",
+                source=service_id, feature_id=source_feature.id(),
+            ))
+
     repaired = False
     if not geometry.isGeosValid():
+        if is_water and geometry_type == QgsWkbTypes.LineGeometry:
+            raise QgsProcessingException(tr(
+                language, "source_feature_geometry_invalid",
+                source=service_id, feature_id=source_feature.id(),
+            ))
         try:
-            geometry = _repair_polygon_geometry(geometry)
+            if geometry_type == QgsWkbTypes.PolygonGeometry:
+                geometry = _repair_polygon_geometry(geometry)
+            else:
+                geometry = geometry.makeValid()
         except Exception:
             geometry = None
         if geometry is None:
@@ -228,8 +256,14 @@ def _clip_source_geometry(context, source_feature, transform, filter_rect):
     # Provider rectangle filters can return candidates; the transformed
     # intersection with the actual AOI below determines whether evidence remains.
     source_bbox_matches_request = geometry.boundingBox().intersects(filter_rect)
+    derived_buffered = False
     try:
         _apply_coordinate_transform(geometry, transform)
+        if is_water:
+            geometry = geometry.buffer(WATER_BUFFER_DISTANCE_M, 8)
+            if geometry.isNull() or geometry.isEmpty() or not geometry.isGeosValid():
+                raise ValueError("Water buffer did not produce valid polygon geometry.")
+            derived_buffered = True
         clipped = geometry.intersection(context.aoi)
     except Exception as exc:
         raise QgsProcessingException(tr(
@@ -249,19 +283,20 @@ def _clip_source_geometry(context, source_feature, transform, filter_rect):
             source=service_id, feature_id=source_feature.id(), detail=exc,
         ))
     if polygonal_clipped is None:
-        return None, repaired, "non_polygonal", source_bbox_matches_request
+        return None, repaired, "non_polygonal", source_bbox_matches_request, derived_buffered
 
     clipped = polygonal_clipped
     if clipped.isEmpty():
-        return None, repaired, "empty", source_bbox_matches_request
+        return None, repaired, "empty", source_bbox_matches_request, derived_buffered
     if not clipped.isGeosValid():
         raise QgsProcessingException(tr(
             language, "source_feature_geometry_failed",
             source=service_id, feature_id=source_feature.id(), detail="invalid intersection result",
         ))
-    if clipped.area() <= AREA_TOLERANCE_M2:
-        return None, repaired, "zero_area", source_bbox_matches_request
-    return clipped, repaired, "", source_bbox_matches_request
+    minimum_area = 0.0 if is_water else AREA_TOLERANCE_M2
+    if clipped.area() <= minimum_area:
+        return None, repaired, "zero_area", source_bbox_matches_request, derived_buffered
+    return clipped, repaired, "", source_bbox_matches_request, derived_buffered
 
 
 def _source_feature_identifier(source_feature, source_id_field):
@@ -295,23 +330,25 @@ def _source_feature_evidence(context, snapshot, source_feature, clipped, source_
     if context.service_id == "forest_centre_gridcell":
         # Compare original versions, not only the shape remaining inside the AOI.
         evidence["source_geometry_wkb"] = bytes(source_feature.geometry().asWkb())
-    snapshot_feature = QgsFeature(snapshot.fields())
-    snapshot_geometry = QgsGeometry(clipped)
-    snapshot_geometry.convertToMultiType()
-    snapshot_feature.setGeometry(snapshot_geometry)
-    snapshot_feature.setAttributes(source_feature.attributes())
+    snapshot_feature = None
+    if snapshot is not None:
+        snapshot_feature = QgsFeature(snapshot.fields())
+        snapshot_geometry = QgsGeometry(clipped)
+        snapshot_geometry.convertToMultiType()
+        snapshot_feature.setGeometry(snapshot_geometry)
+        snapshot_feature.setAttributes(source_feature.attributes())
     return evidence, snapshot_feature, fallback_used
 
 
 def _source_coverage(context, source_id_strategy, features,
                      inspected_feature_count, non_overlapping_feature_count,
-                     repaired_feature_count, repaired_feature_ids,
+                     repaired_feature_count, repaired_feature_ids, derived_buffer_count,
                      selected_feature_id_set, source_id_fallback_count,
                      coverage_message, spatial_filter):
     """Assemble stable retrieval provenance and coverage fields."""
     layer = context.layer
     metadata = context.metadata
-    return {
+    coverage = {
         "service_id": context.service_id,
         "status": "AVAILABLE",
         "feature_count": len(features),
@@ -341,6 +378,48 @@ def _source_coverage(context, source_id_strategy, features,
         } if non_overlapping_feature_count else {},
         "request_error": "",
         "message": coverage_message,
+    }
+    if context.service_id in WATER_SOURCE_IDS:
+        coverage.update({
+            "source_retrieved_feature_count": inspected_feature_count,
+            "derived_buffer_feature_count": derived_buffer_count,
+            "buffer_distance_m": WATER_BUFFER_DISTANCE_M,
+            "geometry_policy": "buffer_in_epsg_3067_then_clip_to_aoi",
+            "query_extent_expansion_m": WATER_QUERY_EXPANSION_M,
+        })
+    return coverage
+
+
+def _combined_water_evidence(source_features, coverage, language):
+    """Dissolve AOI-clipped water buffers and retain source-qualified references."""
+    records = [
+        record for service_id in sorted(WATER_SOURCE_IDS)
+        for record in source_features.get(service_id, ())
+    ]
+    references = sorted({
+        "{0}:{1}".format(record["service_id"], record["source_id"])
+        for record in records
+    })
+    if not records:
+        geometry = QgsGeometry()
+    else:
+        try:
+            geometry = QgsGeometry.unaryUnion([record["geometry"] for record in records])
+            geometry = _polygonal_geometry(geometry)
+        except Exception as exc:
+            raise QgsProcessingException(tr(
+                language, "error_geometry_overlay",
+                detail="Could not combine buffered water evidence: {0}".format(exc),
+            )) from exc
+    return {
+        "geometry": geometry,
+        "source_refs": references,
+        "buffer_distance_m": WATER_BUFFER_DISTANCE_M,
+        "source_retrieved_feature_count": sum(
+            row.get("source_retrieved_feature_count", 0)
+            for row in coverage if row.get("service_id") in WATER_SOURCE_IDS
+        ),
+        "derived_buffer_feature_count": len(records),
     }
 
 
@@ -380,7 +459,7 @@ def _read_source(context):
     try:
         transform = QgsCoordinateTransform(layer.crs(), TARGET_CRS, transform_context)
         inverse_transform = QgsCoordinateTransform(TARGET_CRS, layer.crs(), transform_context)
-        filter_rect = inverse_transform.transformBoundingBox(context.aoi.boundingBox())
+        filter_rect = inverse_transform.transformBoundingBox(context.query_aoi.boundingBox())
     except Exception as exc:
         raise QgsProcessingException(tr(language, "error_extent_transform", source=service_id, detail=exc))
     logger.info(
@@ -388,20 +467,24 @@ def _read_source(context):
         run_id, service_id, layer.crs().authid(),
     )
 
-    snapshot = QgsVectorLayer("MultiPolygon?crs=EPSG:3067", service_id, "memory")
-    snapshot_provider = snapshot.dataProvider()
-    require_provider_success(snapshot_provider.addAttributes(layer.fields()), "{0} snapshot fields".format(service_id))
-    snapshot.updateFields()
-    logger.info(
-        "run_id=%s stage=source_retrieval source=%s event=snapshot_ready field_count=%d",
-        run_id, service_id, len(layer.fields()),
-    )
+    snapshot = None
+    snapshot_provider = None
+    if service_id not in WATER_SOURCE_IDS:
+        snapshot = QgsVectorLayer("MultiPolygon?crs=EPSG:3067", service_id, "memory")
+        snapshot_provider = snapshot.dataProvider()
+        require_provider_success(snapshot_provider.addAttributes(layer.fields()), "{0} snapshot fields".format(service_id))
+        snapshot.updateFields()
+        logger.info(
+            "run_id=%s stage=source_retrieval source=%s event=snapshot_ready field_count=%d",
+            run_id, service_id, len(layer.fields()),
+        )
 
     features = []
     kept = []
     inspected_feature_count = 0
     non_overlapping_feature_count = 0
     repaired_feature_count = 0
+    derived_buffer_count = 0
     repaired_feature_ids = []
     source_id_fallback_count = 0
     last_reported_progress = progress_start
@@ -481,9 +564,10 @@ def _read_source(context):
         if selected_feature_id_set is not None and context.selected_feature_snapshot is None:
             matched_selected_feature_ids.add(source_feature.id())
 
-        clipped, repaired, skip_reason, source_bbox_matches_request = _clip_source_geometry(
+        clipped, repaired, skip_reason, source_bbox_matches_request, derived_buffered = _clip_source_geometry(
             context, source_feature, transform, filter_rect,
         )
+        derived_buffer_count += int(derived_buffered)
         if repaired:
             repaired_feature_count += 1
             if len(repaired_feature_ids) < 20:
@@ -507,7 +591,8 @@ def _read_source(context):
             context, snapshot, source_feature, clipped, source_id_field,
         )
         features.append(evidence)
-        kept.append(snapshot_feature)
+        if snapshot_feature is not None:
+            kept.append(snapshot_feature)
         if fallback_used and source_id_field:
             source_id_fallback_count += 1
 
@@ -564,12 +649,13 @@ def _read_source(context):
         duplicate_count = len(features) - len(unique)
         features = unique
         kept = [kept[position] for position in positions]
-    require_provider_success(
-        snapshot_provider.addFeatures(kept),
-        "{0} snapshot features ({1} attempted)".format(service_id, len(kept)),
-        snapshot_provider,
-    )
-    snapshot.updateExtents()
+    if snapshot is not None:
+        require_provider_success(
+            snapshot_provider.addFeatures(kept),
+            "{0} snapshot features ({1} attempted)".format(service_id, len(kept)),
+            snapshot_provider,
+        )
+        snapshot.updateExtents()
     if not features:
         if non_overlapping_feature_count:
             coverage_message = tr(
@@ -583,6 +669,7 @@ def _read_source(context):
         context, source_id_strategy, features,
         inspected_feature_count, non_overlapping_feature_count,
         repaired_feature_count, repaired_feature_ids,
+        derived_buffer_count,
         selected_feature_id_set, source_id_fallback_count, coverage_message, spatial_filter,
     )
     if service_id == "forest_centre_gridcell":
@@ -628,6 +715,17 @@ def retrieve_sources(inputs, feedback=None):
             if hasattr(feedback, "pushInfo"):
                 feedback.pushInfo(tr(language, "progress_source_activity", source=source_name))
         try:
+            query_aoi = QgsGeometry(inputs["aoi"])
+            if service_id in WATER_SOURCE_IDS:
+                query_aoi = query_aoi.buffer(WATER_QUERY_EXPANSION_M, 8)
+                # Preserve the curved projected boundary when transforming to a
+                # geographic or other source CRS for the remote Intersects filter.
+                query_aoi = query_aoi.densifyByDistance(20.0)
+                if query_aoi.isNull() or query_aoi.isEmpty() or not query_aoi.isGeosValid():
+                    raise QgsProcessingException(tr(
+                        language, "error_extent_transform", source=service_id,
+                        detail="Could not prepare expanded water query area.",
+                    ))
             context = _SourceReadContext(
                 layer=layer,
                 service_id=service_id,
@@ -635,6 +733,7 @@ def retrieve_sources(inputs, feedback=None):
                 run_id=inputs["run_id"],
                 metadata=inputs["source_metadata"][service_id],
                 aoi=inputs["aoi"],
+                query_aoi=query_aoi,
                 transform_context=inputs["transform_context"],
                 feedback=feedback,
                 language=language,
@@ -666,7 +765,7 @@ def retrieve_sources(inputs, feedback=None):
             ))
         if service_id in PROTECTED_SOURCE_IDS:
             protected_available = protected_available and status["status"] == "AVAILABLE"
-        if snapshot is not None:
+        if snapshot is not None and service_id not in WATER_SOURCE_IDS:
             snapshots.append((service_id, snapshot))
         if feedback is not None and hasattr(feedback, "setProgress"):
             feedback.setProgress(progress_end)
@@ -676,11 +775,13 @@ def retrieve_sources(inputs, feedback=None):
         sum(len(source_features.get(service_id, ())) for service_id in inputs["service_ids"]),
     )
     grid_sampler = GridCellSampler(source_features.get("forest_centre_gridcell", ()), language, feedback)
+    water_evidence = _combined_water_evidence(source_features, coverage, language)
     return {
         "coverage": coverage,
         "source_features": source_features,
         "protected_areas_status": "AVAILABLE" if protected_available else "NOT_AVAILABLE",
         "snapshots": snapshots,
         "grid_sampler": grid_sampler,
+        "water_evidence": water_evidence,
     }
 

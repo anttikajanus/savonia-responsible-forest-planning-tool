@@ -32,6 +32,9 @@ class ResponsibleForestPlanningInputsAlgorithm(QgsProcessingAlgorithm):
     PROTECTED_WILDERNESS = "PROTECTED_WILDERNESS"
     PROGRAMME = "PROGRAMME"
     GROUNDWATER = "GROUNDWATER"
+    LINE_RIVER = "LINE_RIVER"
+    POLYGON_RIVER = "POLYGON_RIVER"
+    LAKE = "LAKE"
     SAWLOG_PRICE_EUR_M3 = "SAWLOG_PRICE_EUR_M3"
     OUTPUT_FOLDER = "OUTPUT_FOLDER"
     OUTPUT_NAME = "OUTPUT_NAME"
@@ -107,6 +110,15 @@ class ResponsibleForestPlanningInputsAlgorithm(QgsProcessingAlgorithm):
         self.addParameter(QgsProcessingParameterVectorLayer(
             self.GROUNDWATER, tr(language, "groundwater_layer"), types=[QgsProcessing.TypeVectorPolygon]
         ))
+        self.addParameter(QgsProcessingParameterVectorLayer(
+            self.LINE_RIVER, tr(language, "line_river_layer"), types=[QgsProcessing.TypeVectorLine]
+        ))
+        self.addParameter(QgsProcessingParameterVectorLayer(
+            self.POLYGON_RIVER, tr(language, "polygon_river_layer"), types=[QgsProcessing.TypeVectorPolygon]
+        ))
+        self.addParameter(QgsProcessingParameterVectorLayer(
+            self.LAKE, tr(language, "lake_layer"), types=[QgsProcessing.TypeVectorPolygon]
+        ))
         self.addParameter(QgsProcessingParameterNumber(
             self.SAWLOG_PRICE_EUR_M3, tr(language, "sawlog_price"),
             type=QgsProcessingParameterNumber.Double, optional=False, minValue=0.0,
@@ -130,6 +142,9 @@ class ResponsibleForestPlanningInputsAlgorithm(QgsProcessingAlgorithm):
             "syke_protected_areas_wilderness": self.parameterAsVectorLayer(parameters, self.PROTECTED_WILDERNESS, context),
             "syke_nature_conservation_programme_areas": self.parameterAsVectorLayer(parameters, self.PROGRAMME, context),
             "syke_groundwater_areas": self.parameterAsVectorLayer(parameters, self.GROUNDWATER, context),
+            "syke_rantaviiva_line_river": self.parameterAsVectorLayer(parameters, self.LINE_RIVER, context),
+            "syke_rantaviiva_polygon_river": self.parameterAsVectorLayer(parameters, self.POLYGON_RIVER, context),
+            "syke_rantaviiva_lake": self.parameterAsVectorLayer(parameters, self.LAKE, context),
         }
         args = {
             # Pass transforms explicitly so shared workflow code never depends on
