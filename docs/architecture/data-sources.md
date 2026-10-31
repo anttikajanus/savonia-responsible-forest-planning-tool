@@ -6,7 +6,7 @@ explains why provider fields, rather than saved XSD contents, determine readines
 
 ## Required sources
 
-Eight WFS layers are required. The three protected-area layers form one interpretation group but remain separate required inputs. The exact registry is [sources.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py); field requirements, accepted aliases, identifier fallbacks and selected-feature snapshot handling are maintained in [source-layer requirements](source-layer-requirements.md).
+Eleven WFS layers are required. The three protected-area layers form one interpretation group but remain separate required inputs. The exact registry is [sources.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py); field requirements, accepted aliases, identifier fallbacks and selected-feature snapshot handling are maintained in [source-layer requirements](source-layer-requirements.md).
 
 | Product | Endpoint | Feature type / selection | Contribution |
 | --- | --- | --- | --- |
@@ -18,10 +18,12 @@ Eight WFS layers are required. The three protected-area layers form one interpre
 | SYKE wilderness | Same protected-sites endpoint | `PS.ProtectedSitesEramaaAlue` | Active protected-area criterion |
 | SYKE conservation programmes | `https://paikkatiedot.ymparisto.fi/geoserver/syke_luonnonsuojeluohjelma_alueet/wfs` | `syke_luonnonsuojeluohjelma_alueet:Luonnonsuojeluohjelmaalueet` | Programme criterion, distinct from established protection |
 | SYKE groundwater | `https://paikkatiedot.ymparisto.fi/geoserver/syke_vhspohjavesi/wfs` | `syke_vhspohjavesi:VHS2022_Pohjavesi` | All returned polygon footprints; Balance and higher |
-
+| SYKE Ranta10 line rivers | `https://paikkatiedot.ymparisto.fi/geoserver/syke_rantaviiva/wfs` | `syke_rantaviiva:Ranta10_Viivamainen_joki` | Required line evidence for the riparian-buffer criterion; 30 m two-sided buffer |
+| SYKE Ranta10 polygon rivers | Same Ranta10 endpoint | `syke_rantaviiva:Ranta10_Aluemainen_joki` | Required polygon evidence; full polygon plus 30 m outward buffer |
+| SYKE Ranta10 lakes | Same Ranta10 endpoint | `syke_rantaviiva:Ranta10_Jarvi` | Required polygon evidence; full polygon plus 30 m outward buffer |
 Metsäkeskus and SYKE list their services in the [Metsäkeskus interface directory](https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto/aineistot-paikkatieto-ohjelmille/rajapinnat) and [SYKE service directory](https://www.syke.fi/fi/ymparistotieto/avoimet-rajapinnat/paikkatietorajapinnat). WMS is map context; analysis uses vector WFS. `inspire_ps` contains multiple feature families: a Natura type does not satisfy the required protected/wilderness contract. Compare the provider's [Natura dictionary](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Natura.pdf) with the [protected/wilderness dictionary](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Luonnonsuojelujaeramaaalueet.pdf).
 
-MML WMTS basemaps and OpenStreetMap are display context and do not enter classifications or exported analysis snapshots. Stand mean age supplies the included potential-protection screen. MY, external potential-protected-site datasets, recreation, water buffers and peatland sensitivity sources are excluded; [deferred sources](deferred-sources.md) records alternatives without activating them.
+MML WMTS basemaps and OpenStreetMap are display context and do not enter classifications or exported analysis snapshots. Stand mean age supplies the included potential-protection screen. Other SYKE forest-sensitive-water products, separate water-protection buffer datasets, peatland sensitivity, recreation, external potential-protected-site datasets and MY plan areas are excluded; [deferred sources](deferred-sources.md) records alternatives without activating them.
 
 ## MML basemap context
 
@@ -40,7 +42,7 @@ describe authenticated access. Capabilities require credentials; authenticated
 live capabilities/tiles remain unverified here.
 The [reference cache](../references/service-metadata/README.md) supports an
 optional `MML_API_KEY` for this download. These are display-only rasters outside
-the eight-source analysis registry and exports. Preserve MML attribution in
+the eleven-source analysis registry and exports. Preserve MML attribution in
 shared maps under the provider's open-data licence and interface terms.
 The [source-layer contract](source-layer-requirements.md#basemap-stack)
 owns reuse and failure behavior; the workflow spec owns map presentation.
@@ -50,7 +52,7 @@ owns reuse and failure behavior; the workflow spec owns map presentation.
 Project setup also adds `PalstanSijaintitiedot` and
 `KiinteistotunnuksenSijaintitiedot` through QGIS's `oapif` provider
 from `https://avoin-paikkatieto.maanmittauslaitos.fi/kiinteisto-avoin/simple-features/v3/`.
-This is map context outside the eight analysis sources. The
+This is map context outside the eleven analysis sources.
 [MML API-key product description](https://www.maanmittauslaitos.fi/kiinteistotietojen-kyselypalvelu-ogc-api/avoimet-tuotteet-api-avain)
 documents the collections and CRS84 default, with EPSG:3067 also supported.
 The [parcel model](../references/service-metadata/mml/parcels/palstan-sijaintitiedot.pdf)
@@ -103,7 +105,7 @@ can become stale as providers change their services.
 | Saved programme capabilities/XSD | Exact typename, EPSG:3067, `lsoaluetunnus`, `luokka` and optional nullable `subtype`. | Current class/subtype distribution and completeness are not verified by XSD. |
 | Grid schema and three-cell bounded request | Direct total/pine/spruce/deciduous fields, age, soil/drainage; sample showed a null spruce value and different measurement/update dates. | Raw samples were not saved. Three cells do not estimate regional/national coverage or null prevalence. |
 | Groundwater capabilities/XSD and general provider dictionary | Exact `syke_vhspohjavesi:VHS2022_Pohjavesi` type advertises EPSG:3067 and its schema is retained; fields include `pvaluetunnus`, `pvalueeutunnus`, `pvalueluokka`, nullable `muutospvm` (`xsd:dateTime`) and `geom` (`gml:MultiSurfacePropertyType`). | No representative feature values were retrieved. The general dictionary does not independently define this service's complete field semantics. |
-
+| Ranta10 capabilities and feature schemas | Discovery confirmed three advertised types, default EPSG:3067, polygon `gml:MultiSurfacePropertyType` for lakes/rivers and line `gml:MultiCurvePropertyType` for line rivers; all advertise `objectid` and `muutospvm`. | Discovery verifies names and advertised schema, not representative value quality or geographic completeness. Local reference files are inventory targets until explicitly downloaded. |
 The local [2.1.3 workbook](../references/service-metadata/metsakeskus/tiedosto-tietomallikaavio-mv_ey_2-1-3-metsakeskuksen-tietomallin-uudistus.xlsx), [provider model update page](https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto/tietojen-yllapito/tietomallin-uudistus), and [GeoPackage guide](https://www.metsakeskus.fi/sites/default/files/document/tiedosto-geopackage-sisaltoohjeet-tietomalli-2-0.pdf) establish modeled units and code relationships. WFS is a narrower product; stand `PROPORTIONPINE`/`PROPORTIONSPRUCE`/`PROPORTIONOTHER` definitions did not establish volume proportions. Current species metrics use direct grid volumes instead.
 
 The grid evidence came from the [DescribeFeatureType request](https://avoin.metsakeskus.fi/rajapinnat/v2/gridcell/ows?service=WFS&version=2.0.0&request=DescribeFeatureType&typeNames=v2:gridcell), [grid dictionary](https://www.metsakeskus.fi/sites/default/files/document/hila-koodisto-ja-tietokantakuvaus.xlsx), and a [three-cell request](https://avoin.metsakeskus.fi/rajapinnat/v2/gridcell/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=v2:gridcell&count=3&outputFormat=application/json&srsName=EPSG:3067&bbox=350000,6900000,352000,6902000,EPSG:3067). The sample recorded measurement 13 June 2025 and database update 9 April 2026. `TREEDATADATE`, `UPDATETIME` and retrieval time have separate meanings; a later update/retrieval is not evidence of a newer forest observation. The [December 2025 grid product description](https://www.metsakeskus.fi/sites/default/files/document/tietotuotekuvaus-hila-aineisto.pdf) describes 16 m estimates; planned product changes must be verified against the actual delivered data.
@@ -148,6 +150,7 @@ polygons do not certify provider behavior for all malformed data. Query failures
 remain fatal; they are not retried as successful empty evidence. See
 [provider verification gaps](../open-questions.md#provider-evidence).
 
+The three Ranta10 water products use a distinct candidate footprint expanded by 31 m in EPSG:3067, transformed to each source CRS, for both bbox and polygon predicates. This conservative margin accounts for the eight-segment 30 m buffer approximation; the derived water buffers remain exactly 30 m. Water features are buffered before exact local clipping to the original AOI, so an outside source feature can contribute inside it and clipping raw source geometry cannot create artificial buffer edges. Polygon products are buffered as polygons; the required line product is buffered as line geometry. The final footprints are unioned across products and clipped to the AOI. Ordinary sources retain their existing AOI query extent and clipping contract.
 Accepting retrieval requires both iterator completion
 and a provider-error check. QGIS can deliver request errors asynchronously, so
 the adapter must collect pending errors in the provider's owning thread before
@@ -160,7 +163,7 @@ and its [workflow regressions](../../qgis_plugin/tests/qgis/test_workflow_contra
 own the QGIS-specific cache and event handling. Verification covers the QGIS
 3.44.0 and 4.2.3 WFS boundaries; it is not a guarantee for arbitrary providers.
 
-Successful empty retrieval is `AVAILABLE` but is not certification of complete geographic coverage. Source request/iteration failures stop the run. Metric nulls are handled independently as documented in [indicators](indicators.md).
+Successful empty retrieval is `AVAILABLE` but is not certification of complete geographic coverage. This distinction also applies to the three required Ranta10 sources: a successful empty set produces available evidence with no riparian match; it does not establish that no nearby water exists. Source request/iteration failures stop the run. Metric nulls are handled independently as documented in [indicators](indicators.md).
 
 ## Access and evidence maintenance
 

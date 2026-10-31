@@ -20,4 +20,6 @@ The stand-overlap acceptance limit is superseded by
 [ADR-0013](0013-nonfatal-stand-overlaps.md); the recorded decision above retains
 its historical context.
 
+The historical exclusion of water buffers is superseded for the adopted Ranta10 lakes-and-rivers criterion only. Current Balance, Protection and Superprotection behavior includes the unioned 30 m buffer evidence from the three required Ranta10 products. Other SYKE water products and separate water-protection buffer datasets remain excluded. The current rule and its limits belong to [CL-01/CL-04](../../specs/classification.md) and the [geometry contract](../calculations.md#area-and-geometry).
+
 The decision above retains its recorded context. [CL-01/CL-02](../../specs/classification.md) own current thresholds and tier membership; [geometry](../calculations.md#area-and-geometry) owns numerical tolerances.

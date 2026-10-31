@@ -52,7 +52,7 @@ Acceptance: reproduce the [boundary-weighting example](../architecture/indicator
 
 ## IO-04 Labels, order and precision
 
-- Put identity and classification before indicators, and coverage/provenance after them. Use the catalogue order in QGIS attributes/forms, workbook summaries, metric coverage and calculation notes.
+- Put identity and classification before indicators, and coverage/provenance after them. The riparian criterion check uses the translated label for stable field `check_riparian_buffer`; its `MATCH`, `NO_MATCH` and `UNKNOWN` values remain language-neutral. Use the catalogue order in QGIS attributes/forms, workbook summaries, metric coverage and calculation notes.
 - Source-dependent labels start with **Kuvio / Stand** or **Hila / Grid**, followed by the attribute and explicit units. Availability belongs in statuses/notes.
 - Sawlog price/value labels name the assortment and distinguish €/m³ from €. Their coverage and notes identify the user price assumption and stand-stock source.
 - Provide localized field groups and explain ground area versus tree basal area in forms and workbook notes. Preserve aliases, grouping and presentation when reopening the GeoPackage.
@@ -67,11 +67,11 @@ Every successful run produces `<basename>.gpkg` and `<basename>.xlsx` with the s
 
 The GeoPackage contains:
 
-- Exactly one spatial analysis result dataset of classified forest polygons, each carrying all six tier classes, ordinary criterion checks, parent-overlap flag, indicators, metric coverage, source/rule identifiers and classification context.
-- AOI-clipped source snapshots with original attributes and source identifiers, including grid cells.
-- Source coverage and run metadata, including parameters, the user-supplied sawlog price and its interpretation/source, run/language identity, source endpoint/type/provider/CRS, retrieval and available measurement/update dates, field provenance, limitations, attribution and prototype identity.
+- Exactly one spatial analysis result dataset of classified forest polygons, each carrying all six tier classes, ordinary criterion checks (including riparian buffer), parent-overlap flag, indicators, metric coverage, source/rule identifiers and classification context.
+- AOI-clipped source snapshots with original attributes and source identifiers, including grid cells and groundwater. Water inputs are represented by one derived `buffered_water_evidence` layer containing the combined Ranta10 buffer footprint; do not export raw Ranta10 source geometries as additional snapshot layers.
+- Source coverage and run metadata, including parameters, the user-supplied sawlog price and its interpretation/source, run/language identity, source endpoint/type/provider/CRS, retrieval and available measurement/update dates, field provenance, limitations, attribution and prototype identity. Retain individual retrieval/availability rows for all three Ranta10 products, separate from derived-buffer coverage.
 - Full-precision per-metric coverage/statistics sufficient to explain aggregation, independently of rounded displayed results.
-- Run metadata records the result-fragment threshold, excluded polygon count/area and parents with no retained polygons under [CL-01](classification.md#cl-01-reporting-domain-and-geometry). These fragments contribute to neither result feature counts nor workbook summaries.
+- Run metadata records the result-fragment threshold, excluded polygon count/area and parents with no retained polygons under [CL-01](classification.md#cl-01-reporting-domain-and-geometry). These fragments contribute to neither result feature counts nor workbook summaries. Riparian provenance records the fixed 30 m distance and units, EPSG:3067 geometry policy, candidate query extent/filter strategy, source-qualified references and update dates, source retrieval and derived-buffer counts, union/clipping policy, and limitation that successful empty evidence does not prove full source coverage.
 
 The valid Excel workbook contains four localized worksheets: tier/class summaries, source coverage, metric coverage and calculation notes/limitations. Report sensitive/economic and relevant unknown classes separately for each tier, with sources, statuses, valid/unknown hectares and observed partial quantities. Retain formulas/meaning, reporting domain, dates, exclusions, attribution and prototype notice. A workbook must reopen in standard XLSX readers; manual Microsoft Excel acceptance remains separately tracked.
 
@@ -80,7 +80,7 @@ Neither successful requests, feature counts nor mapped overlap alone establish c
 ## IO-06 Map review and run retention
 
 - After wizard success, retain each run beneath Results without removing configured sources or earlier runs.
-- Include eighteen filtered project views (six tiers × three classes) and hidden-by-default clipped snapshots loaded from that run's GeoPackage. Filtered views reference the same result dataset rather than creating extra outputs. Initially only the All out tier group is visible. Users switch tiers through layer-tree group visibility by turning the current tier group off and the desired group on.
+- Include eighteen filtered project views (six tiers x three classes) and hidden-by-default clipped snapshots loaded from that run GeoPackage, including the single combined buffered-water evidence layer. Filtered views reference the same result dataset rather than creating extra outputs. Initially only the All out tier group is visible. Users switch tiers through layer-tree group visibility by turning the current tier group off and the desired group on.
 - Check every class child view in all six tier groups. Check every snapshot child inside its initially unchecked parent group. Enabling a previously hidden group immediately reveals its checked children.
 - Every view and snapshot must remain readable with the row count implied by its filter or captured source. Opening a later view or another run must not disrupt readers of an earlier view.
 - Use sensitive red/orange, economic green and unknown grey for the class views. Tier and category labels follow the QGIS language. The complete classified dataset is available in the GeoPackage and can be added separately.

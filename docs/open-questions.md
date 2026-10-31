@@ -24,11 +24,12 @@ current provider values or geographic completeness.
 
 | Item | Current limit and next evidence needed |
 | --- | --- |
-| Analysis polygon queries | A bounded stand probe reproduces the rejection of QGIS's GML 3.2 MultiPolygon and succeeds with OR-combined Polygon predicates; multipart queries now use that encoding. Verify the original parcel selection interactively, representative AOIs on all eight sources, provider handling of malformed polygons before local repair, and deployment-specific GET limits; large filters retain bbox retrieval. Bounded sample comparisons do not establish completeness or a performance guarantee. |
+| Analysis polygon queries | A bounded stand probe reproduces the rejection of QGIS's GML 3.2 MultiPolygon and succeeds with OR-combined Polygon predicates; multipart queries now use that encoding. Verify the original parcel selection interactively, representative AOIs on all eleven sources, provider handling of malformed polygons before local repair, and deployment-specific GET limits; large filters retain bbox retrieval. Bounded sample comparisons do not establish completeness or a performance guarantee. |
 | Setup responsiveness | Setup remains synchronous; the reported minute-long desktop stall has not been reproduced end to end. Use the manual checklist's MT-08 to investigate waits separately from map rendering. |
 | MML property context | Cached parcel and identifier-point models do not establish current live schemas. Verify both live collections/schemas, paging, representative formatted identifiers and network errors with an authorized key. |
 | Representative classification values | Saved XSDs are not feature samples. Check sanitized habitat codes, active/inactive protected statuses/categories, programme identifiers/classes and null formats across all three protected sources. Current code rejects unrecognized values; a policy accepting inactive records would require an explicit change. |
 | Groundwater | The cache includes capabilities and the exact VHS2022 XSD. Check representative identifiers/nulls and service-specific field meanings; the general groundwater PDF alone does not establish those semantics. |
+| Ranta10 water sources | Capabilities/schema discovery establishes the three configured feature types and advertised geometry/CRS, not representative values or geographic completeness. Verify live access, source subsets/authentication, paging, server-side expanded bbox/polygon filtering, nearby outside-AOI river retention, update-date values and request failure handling for all three products. |
 | Wilderness evidence | The cache includes its dedicated XSD and protected-sites capabilities. Representative statuses/categories and completeness remain unverified. |
 | Inventory coverage and dates | Check stand/grid identifiers, measurement/update semantics, null prevalence and selected-product freshness. Successful empty retrieval permits a no-hit in the current application but does not establish authoritative geographic coverage or absence of unmapped habitats. |
 | Growth meaning | Units support relative annual volume growth, but current/periodic, gross/net and denominator timing remain unspecified. Keep the transparent derived indicator until provider semantics support stricter wording. |
@@ -37,7 +38,7 @@ Evidence locations and primary sources are in [data sources](architecture/data-s
 
 ## Scope and source alternatives
 
-Local GeoPackage/raster adapters, open-mire/whole-AOI reporting, external potential-protected-site datasets, urban-forest/MY interpretation, peat sensitivity and water buffers remain deferred. Candidate sources and unanswered thresholds/denominators are recorded in [deferred sources](architecture/deferred-sources.md).
+Local GeoPackage/raster adapters, open-mire/whole-AOI reporting, external potential-protected-site datasets, urban-forest/MY interpretation, peat sensitivity and other water-protection sources and rules remain deferred; the adopted Ranta10 30 m criterion is in scope. Candidate sources and unanswered thresholds/denominators are recorded in [deferred sources](architecture/deferred-sources.md).
 
 No reviewed repository evidence establishes Savonia acceptance of the prototype's tier rules, interpretations or deliverables. Tender requirements and implementation choices have different authority. [Project context](project-context.md).
 
@@ -82,6 +83,11 @@ readiness tests do not establish that this parser is correct.
 
 ## Acceptance and distribution
 
+### Riparian water criterion implementation and acceptance
+
+The adopted Ranta10 criterion is implemented at integration revision `87fef2f`, but implementation status does not establish full acceptance. The QGIS 3.44 deterministic suite passed after the publication-fixture correction: `scripts/check.ps1 -Checks qgis`, 138 tests, exit 0. The QGIS 4.2.3 full suite and packaged lifecycle/Processing checks remain outstanding; the 3.44 package check is pending after the maintained-help changes. Keep the two QGIS baselines and packaging evidence separate.
+
+Live-provider verification remains distinct: test representative AOIs against all three current feature types, including a line river outside the AOI whose buffer reaches into it, complete paging, source filtering/authentication, update dates and service failures. This does not establish national completeness. Interactive acceptance remains distinct as well: inspect Finnish and English setup, Water ordering/symbols/scale restoration, wizard/Processing parity, reopened output presentation and retained snapshot-group behavior in supported QGIS desktops. No check in this list validates the fixed 30 m assumption as a legal setback or for every site.
 ### Interactive acceptance
 
 Use the [personal manual checklist](testing/manual-acceptance.md) for desktop,

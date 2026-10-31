@@ -27,8 +27,7 @@ wilderness source. Indicator coverage also uses current provider fields. Missing
 stale, malformed, or differently shaped saved schema metadata cannot select
 interpretation fields or determine indicator availability; it is provenance only.
 
-All eight configured WFS sources are required. Each must be a valid polygon
-layer with a usable CRS and matching source identity. Required attributes are:
+All eleven configured WFS sources are required. Each must have a usable CRS and matching source identity. Existing analysis sources and the two Ranta10 polygon products require polygon geometry; the Ranta10 line river product requires line geometry. Required attributes are:
 
 | Source | Required attributes | Optional attributes and behavior |
 | --- | --- | --- |
@@ -38,6 +37,8 @@ layer with a usable CRS and matching source identity. Required attributes are:
 | Protected areas | State-owned, private-land, and wilderness WFS layers are required. Each must expose `olotila` and either `tyyppilyhenne` or `kohdetyyppi`. | `kohdeid` or `lsaluetunnus` is used as a source identifier when present; otherwise the provider feature ID is used. Status/category checks are defined [below](#accepted-classification-values). Natura layers are separate feature types and do not satisfy this source requirement. |
 | Nature conservation programme areas | `lsoaluetunnus` and `luokka` | `subtype`, `nimi`, `muutospvm`, and `lisatieto` are retained when present. Identifier/class checks are defined [below](#accepted-classification-values). |
 | SYKE groundwater areas | No required attributes; valid polygon geometry is required. | All returned polygon footprints are used as the groundwater criterion, without filtering `alueluokka` or `subtype`. The provider feature ID is retained if no recognized source identifier is available. |
+| SYKE Ranta10 line rivers | `objectid`; valid line geometry is required. | `objectid` is retained as the source identifier; `muutospvm` is retained when present. The source geometry is buffered as a line before AOI clipping. |
+| SYKE Ranta10 polygon rivers and lakes | `objectid`; valid polygon geometry is required. | `objectid` is retained as the source identifier; `muutospvm` is retained when present. The source polygons are buffered with the original water polygon included. |
 
 ## Configured layer behavior
 
@@ -56,6 +57,8 @@ The selected strategy is retained in source coverage. Rendering visibility never
 or retrieval. Setup remains synchronous, so metadata waits can delay the UI.
 See the [connection adapter](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py)
 for provider URI options.
+
+Ranta10 layer identity and geometry are source-specific: line rivers remain line layers, and polygon rivers/lakes remain polygon layers. `objectid` is a required provider field and source identifier; `muutospvm` is optional provenance. Derived buffer geometry and expanded retrieval are defined in [calculations](calculations.md#area-and-geometry) and [data sources](data-sources.md#wfs-retrieval-success).
 
 Repeated setup reuses managed layer identities and refreshes connection options
 and credentials while preserving user layers, filters, existing CRS and visibility
@@ -76,7 +79,7 @@ distance calculations. [Access and source evidence](data-sources.md#mml-parcel-m
 ## Basemap stack
 
 MML orthophoto/topographic WMTS and OpenStreetMap XYZ are display-only adapters,
-separate from the eight required analysis sources. Repeated setup refreshes
+separate from the eleven required analysis sources. Repeated setup refreshes
 credentials and reuses layer identities while preserving user visibility choices.
 Invalid basemap providers produce localized setup diagnostics; they neither
 satisfy analysis readiness nor substitute for failed evidence sources.

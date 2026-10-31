@@ -63,8 +63,8 @@ A mapped condition or stand attribute used by one or more tiers to identify sens
 _Avoid_: legal prohibition as a synonym for criterion
 
 **Criterion match**:
-A condition satisfying a sensitivity criterion. For mapped polygon evidence, an overlap must exceed one square metre; smaller overlaps and boundary-only contact do not qualify. A stand-attribute criterion applies to the forest represented by that stand.
-_Avoid_: proximity match, buffer match
+A condition satisfying a sensitivity criterion. Ordinary mapped polygon evidence requires overlap strictly greater than one square metre; the adopted Ranta10 criterion first derives a 30 m buffer footprint and applies that same area threshold to the result piece. Smaller overlaps and boundary-only contact do not qualify. A stand-attribute criterion applies to the forest represented by that stand.
+_Avoid_: proximity as an unqualified criterion, legal setback
 
 **Forest Act Section 10 habitat (metsälain 10 §:n elinympäristö)**:
 A mapped habitat interpreted from Metsäkeskus's Section 10 categories, including the category requiring corrective measures. This is the habitat evidence used for stand-wide promotion, rather than a determination that the entire stand is legally a Section 10 habitat.
@@ -85,6 +85,11 @@ A mapped Metsäkeskus habitat in the other-valuable-habitat category, distinct f
 
 **Groundwater area (pohjavesialue)**:
 A mapped SYKE groundwater-area footprint used as sensitivity evidence in Balance and higher tiers. Its planning interpretation includes the returned footprints without filtering by groundwater class or subtype.
+_Avoid_: inferred legal restrictions
+
+**Riparian buffer zone (vesistojen suojavyöhyke)**:
+The AOI-clipped union of 30 m buffers around the adopted SYKE Ranta10 line-river, polygon-river and lake products, calculated in EPSG:3067. It is a planning criterion in Balance and higher tiers, not a universal legal setback or site-specific water-protection assessment.
+_Avoid_: legal shoreline setback, verified water-protection zone
 
 **Potential protected site (potentiaalinen suojelukohde)**:
 An area identified as potentially suitable for protection, distinct from an established protected area or a conservation programme designation. The agreed classification includes screening based on stand mean age; external candidate-site datasets remain excluded.
@@ -107,7 +112,7 @@ The baseline management scenario and its corresponding sensitivity tier. The tie
 The sensitivity tier between BAU and Balance. Its current criteria are the same as All out and BAU, with no additional mapped trigger.
 
 **Balance (Tasapaino)**:
-The tier that adds nature conservation programme areas and groundwater areas to the All out / BAU / Light criteria.
+The tier that adds nature conservation programme areas, groundwater areas and the adopted Ranta10 riparian-buffer criterion to the All out / BAU / Light criteria.
 
 **Protection (Suojelu)**:
 The tier that adds other valuable habitats to the Balance criteria. Its name denotes a planning tier, rather than legal protection status.

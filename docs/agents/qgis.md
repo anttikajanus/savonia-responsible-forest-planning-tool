@@ -113,7 +113,7 @@ for GUI checks and its lightweight workflow.
 Keep tests deterministic and independent of live data services wherever possible.
 Use tiny checked-in or generated local fixtures; do not mutate source fixtures in place.
 
-All eight configured analysis layers are required. Numeric metric gaps may
+All eleven configured analysis layers are required. Numeric metric gaps may
 produce partial/unavailable indicators; required-source failures stop publication.
 Use [WF-07](../specs/workflow.md#wf-07-failure-cancellation-and-observability)
 and the [source contract](../architecture/data-sources.md) when choosing fatal

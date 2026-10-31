@@ -26,7 +26,7 @@ Criteria accumulate from one tier to the next.
 | `class_all_out` | All out / `all_out` | Recognized active protected areas and mapped Section 10 habitats. |
 | `class_bau` | BAU / `bau` | Same criteria as All out; retained as a separate tier. |
 | `class_light` | Light / `light` | Same criteria as All out and BAU. |
-| `class_balance` | Balance / `balance` | Light criteria plus nature conservation programme areas and groundwater areas. |
+| `class_balance` | Balance / `balance` | Light criteria plus nature conservation programme areas, groundwater areas and Ranta10 riparian buffers. |
 | `class_protection` | Protection / `protection` | Balance criteria plus other valuable habitats and potential protected areas based on forest age. |
 | `class_superprotection` | Superprotection / `superprotection` | Protection criteria plus all remaining analyzed forest with available required evidence. |
 
@@ -61,6 +61,7 @@ lists use these codes; several reasons can apply to one piece.
 | `section10` | A mapped Forest Act Section 10 habitat triggered promotion of the parent stand. |
 | `programme` | Match to a recognized nature conservation programme polygon. Programme membership is distinct from established protection. |
 | `groundwater` | Match to a groundwater-area footprint. |
+| `riparian_buffer` | Match to the combined Ranta10 30 m buffer footprint. |
 | `other_habitat` | Match to another valuable habitat. |
 | `potential_protected_age` | Parent stand matches the potential-protection criterion based on forest age. This is distinct from established legal protection. |
 | `remaining_analyzed_forest` | Superprotection's rule for analyzed forest with no more specific sensitivity match and available required evidence. This is a policy reason and has no matched source-feature identifier. |
@@ -73,6 +74,7 @@ Ordinary source-check attributes complement the structured reasons:
 | `check_section10` | Parent stand promoted by Section 10 evidence, including pieces outside its footprint. |
 | `check_programme` | Conservation programme match. |
 | `check_groundwater` | Groundwater footprint match. |
+| `check_riparian_buffer` | Match to the combined Ranta10 30 m buffer footprint. |
 | `check_other_habitat` | Other valuable habitat match. |
 | `check_potential_protected_age` | Potential protected-area match based on parent stand age. |
 
@@ -234,7 +236,11 @@ stored in text fields.
 | `tier_rule_ids` | Object keyed by tier. Each entry contains `criteria` (reason codes), `source_ids` (supporting feature identifiers) and `unknown_sources` (unavailable dependencies for an unmatched decision). Empty lists mean no entries of that kind. |
 | `source_ids` | Matched feature identifiers grouped by classification reason, independently of tier. `{}` means no matched classification identifiers, rather than no source data used. Section 10 identifiers apply to all promoted pieces; age-based matches identify the parent stand on every derived piece. |
 | `programme_info` | List of retained programme records: `LsoAlueTunnus` (identifier), `Luokka` (class), `Subtype` (subtype), `Nimi` (name), `MuutosPvm` (source change date) and `Lisatieto` (additional information), where available. `[]` means no retained programme records. |
+| `source_ids.riparian_buffer` | Source-qualified identifiers of only those Ranta10 features whose derived buffers contribute to the result piece. The service ID prefix prevents identifiers from different products colliding. |
 
+The GeoPackage also contains one derived polygon layer named `buffered_water_evidence` when the AOI has positive-area buffered evidence. It can contain a combined multipart geometry and defines the used footprint. Its fields are `evidence_id` (`combined_riparian_buffer`), `source_refs` (source-qualified contributing feature identifiers), `source_update_dates`, `buffer_distance_m` (30), `source_retrieved_feature_count` (sum of original retrieved source features), `buffers_generated_count` (derived buffers), and `aoi_contributing_buffer_feature_count` (buffers that contribute positive area inside the AOI). Raw Ranta10 source geometries are not exported as separate snapshots. The three source retrieval rows remain separate in `source_coverage`; the derived evidence has its own coverage record.
+
+`run_metadata.water_buffer_evidence` records the source IDs/references and update dates, 30 m distance and units, EPSG:3067 buffering before union/clipping, full polygon-buffer inclusion, two-sided line buffering, criterion threshold/comparison, counts and per-product retrieval provenance. An empty derived evidence layer is still available when all three retrievals succeeded empty.
 There is no per-indicator diagnostic result field or corresponding metadata
 summary. Coverage retains the evidence needed for null/partial interpretation;
 geometry corrections and invariant checks still run. General source/geometry

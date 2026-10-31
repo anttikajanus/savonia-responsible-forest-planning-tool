@@ -23,8 +23,8 @@ Municipal forest planners and GIS analysts select an area, combine online forest
 The current scope includes:
 
 - A QGIS plugin with a persistent wizard and an equivalent Processing workflow.
-- Eight configured online WFS source layers, explicit area selection and validation.
-- One stand-based polygon result with six tier classifications, independent stand/grid indicators, source snapshots and coverage.
+- Eleven configured online WFS source layers, explicit area selection and validation, including the Ranta10 line-river, polygon-river and lake products.
+- One stand-based polygon result with six tier classifications, independent stand/grid indicators, source snapshots, combined riparian-buffer evidence and coverage.
 - A paired GeoPackage and Excel workbook, with Finnish or English presentation and offline instructions.
 
 Scope boundaries are maintained in

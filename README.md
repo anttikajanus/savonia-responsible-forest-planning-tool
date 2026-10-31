@@ -60,10 +60,7 @@ the prototype does not claim to fulfill the procurement requirements.
 
 ## What the analysis does
 
-The analysis clips source data to the selected area, splits forest stands at
-sensitivity boundaries and classifies the resulting polygons across six
-cumulative tiers. A qualifying Forest Act Section 10 habitat affects the whole
-clipped parent stand; other criteria affect the overlapping pieces.
+The analysis clips source data to the selected area, splits forest stands at sensitivity boundaries and classifies the resulting polygons across six cumulative tiers. A qualifying Forest Act Section 10 habitat affects the whole clipped parent stand; other criteria, including the adopted Ranta10 30 m riparian-buffer criterion, affect only qualifying result pieces.
 
 Stand and grid indicators remain separate estimates, with source and metric
 coverage reported alongside the results. Missing numeric evidence can leave
@@ -111,7 +108,7 @@ repeat setup.
 
 ### Set up layers and run an analysis
 
-Setup adds **13 layers**: eight analysis sources (three Metsäkeskus and five
+Setup adds **16 layers**: eleven analysis sources (three Metsakeskus and eight SYKE), two MML property layers (boundaries and identifiers), and three basemaps (Orthophoto, Topographic map and OpenStreetMap).
 SYKE), two MML property layers (boundaries and identifiers), and three basemaps
 (Orthophoto, Topographic map and OpenStreetMap).
 
@@ -165,7 +162,7 @@ choose an output basename. Existing output files are never overwritten.
 
 | Output | Contents | What to inspect first |
 | --- | --- | --- |
-| `<basename>.gpkg` | `classified_forest_polygons`, clipped source snapshots, `source_coverage` and `run_metadata` | Six tier classes, criterion checks, parent-overlap flags, source/rule identifiers and metric coverage |
+| `<basename>.gpkg` | `classified_forest_polygons`, clipped source snapshots, one combined `buffered_water_evidence` layer, `source_coverage` and `run_metadata` | Six tier classes, criterion checks, riparian source references and buffer metadata, parent-overlap flags, and metric coverage |
 | `<basename>.xlsx` | Tier/class summaries, source coverage, metric coverage and calculation notes | Sensitive/economic areas, valid and unknown hectares, source dates and limitations |
 
 Both files retain data-source attribution and run provenance. The reporting

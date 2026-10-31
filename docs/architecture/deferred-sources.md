@@ -1,6 +1,6 @@
 # Deferred sources and unadopted alternatives
 
-These candidate sources are outside the implemented scope. The implemented exclusions are recorded in
+These candidate sources are outside the implemented scope except where the current specs explicitly adopt a limited product. The adopted Ranta10 30 m riparian buffer is described in [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers); other SYKE water-protection sources and rules remain deferred. The remaining exclusions are recorded in [ADR-0004](adr/0004-stand-based-sensitivity-classification.md). Verify access, licensing, schema, dates and coverage before adopting a candidate, and define its purpose, denominator and rule.
 [ADR-0004](adr/0004-stand-based-sensitivity-classification.md). Verify access,
 licensing, schema, dates and coverage before adopting a candidate, and define
 its purpose, denominator and rule.

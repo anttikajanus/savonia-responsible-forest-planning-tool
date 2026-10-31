@@ -24,12 +24,9 @@ repairs are counted and reported with a capped sample of source IDs, using
 provider feature IDs when a stable source ID is absent. Original sources are
 never edited. AOI intersections are normalized to valid multipolygons; line
 and point remnants from boundary-only contacts are excluded. Null, empty, unrepairable, or failed transformed
-and clipped geometries stop the run. Area in hectares is planar
-EPSG:3067 geometry area divided by 10,000. No buffers or proximity distances
-are applied.
+and clipped geometries stop the run. Area in hectares is planar EPSG:3067 geometry area divided by 10,000. The adopted Ranta10 criterion is the explicit buffer exception: line rivers and polygon rivers/lakes are buffered by 30 m in EPSG:3067 before final AOI clipping. Polygon buffers include the source water polygon; line buffers extend on both sides. The footprints are combined across all three source products, unioned and clipped to the AOI, so overlapping buffered ground is counted once. Only positive-area clipped polygon evidence is retained; boundary-only contact contributes no match.
 
-Source candidates that
-do not overlap the AOI are counted and excluded. Overlapping AOI features are
+Ordinary source candidates that do not overlap the AOI are counted and excluded. Ranta10 candidates use the expanded retrieval extent; only after buffering are they clipped to the AOI, so water source geometry outside the AOI can contribute to its derived evidence. Overlapping AOI features are
 dissolved. Stand overlaps follow the warning policy in
 [CL-01](../specs/classification.md#cl-01-reporting-domain-and-geometry).
 Every stand overlap above `1e-8` m² is retained without trimming, with no maximum
@@ -83,7 +80,7 @@ classification. Feature counts describe returned data and do not establish
 complete service coverage.
 
 These dependency rules describe the pure classification policy. The application
-workflow requires all eight sources and stops before publication on a required
+workflow requires all eleven sources and stops before publication on a required
 source or fatal interpretation failure; it does not publish a partial-source run
 using these `UNKNOWN` rules. Missing numeric indicator evidence can still produce
 partial or unknown metrics in a successful run. Missing/invalid individual stand
@@ -97,8 +94,8 @@ those tiers to machine fields. Required source groups for a no-hit decision are:
 | Tiers | Required source groups |
 | --- | --- |
 | All out, BAU, Light | Protected + Habitat |
-| Balance | Protected + Habitat + Programme + Groundwater |
-| Protection, Superprotection | Protected + Habitat + Programme + Groundwater + valid stand mean age |
+| Balance | Protected + Habitat + Programme + Groundwater + Ranta10 water buffers |
+| Protection, Superprotection | Protected + Habitat + Programme + Groundwater + Ranta10 water buffers + valid stand mean age |
 
 Protected combines the three required protected-area products in the
 [source inventory](data-sources.md#required-sources). Habitat, Programme and

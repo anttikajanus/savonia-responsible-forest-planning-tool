@@ -130,12 +130,20 @@ the service has multiple schemas in this reference set.
   [GetCapabilities](syke/groundwater/get-capabilities.xml)
   · [DescribeFeatureType](syke/groundwater/describe-feature-type.xsd)
   · [general groundwater dictionary](syke/groundwater/pohjavesialueet.pdf).
+- Ranta10 line rivers, polygon rivers and lakes, feature types
+  `syke_rantaviiva:Ranta10_Viivamainen_joki`,
+  `syke_rantaviiva:Ranta10_Aluemainen_joki`, and
+  `syke_rantaviiva:Ranta10_Jarvi`: [GetCapabilities](syke/rantaviiva/get-capabilities.xml),
+  [line schema](syke/rantaviiva/describe-line-river.xsd),
+  [polygon-river schema](syke/rantaviiva/describe-polygon-river.xsd), and
+  [lake schema](syke/rantaviiva/describe-lake.xsd). Discovery advertised EPSG:3067,
+  `objectid` and `muutospvm`; schemas are not representative values or coverage evidence.
 
 Downloaded files are retained as source evidence. The XSDs describe field names and
 types; they do not contain representative feature values.
 
-The manifest covers six WFS services, one WMTS service, eight layer schemas and
-ten provider documents (25 files), including the MML parcel and identifier-point
+The manifest covers seven WFS services, one WMTS service, eleven layer schemas and
+ten provider documents (29 files), including the MML parcel and identifier-point
 models. Provider documents complement the service schemas.
 See [provider evidence gaps](../../open-questions.md#provider-evidence)
 for the value, interpretation and completeness checks still needed.
