@@ -166,7 +166,7 @@ class DownloadTests(unittest.TestCase):
     def test_manifest_paths_and_offline_listing(self):
         entries = downloader.load_manifest()
         self.assertEqual(len(entries), 29)
-        self.assertEqual(len([entry for entry in entries if entry["path"].startswith("syke/rantaviiva/")]), 4)
+        self.assertEqual(len([entry for entry in entries if entry["path"].startswith("syke/shoreline/")]), 4)
         with patch.object(downloader, "fetch", side_effect=AssertionError("Listing must work offline")), redirect_stdout(StringIO()) as output:
             self.assertEqual(downloader.main(["--list", "--only", "syke/groundwater/"]), 0)
         self.assertIn("groundwater/describe-feature-type.xsd", output.getvalue())

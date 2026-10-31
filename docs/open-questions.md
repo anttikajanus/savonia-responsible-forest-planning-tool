@@ -101,6 +101,11 @@ register.
 
 ### Release and distribution verification
 
+- Review the pinned Pylint and Astroid versions periodically. Check whether the
+  latest releases support both verified QGIS baselines (3.44.0 and 4.2.3), and
+  update the pins when compatible; record any compatibility reason for keeping
+  older versions. Preserve the Astroid fix needed to avoid an infinite loop on
+  live Qt 5 classes, as described in [Python linting](architecture/development.md#python-linting).
 - Optional merge blocking needs administrator activation of the checked-in
   ruleset. See [required merge checks](architecture/development.md#required-merge-checks).
 - Compatibility with releases beyond the QGIS 3.44.0 and 4.2.3 verification

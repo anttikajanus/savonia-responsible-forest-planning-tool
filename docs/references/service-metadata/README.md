@@ -133,10 +133,10 @@ the service has multiple schemas in this reference set.
 - Ranta10 line rivers, polygon rivers and lakes, feature types
   `syke_rantaviiva:Ranta10_Viivamainen_joki`,
   `syke_rantaviiva:Ranta10_Aluemainen_joki`, and
-  `syke_rantaviiva:Ranta10_Jarvi`: [GetCapabilities](syke/rantaviiva/get-capabilities.xml),
-  [line schema](syke/rantaviiva/describe-line-river.xsd),
-  [polygon-river schema](syke/rantaviiva/describe-polygon-river.xsd), and
-  [lake schema](syke/rantaviiva/describe-lake.xsd). Discovery advertised EPSG:3067,
+  `syke_rantaviiva:Ranta10_Jarvi`: [GetCapabilities](syke/shoreline/get-capabilities.xml),
+  [line schema](syke/shoreline/describe-line-river.xsd),
+  [polygon-river schema](syke/shoreline/describe-polygon-river.xsd), and
+  [lake schema](syke/shoreline/describe-lake.xsd). Discovery advertised EPSG:3067,
   `objectid` and `muutospvm`; schemas are not representative values or coverage evidence.
 
 Downloaded files are retained as source evidence. The XSDs describe field names and

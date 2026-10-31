@@ -68,19 +68,19 @@
     "url": "https://paikkatiedot.ymparisto.fi/geoserver/syke_vhspohjavesi/wfs?service=WFS&version=2.0.0&request=DescribeFeatureType&typeNames=syke_vhspohjavesi:VHS2022_Pohjavesi"
   },
   {
-    "path": "syke/rantaviiva/get-capabilities.xml",
+    "path": "syke/shoreline/get-capabilities.xml",
     "url": "https://paikkatiedot.ymparisto.fi/geoserver/syke_rantaviiva/wfs?service=WFS&version=2.0.0&request=GetCapabilities"
   },
   {
-    "path": "syke/rantaviiva/describe-line-river.xsd",
+    "path": "syke/shoreline/describe-line-river.xsd",
     "url": "https://paikkatiedot.ymparisto.fi/geoserver/syke_rantaviiva/wfs?service=WFS&version=2.0.0&request=DescribeFeatureType&typeNames=syke_rantaviiva:Ranta10_Viivamainen_joki"
   },
   {
-    "path": "syke/rantaviiva/describe-polygon-river.xsd",
+    "path": "syke/shoreline/describe-polygon-river.xsd",
     "url": "https://paikkatiedot.ymparisto.fi/geoserver/syke_rantaviiva/wfs?service=WFS&version=2.0.0&request=DescribeFeatureType&typeNames=syke_rantaviiva:Ranta10_Aluemainen_joki"
   },
   {
-    "path": "syke/rantaviiva/describe-lake.xsd",
+    "path": "syke/shoreline/describe-lake.xsd",
     "url": "https://paikkatiedot.ymparisto.fi/geoserver/syke_rantaviiva/wfs?service=WFS&version=2.0.0&request=DescribeFeatureType&typeNames=syke_rantaviiva:Ranta10_Jarvi"
   },  {
     "path": "metsakeskus/stands/tietotuotekuvaus-metsavarakuviot.pdf",

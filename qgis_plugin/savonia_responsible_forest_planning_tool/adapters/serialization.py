@@ -23,5 +23,5 @@ def stringify(value, ensure_ascii=False):
     if value is None:
         return ""
     if isinstance(value, (dict, list, tuple)):
-        return json.dumps(value, ensure_ascii=ensure_ascii, sort_keys=True)
+        return json.dumps(value, ensure_ascii=ensure_ascii, sort_keys=True, default=json_default)
     return str(value)
