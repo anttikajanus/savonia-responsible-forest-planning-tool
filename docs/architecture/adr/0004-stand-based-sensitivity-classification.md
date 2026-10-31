@@ -12,9 +12,11 @@ MY zoning, recreation, potential protected sites, peatland sensitivity and water
 ## Current contract
 
 The exclusion of potential protected sites is narrowed by the adopted
-[stand-age screen](../../specs/classification.md#cl-02-six-cumulative-tiers):
+[stand-based screens](../../specs/classification.md#cl-02-six-cumulative-tiers):
 Protection and Superprotection include potential protection from stand mean
-age over 80 years. External candidate-site datasets remain deferred.
+age over 80 years; Balance through Superprotection include stand SOILTYPE codes
+60–69. External candidate-site
+datasets and other peatland criteria remain deferred.
 
 The stand-overlap acceptance limit is superseded by
 [ADR-0013](0013-nonfatal-stand-overlaps.md); the recorded decision above retains

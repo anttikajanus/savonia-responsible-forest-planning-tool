@@ -204,7 +204,10 @@ The percentage of valid-age grid area in one of three mean-age bands: under 20 y
 _Avoid_: stand-count share, tree-age distribution
 
 **Peatland area (turvemaiden pinta-ala)**:
-The analyzed-forest hectares classified as peat soil by the grid source. It is an area indicator, independently classified from natural mire, and does not add a peatland sensitivity criterion.
+The analyzed-forest hectares classified as peat soil by the grid source. It is an area indicator, independently classified from natural mire. This grid indicator is separate from the adopted stand-based peatland screen.
+
+**Stand-based peatland screen (kuvion turvemaaluokitus)**:
+A potential-protection planning screen that applies to all pieces of a parent stand when its `SOILTYPE` code is an integer from 60 through 69. It is independent of the grid peatland-area indicator and does not establish legal protection.
 
 **Source-classified natural mire area (lähteen luonnontilaisten soiden pinta-ala)**:
 The analyzed-forest hectares in the grid source's natural-mire drainage category. It is a source-date classification rather than certification of present ecological condition, and does not mean every undrained area.

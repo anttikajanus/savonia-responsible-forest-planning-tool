@@ -172,6 +172,14 @@ def prepare_publication(inputs, retrieved, classified, run_id):
                 "unknown": "missing, nonnumeric, boolean, nonfinite or negative age",
                 "interpretation": "potential protection based on age; not legal protection",
             },
+            "potential_protected_peatland": {
+                "source_id": "forest_centre_stand", "field": "SOILTYPE", "unit": "soil code",
+                "rule": "60 <= SOILTYPE <= 69 and SOILTYPE is integral",
+                "tiers": ["balance", "protection", "superprotection"],
+                "scope": "all pieces of the parent stand",
+                "unknown": "missing, nonnumeric, boolean, nonfinite, fractional or unrecognized soil code",
+                "interpretation": "potential protection based on stand soil code; not legal protection",
+            },
             "riparian_buffer": {
                 "source_ids": water_source_ids,
                 "tiers": ["balance", "protection", "superprotection"],

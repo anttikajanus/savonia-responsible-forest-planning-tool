@@ -130,8 +130,9 @@ Complete classification coverage permits matching-hectare totals, including a
 known zero. Any unknown hectares leave the requested total null/blank with
 partial/unknown status; observed matching hectares remain a **lower bound**.
 A 64 m² match contributes 0.0064 ha; a 0.5 m² match contributes 0.00005 ha.
-These source-date classifications do not certify ecological condition or add
-peat/mire sensitivity criteria.
+These source-date classifications do not certify ecological condition. The
+grid indicators are separate from the adopted parent-stand `SOILTYPE` sensitivity
+screen in [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers).
 
 ## Tier/class summaries and metric coverage
 

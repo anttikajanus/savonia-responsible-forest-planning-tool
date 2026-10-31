@@ -8,9 +8,9 @@ its purpose, denominator and rule.
 ## Potential protected sites
 
 External candidate-site datasets remain deferred. The included
-[stand-age screen](../specs/classification.md#cl-02-six-cumulative-tiers)
-uses the existing stand source; it does not activate any external dataset or
-establish legal protection.
+[stand-age and peatland screens](../specs/classification.md#cl-02-six-cumulative-tiers)
+use the existing stand source; they do not activate any external dataset or
+establish legal protection. Other peatland sensitivity rules remain deferred.
 
 Candidate screening, established protected sites, programme membership and mapped Section 10 habitats are distinct. Existing protected/programme/habitat records must not be counted again as a new potential-site layer. Screening scores do not establish legal protection or exact habitat boundaries.
 

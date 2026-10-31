@@ -26,8 +26,8 @@ Criteria accumulate from one tier to the next.
 | `class_all_out` | All out / `all_out` | Recognized active protected areas and mapped Section 10 habitats. |
 | `class_bau` | BAU / `bau` | Same criteria as All out; retained as a separate tier. |
 | `class_light` | Light / `light` | Same criteria as All out and BAU. |
-| `class_balance` | Balance / `balance` | Light criteria plus nature conservation programme areas, groundwater areas and Ranta10 riparian buffers. |
-| `class_protection` | Protection / `protection` | Balance criteria plus other valuable habitats and potential protected areas based on forest age. |
+| `class_balance` | Balance / `balance` | Light criteria plus nature conservation programme areas, groundwater areas, Ranta10 riparian buffers and parent stands with peatland soil type (`SOILTYPE` 60–69). |
+| `class_protection` | Protection / `protection` | Balance criteria plus other valuable habitats and potential protected areas based on stand age or peatland soil code. |
 | `class_superprotection` | Superprotection / `superprotection` | Protection criteria plus all remaining analyzed forest with available required evidence. |
 
 Protected areas include state-owned protected areas, private-land protected
@@ -64,6 +64,7 @@ lists use these codes; several reasons can apply to one piece.
 | `riparian_buffer` | Match to the combined Ranta10 30 m buffer footprint. |
 | `other_habitat` | Match to another valuable habitat. |
 | `potential_protected_age` | Parent stand matches the potential-protection criterion based on forest age. This is distinct from established legal protection. |
+| `potential_protected_peatland` | Parent stand has a SOILTYPE code from 60 through 69, inclusive; a planning screen distinct from established legal protection. |
 | `remaining_analyzed_forest` | Superprotection's rule for analyzed forest with no more specific sensitivity match and available required evidence. This is a policy reason and has no matched source-feature identifier. |
 
 Ordinary source-check attributes complement the structured reasons:
@@ -77,11 +78,12 @@ Ordinary source-check attributes complement the structured reasons:
 | `check_riparian_buffer` | Match to the combined Ranta10 30 m buffer footprint. |
 | `check_other_habitat` | Other valuable habitat match. |
 | `check_potential_protected_age` | Potential protected-area match based on parent stand age. |
+| `check_potential_protected_peatland` | Potential protected-area match based on parent stand soil code. |
 
 Each stores `MATCH`, `NO_MATCH` or `UNKNOWN`, with localized presentation.
 Display labels describe the criterion without embedding formulas or thresholds.
-Unavailable dependencies are unknown rather than no-match; the age check also
-remains unknown for missing or invalid stand ages. Each check reports its own
+Unavailable dependencies are unknown rather than no-match; stand-age and
+stand-soil checks also remain unknown for missing or invalid individual values. Each check reports its own
 criterion independently, even when another criterion determines a tier's class.
 Superprotection's remaining-forest rule stays in `tier_rule_ids` rather than
 another check field. Exact matching rules are defined in
@@ -254,7 +256,7 @@ in workbook calculation notes:
 
 | Run metadata member | Meaning |
 | --- | --- |
-| `classification_semantics` | Criterion definitions. `potential_protected_age` records source `forest_centre_stand`, field `MEANAGE`, unit `years`, rule `MEANAGE > 80`, tiers `protection` and `superprotection`, scope covering all parent-stand pieces, the missing/invalid-age policy and the interpretation as potential rather than legal protection. Exactly 80 does not match; accepted ages and unknown handling follow the [classification input contract](source-layer-requirements.md#accepted-classification-values). |
+| `classification_semantics` | Criterion definitions. `potential_protected_age` records source `forest_centre_stand`, field `MEANAGE`, unit `years`, rule `MEANAGE > 80`, tiers `protection` and `superprotection`; `potential_protected_peatland` records the same source, field `SOILTYPE`, integral codes 60–69 inclusive, tiers `balance`, `protection` and `superprotection`. Both cover every parent-stand piece and retain missing/invalid-value policy and potential rather than legal interpretation. Accepted values and unknown handling follow the [classification input contract](source-layer-requirements.md#accepted-classification-values). |
 | `indicator_semantics` | Indicator formulas, source groupings, units, weighting, rounding, completeness rules and interpretation of the supplied sawlog price and calculated sawlog value. Exact methods are defined in [indicator calculations](indicator-calculations.md). |
 
 Its `result_geometry_filter` JSON object records `maximum_excluded_area_m2`

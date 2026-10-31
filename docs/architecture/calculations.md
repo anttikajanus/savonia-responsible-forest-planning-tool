@@ -94,8 +94,8 @@ those tiers to machine fields. Required source groups for a no-hit decision are:
 | Tiers | Required source groups |
 | --- | --- |
 | All out, BAU, Light | Protected + Habitat |
-| Balance | Protected + Habitat + Programme + Groundwater + Ranta10 water buffers |
-| Protection, Superprotection | Protected + Habitat + Programme + Groundwater + Ranta10 water buffers + valid stand mean age |
+| Balance | Protected + Habitat + Programme + Groundwater + Ranta10 water buffers + valid stand soil code |
+| Protection, Superprotection | Protected + Habitat + Programme + Groundwater + Ranta10 water buffers + valid stand mean age and soil code |
 
 Protected combines the three required protected-area products in the
 [source inventory](data-sources.md#required-sources). Habitat, Programme and
@@ -111,6 +111,18 @@ ages leave this criterion unknown even when Stand is available. Without any
 positive trigger, Protection and Superprotection are `UNKNOWN`, identifying
 `forest_centre_stand` in `unknown_sources`; a positive trigger still wins.
 This rule uses no grid age substitute or age extrapolation.
+
+The stand peatland screen consumes `SOILTYPE` from `forest_centre_stand`.
+Finite integral numeric codes 60–69 inclusive match; other valid integral
+codes do not. Recognized codes outside that range are no-match; missing,
+nonnumeric, boolean, fractional, nonfinite and unrecognized individual values
+are unknown. The required provider field is
+checked at readiness. A match promotes every piece of a parent stand in
+Balance, Protection and Superprotection, with that stand ID in
+`potential_protected_peatland` provenance. An age match can independently promote
+Protection and Superprotection. With no positive trigger and a required stand
+check unknown, the affected tier remains unknown. No grid soil substitute is
+used.
 
 The [input contract](source-layer-requirements.md#accepted-classification-values)
 owns accepted statuses, categories, habitat codes and programme identifiers.
