@@ -9,6 +9,29 @@ from ..i18n import source_readiness_message, tr
 from .sources import SERVICE_DEFINITIONS
 
 
+_QGIS_GEOMETRY_TYPES = {"point": 0, "line": 1, "polygon": 2}
+
+
+def source_layer_geometry_error(layer, service_id, language="en"):
+    """Return a localized error when a managed source has the wrong CRS or geometry."""
+    if not layer.crs().isValid():
+        return {
+            "reason_code": "SOURCE_CRS_INVALID",
+            "message": tr(
+                language, "error_source_crs",
+                source=tr(language, SERVICE_DEFINITIONS[service_id]["name_key"]),
+            ),
+        }
+    expected = SERVICE_DEFINITIONS[service_id].get("geometry", "polygon")
+    if layer.geometryType() != _QGIS_GEOMETRY_TYPES[expected]:
+        message_key = "source_line_required" if expected == "line" else "source_polygon_required"
+        return {
+            "reason_code": "SOURCE_GEOMETRY_TYPE_INVALID",
+            "message": tr(language, message_key),
+        }
+    return None
+
+
 def provider_field_names(layer):
     """Return source-provider fields, excluding project joins and virtual fields."""
     data_provider = layer.dataProvider()
@@ -69,11 +92,9 @@ def verify_source_layer(layer, service_id, language="en"):
             "reason_code": readiness["reason_code"],
             "message": source_readiness_message(language, readiness),
         }
-    if layer.geometryType() != 2:
-        return None, {
-            "reason_code": "SOURCE_GEOMETRY_TYPE_INVALID",
-            "message": tr(language, "source_polygon_required"),
-        }
+    geometry_error = source_layer_geometry_error(layer, service_id, language)
+    if geometry_error:
+        return None, geometry_error
     metadata["provider_fields"] = field_names
     metadata["field_map"] = readiness["field_map"]
     return metadata, None
@@ -91,6 +112,9 @@ def source_identifier_field(layer, service_id):
         "syke_protected_areas_wilderness": ("kohdeid", "lsaluetunnus"),
         "syke_nature_conservation_programme_areas": ("lsoaluetunnus", "objectid"),
         "syke_groundwater_areas": ("pohjavesialue_id", "tunnus", "muodaluetunnus"),
+        "syke_rantaviiva_line_river": ("objectid",),
+        "syke_rantaviiva_polygon_river": ("objectid",),
+        "syke_rantaviiva_lake": ("objectid",),
     }.get(service_id, ())
     for candidate in candidates:
         field_name = actual_fields.get(candidate)

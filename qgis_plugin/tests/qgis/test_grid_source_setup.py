@@ -125,13 +125,16 @@ class GridSourceTest(unittest.TestCase):
             "syke_nature_conservation_programme_areas": {"lsoaluetunnus": "programme-1", "luokka": "AMO"},
             "syke_groundwater_areas": {"tunnus": "groundwater-1"},
             GRID_ID: GRID_FIELDS,
+            "syke_rantaviiva_line_river": {"objectid": "line-1"},
+            "syke_rantaviiva_polygon_river": {"objectid": "river-1"},
+            "syke_rantaviiva_lake": {"objectid": "lake-1"},
         }
         project = QgsProject()
         # An already configured basemap avoids contacting an unrelated XYZ service.
         basemap = QgsVectorLayer("Polygon?crs=EPSG:3067", "basemap", "memory")
         basemap.setCustomProperty("savonia/layer_id", "osm_xyz")
         project.addMapLayer(basemap)
-        with LocalWfs(sources) as fixture, LocalOapif() as parcels, LocalWmts() as maps:
+        with LocalWfs(sources, geometry_types={"syke_rantaviiva_line_river": "LineString"}) as fixture, LocalOapif() as parcels, LocalWmts() as maps:
             definitions = {
                 source: {**definition, "endpoint": fixture.endpoint, "feature_type": "fixture:" + source}
                 for source, definition in SERVICE_DEFINITIONS.items()
@@ -155,7 +158,8 @@ class GridSourceTest(unittest.TestCase):
                                          "syke_protected_areas_wilderness",
                                          "syke_protected_areas_state_owned",
                                          "syke_protected_areas_private_land")),
-                    ("water_group", ("syke_groundwater_areas",)),
+                    ("water_group", ("syke_groundwater_areas", "syke_rantaviiva_line_river",
+                                      "syke_rantaviiva_polygon_river", "syke_rantaviiva_lake")),
                 )
                 original_ids = set(project.mapLayers())
                 forest = references.children()[1]

@@ -3,7 +3,7 @@
 import json
 
 from qgis.core import (
-    Qgis, QgsFillSymbol, QgsLayerTreeNode, QgsNullSymbolRenderer, QgsPalLayerSettings, QgsProject, QgsRasterLayer,
+    Qgis, QgsFillSymbol, QgsLayerTreeNode, QgsLineSymbol, QgsNullSymbolRenderer, QgsPalLayerSettings, QgsProject, QgsRasterLayer,
     QgsSingleSymbolRenderer, QgsTextBufferSettings, QgsTextFormat, QgsVectorLayer, QgsVectorLayerSimpleLabeling,
 )
 from qgis.PyQt.QtCore import Qt
@@ -11,7 +11,7 @@ from qgis.PyQt.QtGui import QColor, QFont
 
 from .. import RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX
 from ..i18n import source_readiness_message, tr
-from .source_layers import provider_field_names
+from .source_layers import provider_field_names, source_layer_geometry_error
 from .sources import (
     SERVICE_DEFINITIONS, SourceError, inspect_service, qgis_wfs_uri,
     safe_source_error, syke_user_id, mml_api_key, qgis_mml_uri,
@@ -45,7 +45,10 @@ REFERENCE_GROUPS = (
         "syke_nature_conservation_programme_areas", "syke_protected_areas_wilderness",
         "syke_protected_areas_state_owned", "syke_protected_areas_private_land",
     )),
-    ("water", "water_group", ("syke_groundwater_areas",)),
+    ("water", "water_group", (
+        "syke_groundwater_areas", "syke_rantaviiva_line_river",
+        "syke_rantaviiva_polygon_river", "syke_rantaviiva_lake",
+    )),
 )
 PROTECTED_SERVICE_IDS = frozenset(REFERENCE_GROUPS[2][2])
 
@@ -103,6 +106,16 @@ def _setup_readiness(service_id, field_names, language):
     return readiness["status"], message, readiness
 
 
+def _setup_layer_readiness(service_id, layer, language):
+    geometry_error = source_layer_geometry_error(layer, service_id, language)
+    if geometry_error:
+        return "NOT_AVAILABLE", geometry_error["message"], {
+            "status": "NOT_AVAILABLE", "reason_code": geometry_error["reason_code"],
+            "missing_fields": [],
+        }
+    return _setup_readiness(service_id, provider_field_names(layer), language)
+
+
 def _syke_id_notice(service_id, language):
     if service_id.startswith("syke_") and not syke_user_id():
         return tr(language, "syke_id_recommended")
@@ -134,6 +147,16 @@ def _style_forest_source(layer, service_id):
             "outline_color": "55,115,165,220",
             "outline_width": "0.35",
         },
+        "syke_rantaviiva_polygon_river": {
+            "color": "79,159,224,125",
+            "outline_color": "55,115,165,235",
+            "outline_width": "0.35",
+        },
+        "syke_rantaviiva_lake": {
+            "color": "79,159,224,125",
+            "outline_color": "55,115,165,235",
+            "outline_width": "0.35",
+        },
     }
     style = styles.get(service_id)
     if service_id in PROTECTED_SERVICE_IDS:
@@ -144,6 +167,10 @@ def _style_forest_source(layer, service_id):
         }
     if style is not None:
         layer.setRenderer(QgsSingleSymbolRenderer(QgsFillSymbol.createSimple(style)))
+    elif service_id == "syke_rantaviiva_line_river":
+        layer.setRenderer(QgsSingleSymbolRenderer(QgsLineSymbol.createSimple({
+            "line_color": "79,159,224,255", "line_width": "0.65",
+        })))
     if service_id in DETAILED_REFERENCE_SERVICE_IDS:
         # QGIS minimumScale is the most zoomed-out visible scale. At smaller
         # denominators (closer zooms) these detailed WFS layers remain visible.
@@ -155,6 +182,10 @@ def _style_forest_source(layer, service_id):
         # QGIS 4.2 excludes an equal minimum scale with a comparison tolerance.
         # A one-millionth-denominator margin includes 1:300 at that tolerance.
         layer.setMinimumScale(GRID_MINIMUM_VISIBLE_SCALE + 1e-6)
+        layer.setMaximumScale(0.0)
+        layer.setScaleBasedVisibility(True)
+    elif service_id.startswith("syke_rantaviiva_"):
+        layer.setMinimumScale(FOREST_MINIMUM_VISIBLE_SCALE + 1e-6)
         layer.setMaximumScale(0.0)
         layer.setScaleBasedVisibility(True)
 
@@ -332,9 +363,7 @@ def _add_or_relabel_wfs(project, group, service_id, language):
                                "message": tr(language, "source_configured_invalid")}
         layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "query_time", metadata["query_time"])
         layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "schema_json", json.dumps(metadata["properties"], ensure_ascii=False))
-        status, message, readiness = _setup_readiness(
-            service_id, provider_field_names(layer), language
-        )
+        status, message, readiness = _setup_layer_readiness(service_id, layer, language)
         message = "; ".join(
             value for value in (message, _syke_id_notice(service_id, language)) if value
         )
@@ -369,9 +398,7 @@ def _add_or_relabel_wfs(project, group, service_id, language):
     layer.setCustomProperty(RESPONSIBLE_FOREST_PLANNING_PROPERTY_PREFIX + "schema_json", json.dumps(metadata["properties"], ensure_ascii=False))
     project.addMapLayer(layer, False)
     _place_layer_in_group(project, group, layer)
-    status, message, readiness = _setup_readiness(
-        service_id, provider_field_names(layer), language
-    )
+    status, message, readiness = _setup_layer_readiness(service_id, layer, language)
     message = "; ".join(
         value for value in (message, _syke_id_notice(service_id, language)) if value
     )

@@ -26,6 +26,11 @@ _REQUIRED_FIELD_GROUPS = {
     # Groundwater areas are interpreted from their polygon footprints; no
     # attribute status or class filter is applied in this analysis.
     "syke_groundwater_areas": (),
+    # objectid is the provider identifier retained for water-source provenance;
+    # muutospvm remains optional metadata and does not gate readiness.
+    "syke_rantaviiva_line_river": (("objectid",),),
+    "syke_rantaviiva_polygon_river": (("objectid",),),
+    "syke_rantaviiva_lake": (("objectid",),),
 }
 
 

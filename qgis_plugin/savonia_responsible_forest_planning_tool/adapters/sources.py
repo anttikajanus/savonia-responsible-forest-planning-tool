@@ -138,6 +138,30 @@ SERVICE_DEFINITIONS = {
         "kind": "gridcell",
         "feature_type": "v2:gridcell",
     },
+    "syke_rantaviiva_line_river": {
+        "endpoint": "https://paikkatiedot.ymparisto.fi/geoserver/syke_rantaviiva/wfs",
+        "required": True,
+        "name_key": "line_river_layer",
+        "kind": "water_line",
+        "geometry": "line",
+        "feature_type": "syke_rantaviiva:Ranta10_Viivamainen_joki",
+    },
+    "syke_rantaviiva_polygon_river": {
+        "endpoint": "https://paikkatiedot.ymparisto.fi/geoserver/syke_rantaviiva/wfs",
+        "required": True,
+        "name_key": "polygon_river_layer",
+        "kind": "water_polygon",
+        "geometry": "polygon",
+        "feature_type": "syke_rantaviiva:Ranta10_Aluemainen_joki",
+    },
+    "syke_rantaviiva_lake": {
+        "endpoint": "https://paikkatiedot.ymparisto.fi/geoserver/syke_rantaviiva/wfs",
+        "required": True,
+        "name_key": "lake_layer",
+        "kind": "water_polygon",
+        "geometry": "polygon",
+        "feature_type": "syke_rantaviiva:Ranta10_Jarvi",
+    },
 }
 
 OUT_OF_SCOPE_COVERAGE = tuple(

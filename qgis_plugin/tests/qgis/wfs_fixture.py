@@ -21,12 +21,14 @@ def request_has_bbox(query):
 
 
 class LocalWfs:
-    def __init__(self, sources, records=None, version="1.0.0", page_size=0, record_filter=None):
+    def __init__(self, sources, records=None, version="1.0.0", page_size=0, record_filter=None,
+                 geometry_types=None):
         self.sources = sources
         self.records = records
         self.version = version
         self.page_size = page_size
         self.record_filter = record_filter
+        self.geometry_types = dict(geometry_types or {})
         self.returned_counts = []
         self.requests = []
         self.feature_failures = set()
@@ -120,6 +122,9 @@ class LocalWfs:
         ).format(operations, types)
 
     def schema(self, source):
+        geometry_property = ("gml:LineStringPropertyType"
+                             if self.geometry_types.get(source) == "LineString"
+                             else "gml:PolygonPropertyType")
         fields = "".join(
             '<xsd:element name="{0}" type="xsd:{1}" minOccurs="0" nillable="true"/>'.format(
                 name, "double" if isinstance(value, (float, int)) else "string"
@@ -130,11 +135,11 @@ class LocalWfs:
             'xmlns:gml="http://www.opengis.net/gml" xmlns:fixture="urn:responsible-forest-planning:fixture" '
             'targetNamespace="urn:responsible-forest-planning:fixture" elementFormDefault="qualified">'
             '<xsd:complexType name="{0}Type"><xsd:complexContent><xsd:extension base="gml:AbstractFeatureType">'
-            '<xsd:sequence><xsd:element name="geometry" type="gml:PolygonPropertyType"/>{1}'
+            '<xsd:sequence><xsd:element name="geometry" type="{1}"/>{2}'
             '</xsd:sequence></xsd:extension></xsd:complexContent></xsd:complexType>'
             '<xsd:element name="{0}" type="fixture:{0}Type" substitutionGroup="gml:_Feature"/>'
             '</xsd:schema>'
-        ).format(source, fields)
+        ).format(source, geometry_property, fields)
         if self.version == "2.0.0":
             schema = schema.replace('http://www.opengis.net/gml"', 'http://www.opengis.net/gml/3.2"')
             schema = schema.replace('gml:_Feature', 'gml:AbstractFeature')
@@ -168,12 +173,18 @@ class LocalWfs:
             for index, record in enumerate(records, start + 1):
                 fields = "".join('<fixture:{0}>{1}</fixture:{0}>'.format(name, escape(str(value)))
                                  for name, value in record["attributes"].items() if value is not None)
+                if self.geometry_types.get(source) == "LineString":
+                    geometry = ('<gml:LineString srsName="urn:ogc:def:crs:EPSG::3067">'
+                                '<gml:posList srsDimension="2">{0}</gml:posList></gml:LineString>').format(
+                                    record["coordinates"].replace(",", " "))
+                else:
+                    geometry = ('<gml:Polygon srsName="urn:ogc:def:crs:EPSG::3067"><gml:exterior><gml:LinearRing>'
+                                '<gml:posList srsDimension="2">{0}</gml:posList></gml:LinearRing></gml:exterior>'
+                                '</gml:Polygon>').format(record["coordinates"].replace(",", " "))
                 members.append((
                     '<wfs:member><fixture:{0} gml:id="{0}.{1}"><fixture:geometry>'
-                    '<gml:Polygon srsName="urn:ogc:def:crs:EPSG::3067"><gml:exterior><gml:LinearRing>'
-                    '<gml:posList srsDimension="2">{2}</gml:posList></gml:LinearRing></gml:exterior>'
-                    '</gml:Polygon></fixture:geometry>{3}</fixture:{0}></wfs:member>'
-                ).format(source, record.get("_fixture_id", index), record["coordinates"].replace(",", " "), fields))
+                    '{2}</fixture:geometry>{3}</fixture:{0}></wfs:member>'
+                ).format(source, record.get("_fixture_id", index), geometry, fields))
             return (
                 '<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0" '
                 'xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:fixture="urn:responsible-forest-planning:fixture" '
@@ -186,12 +197,17 @@ class LocalWfs:
                 '<fixture:{0}>{1}</fixture:{0}>'.format(name, escape(str(value)))
                 for name, value in record["attributes"].items() if value is not None
             )
+            if self.geometry_types.get(source) == "LineString":
+                geometry = ('<gml:LineString srsName="EPSG:3067"><gml:coordinates>{0}</gml:coordinates>'
+                            '</gml:LineString>').format(record["coordinates"])
+            else:
+                geometry = ('<gml:Polygon srsName="EPSG:3067"><gml:outerBoundaryIs><gml:LinearRing>'
+                            '<gml:coordinates>{0}</gml:coordinates></gml:LinearRing></gml:outerBoundaryIs>'
+                            '</gml:Polygon>').format(record["coordinates"])
             members.append((
                 '<gml:featureMember><fixture:{0} fid="{0}.{1}"><fixture:geometry>'
-                '<gml:Polygon srsName="EPSG:3067"><gml:outerBoundaryIs><gml:LinearRing><gml:coordinates>'
-                '{2}</gml:coordinates></gml:LinearRing></gml:outerBoundaryIs></gml:Polygon>'
-                '</fixture:geometry>{3}</fixture:{0}></gml:featureMember>'
-            ).format(source, record.get("_fixture_id", index), record["coordinates"], fields))
+                '{2}</fixture:geometry>{3}</fixture:{0}></gml:featureMember>'
+            ).format(source, record.get("_fixture_id", index), geometry, fields))
         return (
             '<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs" '
             'xmlns:gml="http://www.opengis.net/gml" xmlns:fixture="urn:responsible-forest-planning:fixture" numberOfFeatures="{0}">'
