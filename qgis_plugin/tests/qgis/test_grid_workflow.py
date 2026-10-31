@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+import sqlite3
 import time
 import unittest
 from unittest.mock import patch
@@ -11,7 +12,7 @@ from qgis_test_environment import qgis_application
 
 APP = qgis_application()
 
-from qgis.core import (NULL, QgsApplication, QgsProcessingException, QgsProcessingFeedback, QgsProject, QgsVectorLayer)
+from qgis.core import (NULL, QgsApplication, QgsGeometry, QgsProcessingException, QgsProcessingFeedback, QgsProject, QgsVectorLayer)
 from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtTest import QTest
 from qgis.gui import QgsMapCanvas
@@ -25,6 +26,111 @@ from wfs_fixture import request_has_bbox
 
 
 class GridWorkflowTest(WorkflowFixtureMixin, unittest.TestCase):
+    def test_empty_water_sources_publish_available_no_match_and_source_failure_publishes_nothing(self):
+        line_id = "syke_rantaviiva_line_river"
+        with self.scenario([]) as (_, layers, aoi):
+            result = self.run_algorithm(layers, aoi, "en", "empty-water")
+            classified = QgsVectorLayer(result["RESULT"], "classified", "ogr")
+            feature, = list(classified.getFeatures())
+            self.assertEqual(feature["check_riparian_buffer"], "NO_MATCH")
+            self.assertEqual(feature["class_balance"], "ECONOMIC")
+            gpkg_path = result["RESULT"].split("|", 1)[0]
+            evidence = QgsVectorLayer(gpkg_path + "|layername=buffered_water_evidence", "evidence", "ogr")
+            self.assertTrue(evidence.isValid())
+            self.assertEqual(evidence.attributeAlias(evidence.fields().indexFromName("source_refs")),
+                             tr("en", "water_source_refs"))
+            self.assertEqual(evidence.featureCount(), 0)
+            coverage = QgsVectorLayer(gpkg_path + "|layername=source_coverage", "coverage", "ogr")
+            derived, = [row for row in coverage.getFeatures()
+                        if row["service_id"] == "derived_riparian_buffer_evidence"]
+            self.assertEqual(derived["status"], "AVAILABLE")
+
+        with self.scenario([]) as (fixture, layers, aoi):
+            fixture.feature_failures.add(line_id)
+            with self.assertRaises(QgsProcessingException):
+                self.run_algorithm(layers, aoi, "en", "failed-water")
+            self.assertFalse(any(Path(self.temp.name).glob("failed-water.*")))
+
+    def test_riparian_classification_and_combined_evidence_publish_as_one_pair(self):
+        line_id = "syke_rantaviiva_line_river"
+        lake_id = "syke_rantaviiva_lake"
+        with self.scenario([]) as (fixture, layers, aoi):
+            fixture.records[line_id] = [{
+                "attributes": {"objectid": "line-1", "muutospvm": "2026-10-01"},
+                "coordinates": "350025,6900050 350075,6900050",
+            }]
+            fixture.records[lake_id] = [{
+                "attributes": {"objectid": "lake-1", "muutospvm": "2026-10-02"},
+                "coordinates": coordinates(350060, 6900000, 20, 100),
+            }]
+            result = self.run_algorithm(layers, aoi, "en", "riparian-pair")
+            gpkg_path = result["RESULT"].split("|", 1)[0]
+            classified = QgsVectorLayer(gpkg_path + "|layername=classified_forest_polygons", "classified", "ogr")
+            self.assertTrue(classified.isValid())
+            pieces = list(classified.getFeatures())
+            self.assertGreater(len(pieces), 1)
+            self.assertAlmostEqual(sum(feature.geometry().area() for feature in pieces), 10000, delta=0.01)
+            riparian = [feature for feature in pieces if feature["check_riparian_buffer"] == "MATCH"]
+            self.assertTrue(riparian)
+            self.assertTrue(all(feature["class_all_out"] == "ECONOMIC" for feature in pieces))
+            self.assertTrue(all(feature["class_balance"] == "SENSITIVE" for feature in riparian))
+            self.assertTrue(all(feature["class_balance"] == "ECONOMIC" for feature in pieces if feature not in riparian))
+            for feature in riparian:
+                rules = json.loads(feature["tier_rule_ids"])
+                self.assertIn("riparian_buffer", rules["balance"]["criteria"])
+                self.assertEqual(rules["balance"]["source_ids"], [
+                    lake_id + ":lake-1", line_id + ":line-1",
+                ])
+
+            evidence = QgsVectorLayer(gpkg_path + "|layername=buffered_water_evidence", "evidence", "ogr")
+            self.assertTrue(evidence.isValid())
+            evidence_row, = list(evidence.getFeatures())
+            expected_water = QgsGeometry.unaryUnion([
+                QgsGeometry.fromWkt("LINESTRING (350025 6900050,350075 6900050)").buffer(30, 8),
+                QgsGeometry.fromWkt("POLYGON ((350060 6900000,350080 6900000,350080 6900100,350060 6900100,350060 6900000))").buffer(30, 8),
+            ]).intersection(next(aoi.getFeatures()).geometry())
+            self.assertLess(evidence_row.geometry().symDifference(expected_water).area(), 0.1)
+            self.assertEqual(json.loads(evidence_row["source_refs"]), [lake_id + ":lake-1", line_id + ":line-1"])
+            dates = json.loads(evidence_row["source_update_dates"])
+            self.assertEqual({item["muutospvm"] for item in dates}, {"2026-10-01", "2026-10-02"})
+            self.assertEqual(evidence_row["source_retrieved_feature_count"], 2)
+            self.assertEqual(evidence_row["buffers_generated_count"], 2)
+            self.assertEqual(evidence_row["aoi_contributing_buffer_feature_count"], 2)
+
+            coverage = QgsVectorLayer(gpkg_path + "|layername=source_coverage", "coverage", "ogr")
+            derived, = [row for row in coverage.getFeatures()
+                        if row["service_id"] == "derived_riparian_buffer_evidence"]
+            self.assertEqual(derived["status"], "AVAILABLE")
+            self.assertEqual(json.loads(derived["source_refs"]), [lake_id + ":lake-1", line_id + ":line-1"])
+            metadata = QgsVectorLayer(gpkg_path + "|layername=run_metadata", "metadata", "ogr")
+            run, = list(metadata.getFeatures())
+            buffer_metadata = json.loads(run["water_buffer_evidence"])
+            self.assertEqual(buffer_metadata["combined_output_feature_count"], 1)
+            retrieval = buffer_metadata["source_retrieval"][line_id]
+            self.assertEqual(retrieval["source_crs"], "EPSG:3067")
+            self.assertTrue(retrieval["spatial_filter"])
+            self.assertEqual(retrieval["request_bbox_crs"], "EPSG:3067")
+            self.assertEqual(retrieval["request_bbox"], {
+                "xmin": 349969.0, "ymin": 6899969.0, "xmax": 350131.0, "ymax": 6900131.0,
+            })
+            self.assertIn("objectid", retrieval["provider_fields"])
+            self.assertIn("muutospvm", retrieval["provider_fields"])
+
+            with sqlite3.connect(gpkg_path) as database:
+                tables = {row[0] for row in database.execute(
+                    "SELECT table_name FROM gpkg_contents WHERE data_type='features'")}
+            self.assertIn("buffered_water_evidence", tables)
+            self.assertTrue(tables.isdisjoint({line_id, "syke_rantaviiva_polygon_river", lake_id}))
+
+            sheets = workbook_rows(result["EXCEL"])
+            self.assertEqual(len(sheets), 4)
+            summary = sheets[tr("en", "sheet_summary")]
+            balance_sensitive = next(row for row in summary[1:] if row[:2] == [
+                tr("en", "tier_balance"), tr("en", "class_sensitive")])
+            expected_balance_area = sum(feature.geometry().area() for feature in riparian) / 10000
+            self.assertAlmostEqual(balance_sensitive[2], round(expected_balance_area, 2), delta=0.01)
+            self.assertIn(tr("en", "note_water_buffer"), [row[0] for row in sheets[tr("en", "sheet_notes")]])
+
     def test_boundary_grid_weights_and_localized_artifacts_in_both_languages(self):
         fields = fixture_sources()["forest_centre_gridcell"]
         grid = [source_record({**fields, "GRIDCELLID": "left", "VOLUME": 100,

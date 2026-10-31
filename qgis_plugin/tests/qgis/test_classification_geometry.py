@@ -31,10 +31,15 @@ def classify(stands, evidence, language):
     source_features["forest_centre_stand"] = stands
     for item in evidence:
         source_features[item["service_id"]].append(item)
+    water_records = [item for source in (
+        "syke_rantaviiva_line_river", "syke_rantaviiva_polygon_river", "syke_rantaviiva_lake",
+    ) for item in source_features[source]]
+    water_geometry = QgsGeometry.unaryUnion([item["geometry"] for item in water_records]) if water_records else QgsGeometry()
     return classify_source_features({"sawlog_price_eur_m3": 75.25, "language": language, "source_display_names": {
         source: source for source in SERVICE_DEFINITIONS}}, {
             "source_features": source_features, "protected_areas_status": "AVAILABLE",
             "coverage": [{"service_id": source, "status": "AVAILABLE"} for source in SERVICE_DEFINITIONS],
+            "water_evidence": {"geometry": water_geometry},
         })["result_rows"]
 
 
@@ -132,6 +137,39 @@ class ClassificationGeometryTests(unittest.TestCase):
                         expected = ["left"] if x < 40 else ["right"] if x > 60 else ["left", "right"]
                         self.assertEqual(row["source_ids"]["protected"], expected)
                         self.assertEqual(row["rules"]["all_out"]["source_ids"], expected)
+
+    def test_riparian_union_splits_once_and_keeps_piece_local_source_qualified_refs(self):
+        stand = record("forest_centre_stand", "stand", rectangle(0, 0, 100, 100))
+        line = record("syke_rantaviiva_line_river", "line-1", rectangle(20, 0, 40, 100))
+        lake = record("syke_rantaviiva_lake", "lake-1", rectangle(40, 0, 40, 100))
+        for language in ("en", "fi"):
+            with self.subTest(language=language):
+                rows = classify([stand], [line, lake], language)
+                self.assertEqual(len(rows), 3)
+                self.assertAlmostEqual(sum(row["area_ha"] for row in rows), 1.0)
+                matched = [row for row in rows if row["check_riparian_buffer"] == "MATCH"]
+                self.assertEqual(len(matched), 1)
+                self.assertEqual(matched[0]["source_ids"]["riparian_buffer"], [
+                    "syke_rantaviiva_lake:lake-1", "syke_rantaviiva_line_river:line-1",
+                ])
+                self.assertEqual(matched[0]["classes"]["all_out"], "ECONOMIC")
+                for tier in ("balance", "protection", "superprotection"):
+                    self.assertEqual(matched[0]["classes"][tier], "SENSITIVE")
+                    self.assertIn("riparian_buffer", matched[0]["rules"][tier]["criteria"])
+                    self.assertEqual(matched[0]["rules"][tier]["source_ids"], matched[0]["source_ids"]["riparian_buffer"])
+                outside = [row for row in rows if row not in matched]
+                self.assertTrue(all(row["check_riparian_buffer"] == "NO_MATCH" for row in outside))
+                self.assertTrue(all("riparian_buffer" not in row["source_ids"] for row in outside))
+
+    def test_riparian_uses_strict_existing_one_square_metre_hit_threshold(self):
+        stand = record("forest_centre_stand", "stand", rectangle(0, 0, 10, 10))
+        source = "syke_rantaviiva_polygon_river"
+        for area, expected in ((0.5, "NO_MATCH"), (1.0, "NO_MATCH"), (1.5, "MATCH")):
+            with self.subTest(area=area):
+                rows = classify([stand], [record(source, "water", rectangle(0, 0, area, 1))], "en")
+                matched = [row for row in rows if row["check_riparian_buffer"] == "MATCH"]
+                self.assertEqual(bool(matched), expected == "MATCH")
+                self.assertEqual(sum(row["geometry"].area() for row in matched), area if expected == "MATCH" else 0)
 
 
 if __name__ == "__main__":

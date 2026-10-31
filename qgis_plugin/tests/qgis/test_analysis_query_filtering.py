@@ -309,7 +309,9 @@ class AnalysisQueryFilteringTest(unittest.TestCase):
             self.assertEqual(water_evidence["source_refs"], [source + ":near"])
             self.assertGreater(water_evidence["geometry"].area(), 0)
             self.assertEqual(water_evidence["source_retrieved_feature_count"], 1)
-            self.assertEqual(water_evidence["derived_buffer_feature_count"], 1)
+            self.assertEqual(water_evidence["buffers_generated_count"], 1)
+            self.assertEqual(water_evidence["aoi_contributing_buffer_feature_count"], 1)
+            self.assertEqual(water_evidence["evidence_feature_count"], 1)
             water_coverage = result["coverage"][0]
             self.assertEqual(water_coverage["source_retrieved_feature_count"], 1)
             self.assertEqual(water_coverage["derived_buffer_feature_count"], 1)

@@ -84,7 +84,11 @@ class WizardCompletionTests(WorkflowFixtureMixin, unittest.TestCase):
     def test_success_adds_filtered_views_and_snapshots_without_replacing_previous_runs(self):
         for language in ("en", "fi"):
             self.wizard.set_language(language)
-            with self.subTest(language=language), self.scenario([]) as (_, layers, aoi):
+            with self.subTest(language=language), self.scenario([]) as (fixture, layers, aoi):
+                fixture.records["syke_rantaviiva_lake"] = [{
+                    "attributes": {"objectid": "lake-1", "muutospvm": "2026-10-02"},
+                    "coordinates": "350010,6900010 350090,6900010 350090,6900090 350010,6900090 350010,6900010",
+                }]
                 result = self.run_algorithm(layers, aoi, language, "wizard-" + language)
                 task = self.task()
                 task.result = {"gpkg_path": result["RESULT"].split("|", 1)[0], "xlsx_path": result["EXCEL"]}
@@ -102,7 +106,7 @@ class WizardCompletionTests(WorkflowFixtureMixin, unittest.TestCase):
                 added = [layer for key, layer in project.mapLayers().items() if key not in before]
                 views = [layer for layer in added if layer.customProperty(PREFIX + "class_view", False)]
                 self.assertEqual(len(views), 18)
-                self.assertEqual(len(added) - len(views), 8)
+                self.assertEqual(len(added) - len(views), 9)
                 self.assertEqual({layer.subsetString() for layer in views}, {
                     '"class_{0}" = \'{1}\''.format(tier, value)
                     for tier in ("all_out", "bau", "light", "balance", "protection", "superprotection")
@@ -114,16 +118,27 @@ class WizardCompletionTests(WorkflowFixtureMixin, unittest.TestCase):
                     self.assertEqual(node.isVisible(), layer in views and '"class_all_out"' in layer.subsetString())
                     if layer in views:
                         subset = layer.subsetString()
-                        expected = int(('"class_superprotection"' in subset and "'SENSITIVE'" in subset)
-                                       or ('"class_superprotection"' not in subset and "'ECONOMIC'" in subset))
+                        tier = next(value for value in ("all_out", "bau", "light", "balance", "protection", "superprotection")
+                                    if '"class_{0}"'.format(value) in subset)
+                        class_code = next(value for value in ("SENSITIVE", "ECONOMIC", "UNKNOWN")
+                                          if "'{0}'".format(value) in subset)
+                        expected = int(
+                            class_code == "SENSITIVE" and tier in ("balance", "protection", "superprotection")
+                            or class_code == "ECONOMIC" and tier in ("all_out", "bau", "light")
+                        )
                     else:
-                        expected = int("|layername=forest_centre_stand" in layer.source())
+                        expected = int(any("|layername=" + layer_id in layer.source() for layer_id in (
+                            "forest_centre_stand", "buffered_water_evidence",
+                        )))
                         self.assertFalse(node.parent().itemVisibilityChecked())
                         node.parent().setItemVisibilityChecked(True)
                         self.assertTrue(node.isVisible())
                         node.parent().setItemVisibilityChecked(False)
                     self.assertEqual(layer.featureCount(), expected, layer.source())
                     self.assertEqual(len(list(layer.getFeatures())), expected, layer.source())
+                    if "|layername=buffered_water_evidence" in layer.source():
+                        self.assertEqual(layer.name(), "{0} ({1})".format(
+                            tr(language, "water_evidence_layer"), tr(language, "run_input_suffix")))
                 for view in views:
                     node = project.layerTreeRoot().findLayer(view.id())
                     parent = node.parent()

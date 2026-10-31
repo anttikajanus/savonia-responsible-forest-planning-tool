@@ -111,7 +111,12 @@ def _split_stand(stand_geometry, criteria, language):
                 new_sources = {key: set(identifiers) for key, identifiers in source_ids.items()}
                 if inside:
                     new_matched.add(criterion["criterion"])
-                    new_sources.setdefault(criterion["criterion"], set()).add(criterion["source_id"])
+                    references = criterion.get("source_refs")
+                    if references is not None:
+                        if references:
+                            new_sources.setdefault(criterion["criterion"], set()).update(references)
+                    elif criterion.get("source_id") is not None:
+                        new_sources.setdefault(criterion["criterion"], set()).add(criterion["source_id"])
                 next_pieces.extend((polygon, new_matched, new_sources) for polygon in _polygon_parts(part))
         pieces = next_pieces
     # Also separate disconnected AOI-clipped components when no criterion split
@@ -133,6 +138,25 @@ def classify_source_features(inputs, retrieved, feedback=None):
         {row["service_id"]: row["status"] for row in coverage},
     )
     source_states["syke_protected_areas"] = retrieved["protected_areas_status"]
+    water_source_ids = (
+        "syke_rantaviiva_line_river", "syke_rantaviiva_polygon_river", "syke_rantaviiva_lake",
+    )
+    source_states["syke_rantaviiva_water_buffers"] = (
+        "AVAILABLE" if all(source_states.get(source_id) == "AVAILABLE" for source_id in water_source_ids)
+        else "NOT_AVAILABLE"
+    )
+    water_evidence = retrieved.get("water_evidence", {})
+    water_geometry = water_evidence.get("geometry")
+    water_records = [
+        record for service_id in water_source_ids
+        for record in source_features.get(service_id, ())
+    ]
+    if water_geometry is not None and not water_geometry.isNull() and not water_geometry.isEmpty():
+        criteria.append({
+            "criterion": "riparian_buffer", "geometry": water_geometry,
+            "source_id": "derived_riparian_buffer_evidence",
+            "source_refs": (),
+        })
     unrecognized_sources = []
     for service_id, diagnostics in classification_diagnostics.items():
         if diagnostics.get("reason_code"):
@@ -188,6 +212,8 @@ def classify_source_features(inputs, retrieved, feedback=None):
             ))
         try:
             stand_criteria = [c for c in criteria if clipped.intersects(c["geometry"])]
+            stand_water_records = [record for record in water_records
+                                   if clipped.intersects(record["geometry"])]
             # Boundary contact is not a Section 10 hit. Only positive-area
             # overlap promotes all pieces derived from this original stand.
             section10_hits = [
@@ -213,6 +239,20 @@ def classify_source_features(inputs, retrieved, feedback=None):
             if section10_hits:
                 matched.add("section10")
                 source_ids.setdefault("section10", set()).update(c["source_id"] for c in section10_hits)
+            riparian_refs = set()
+            if "riparian_buffer" in matched:
+                for record in stand_water_records:
+                    try:
+                        intersection = piece.intersection(record["geometry"])
+                    except Exception as exc:
+                        raise QgsProcessingException(tr(language, "error_geometry_overlay", detail=exc)) from exc
+                    if intersection.isNull():
+                        raise QgsProcessingException(tr(language, "error_geometry_overlay", detail="Null water-buffer intersection"))
+                    if not intersection.isEmpty() and intersection.area() > 0:
+                        riparian_refs.add("{0}:{1}".format(record["service_id"], record["source_id"]))
+                if not riparian_refs:
+                    raise QgsProcessingException(tr(language, "error_water_provenance"))
+                source_ids.setdefault("riparian_buffer", set()).update(riparian_refs)
             piece_programme_ids = source_ids.get("programme", set())
             programme_info = []
             for criterion in stand_criteria:
@@ -248,6 +288,7 @@ def classify_source_features(inputs, retrieved, feedback=None):
                 "section10": bool(section10_hits),
                 "programme_area": "programme" in matched,
                 "groundwater_area": "groundwater" in matched,
+                "riparian_buffer": "riparian_buffer" in matched and bool(riparian_refs),
                 "other_valuable_habitat": "other_habitat" in matched,
                 "source_ids": source_ids,
                 "section10_stand_promoted": (

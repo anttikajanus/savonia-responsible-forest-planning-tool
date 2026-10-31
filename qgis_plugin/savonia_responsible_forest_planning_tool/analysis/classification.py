@@ -23,6 +23,7 @@ CRITERION_FIELDS = (
     ("check_groundwater", "groundwater_area", "syke_groundwater_areas"),
     ("check_other_habitat", "other_valuable_habitat", "forest_centre_habitat"),
     ("check_potential_protected_age", "potential_protected_age", "forest_centre_stand"),
+    ("check_riparian_buffer", "riparian_buffer", "syke_rantaviiva_water_buffers"),
 )
 SOURCE_STATES = ("AVAILABLE", "NOT_AVAILABLE", "OUT_OF_SCOPE")
 
@@ -173,6 +174,7 @@ def classify_tiers(evidence, source_states):
         "section10": bool(evidence.get("section10")),
         "programme": bool(evidence.get("programme_area")),
         "groundwater": bool(evidence.get("groundwater_area")),
+        "riparian_buffer": bool(evidence.get("riparian_buffer")),
         "other_habitat": bool(evidence.get("other_valuable_habitat")),
         "potential_protected_age": evidence.get("potential_protected_age"),
     }
@@ -180,15 +182,16 @@ def classify_tiers(evidence, source_states):
         "all_out": ("protected", "section10"),
         "bau": ("protected", "section10"),
         "light": ("protected", "section10"),
-        "balance": ("protected", "section10", "programme", "groundwater"),
-        "protection": ("protected", "section10", "programme", "groundwater", "other_habitat", "potential_protected_age"),
-        "superprotection": ("protected", "section10", "programme", "groundwater", "other_habitat", "potential_protected_age"),
+        "balance": ("protected", "section10", "programme", "groundwater", "riparian_buffer"),
+        "protection": ("protected", "section10", "programme", "groundwater", "riparian_buffer", "other_habitat", "potential_protected_age"),
+        "superprotection": ("protected", "section10", "programme", "groundwater", "riparian_buffer", "other_habitat", "potential_protected_age"),
     }
     dependencies = {
         "protected": ("syke_protected_areas",),
         "section10": ("forest_centre_habitat",),
         "programme": ("syke_nature_conservation_programme_areas",),
         "groundwater": ("syke_groundwater_areas",),
+        "riparian_buffer": ("syke_rantaviiva_water_buffers",),
         "other_habitat": ("forest_centre_habitat",),
         "potential_protected_age": ("forest_centre_stand",),
     }

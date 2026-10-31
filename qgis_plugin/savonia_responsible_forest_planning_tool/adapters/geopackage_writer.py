@@ -32,25 +32,27 @@ def write_geopackage(path, result_layer, snapshots, coverage, run_metadata, tran
     first = False
     for layer_name, layer in snapshots:
         _write_layer(layer, path, layer_name, transform_context, first_layer=first)
+        if layer_name == "buffered_water_evidence":
+            _save_layer_presentation(path, layer, layer_name)
         first = False
     coverage_layer = _table_layer("source_coverage", coverage)
     _write_layer(coverage_layer, path, "source_coverage", transform_context, first_layer=first)
     metadata_layer = _table_layer("run_metadata", run_metadata)
     _write_layer(metadata_layer, path, "run_metadata", transform_context, first_layer=False)
-    _save_result_presentation(path, result_layer)
+    _save_layer_presentation(path, result_layer, "classified_forest_polygons")
     return path
 
 
-def _save_result_presentation(path, result_layer):
-    """Keep field aliases and numeric display settings when reopening the file."""
-    saved = QgsVectorLayer(path + "|layername=classified_forest_polygons", "classified_forest_polygons", "ogr")
+def _save_layer_presentation(path, result_layer, layer_name):
+    """Persist field aliases and form presentation for a GeoPackage layer."""
+    saved = QgsVectorLayer(path + "|layername=" + layer_name, layer_name, "ogr")
     try:
         if not saved.isValid():
-            raise IOError("Could not reopen GeoPackage result layer to save field presentation")
+            raise IOError("Could not reopen GeoPackage layer {0} to save field presentation".format(layer_name))
         style = QgsMapLayerStyle()
         style.readFromLayer(result_layer)
         style.writeToLayer(saved)
-        arguments = ("classified_forest_polygons", "", True, "", QgsMapLayer.Fields | QgsMapLayer.Forms)
+        arguments = (layer_name, "", True, "", QgsMapLayer.Fields | QgsMapLayer.Forms)
         if hasattr(saved, "saveStyleToDatabaseV2"):
             result, message = saved.saveStyleToDatabaseV2(*arguments)
             failed = result != QgsMapLayer.SaveStyleResult.Success
@@ -59,7 +61,7 @@ def _save_result_presentation(path, result_layer):
             message = saved.saveStyleToDatabase(*arguments)
             failed = bool(message)
         if failed:
-            raise IOError("Could not save GeoPackage result field presentation: {0}".format(message))
+            raise IOError("Could not save GeoPackage layer {0} field presentation: {1}".format(layer_name, message))
     finally:
         # An exception traceback keeps this frame alive during paired cleanup.
         # Release its OGR handle first so Windows can remove the partial file.

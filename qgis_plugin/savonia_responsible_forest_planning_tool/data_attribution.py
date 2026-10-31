@@ -57,7 +57,8 @@ def data_attribution(source_ids, changes_notice):
 
     Basemaps are not copied to analysis outputs. Keep their attribution in the
     map containing them. Unknown source IDs fail explicitly rather than receive
-    an invented licence. The analysis currently validates these eight sources.
+    an invented licence. The analysis uses configured stand, grid, habitat,
+    protection, groundwater, programme and Ranta10 water sources.
     """
     credits = {}
     for source_id in source_ids:

@@ -21,6 +21,7 @@ from ...data_attribution import data_attribution
 from ...adapters.excel_writer import write_workbook
 from ...adapters.result_precision import RESULT_DECIMALS
 from ...adapters.geopackage_writer import write_geopackage
+from ...adapters.classified_result import create_water_evidence_layer
 from ...adapters.serialization import json_default
 from ...i18n import tr
 from ...adapters.sources import OUT_OF_SCOPE_COVERAGE
@@ -48,6 +49,51 @@ def prepare_publication(inputs, retrieved, classified, run_id):
             excluded["message"] = tr(language, "peat_criterion_scope")
         coverage.append(excluded)
     source_metadata = inputs["source_metadata"]
+    water_evidence = retrieved.get("water_evidence", {})
+    water_source_ids = (
+        "syke_rantaviiva_line_river", "syke_rantaviiva_polygon_river", "syke_rantaviiva_lake",
+    )
+    water_retrieval = {
+        row["service_id"]: {
+            key: row.get(key)
+            for key in ("endpoint", "feature_type", "source_crs", "provider", "spatial_filter",
+                        "request_bbox", "request_bbox_crs",
+                        "query_time", "schema_discovered_at", "provider_fields", "schema",
+                        "buffer_distance_m", "geometry_policy", "query_extent_expansion_m",
+                        "source_retrieved_feature_count", "derived_buffer_feature_count", "buffers_generated_count")
+        }
+        for row in retrieved["coverage"] if row.get("service_id") in water_source_ids
+    }
+    for source_id in water_source_ids:
+        if source_id in water_retrieval:
+            water_retrieval[source_id]["provider_fields"] = list(
+                source_metadata[source_id].get("provider_fields", ())
+            )
+    has_water_geometry = (
+        water_evidence.get("geometry") is not None
+        and not water_evidence["geometry"].isNull()
+        and not water_evidence["geometry"].isEmpty()
+    )
+    coverage.append({
+        "service_id": "derived_riparian_buffer_evidence",
+        "status": "AVAILABLE",
+        "scope": "derived_sensitivity_evidence",
+        "derived_from_source_ids": water_source_ids,
+        "source_refs": water_evidence.get("source_refs", ()),
+        "source_update_dates": water_evidence.get("source_update_dates", ()),
+        "source_retrieved_feature_count": water_evidence.get("source_retrieved_feature_count", 0),
+        "buffers_generated_count": water_evidence.get("buffers_generated_count", 0),
+        "aoi_contributing_buffer_feature_count": water_evidence.get("aoi_contributing_buffer_feature_count", 0),
+        "evidence_feature_count": water_evidence.get("evidence_feature_count", 0),
+        "combined_output_feature_count": 1 if has_water_geometry else 0,
+        "buffer_distance_m": water_evidence.get("buffer_distance_m", 30.0),
+        "buffer_distance_units": "metres",
+        "criterion_minimum_overlap_m2": 1.0,
+        "criterion_comparison": "strictly_greater_than",
+        "geometry_policy": "union_of_individual_buffers_clipped_to_aoi",
+        "source_retrieval": water_retrieval,
+        "message": tr(language, "water_buffer_provenance"),
+    })
     stand_fields = source_metadata["forest_centre_stand"]["provider_fields"]
     confirmed_stand_fields = sorted({
         name for name in stand_fields
@@ -85,6 +131,7 @@ def prepare_publication(inputs, retrieved, classified, run_id):
         tr(language, "note_source_dates"),
         tr(language, "note_deferred_metrics"),
         tr(language, "note_sawlog_value"),
+        tr(language, "note_water_buffer"),
     ]
     grid_fields = {
         name.lower(): name for name in source_metadata["forest_centre_gridcell"]["provider_fields"]
@@ -125,6 +172,32 @@ def prepare_publication(inputs, retrieved, classified, run_id):
                 "unknown": "missing, nonnumeric, boolean, nonfinite or negative age",
                 "interpretation": "potential protection based on age; not legal protection",
             },
+            "riparian_buffer": {
+                "source_ids": water_source_ids,
+                "tiers": ["balance", "protection", "superprotection"],
+                "minimum_piece_overlap_m2": 1.0,
+                "comparison": "strictly greater than",
+                "scope": "individual classified result piece; no parent-stand promotion",
+            },
+        },
+        "water_buffer_evidence": {
+            "source_ids": water_source_ids,
+            "source_refs": water_evidence.get("source_refs", ()),
+            "source_update_dates": water_evidence.get("source_update_dates", ()),
+            "buffer_distance_m": water_evidence.get("buffer_distance_m", 30.0),
+            "buffer_distance_units": "metres",
+            "criterion_minimum_overlap_m2": 1.0,
+            "criterion_comparison": "strictly_greater_than",
+            "geometry_policy": "buffer_in_epsg_3067_then_union_and_clip_to_aoi",
+            "polygon_buffer_includes_source_geometry": True,
+            "line_buffer": "two_sided_30_m",
+            "source_retrieved_feature_count": water_evidence.get("source_retrieved_feature_count", 0),
+            "buffers_generated_count": water_evidence.get("buffers_generated_count", 0),
+            "aoi_contributing_buffer_feature_count": water_evidence.get("aoi_contributing_buffer_feature_count", 0),
+            "evidence_feature_count": water_evidence.get("evidence_feature_count", 0),
+            "combined_output_feature_count": 1 if has_water_geometry else 0,
+            "source_retrieval": water_retrieval,
+            "attribution": data_attribution(water_source_ids, tr(language, "data_attribution_changes")),
         },
         "metric_coverage": summarize_indicator_rows(classified["result_rows"])["indicator_coverage"],
         "indicator_semantics": {
@@ -171,6 +244,7 @@ def prepare_publication(inputs, retrieved, classified, run_id):
     }]
     return {
         "coverage": coverage,
+        "snapshots": [*retrieved["snapshots"], ("buffered_water_evidence", create_water_evidence_layer(water_evidence, language))],
         "limitations": limitations,
         "run_metadata": run_metadata,
     }
@@ -196,7 +270,7 @@ def write_outputs(inputs, retrieved, classified, publication, feedback=None):
         step_started = time.perf_counter()
         logger.info("run_id=%s stage=output_writing step=geopackage started", run_id)
         write_geopackage(
-            gpkg_path, classified["output_layer"], retrieved["snapshots"], coverage,
+            gpkg_path, classified["output_layer"], publication["snapshots"], coverage,
             run_metadata, inputs["transform_context"],
         )
         logger.info(

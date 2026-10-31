@@ -39,8 +39,8 @@ def create_classified_result_layer(rows, language="en"):
     ])
     fields.extend([
         QgsField("indicator_coverage", QVariant.String),
-        QgsField("tier_rule_ids", QVariant.String, len=4096),
-        QgsField("source_ids", QVariant.String, len=4096),
+        QgsField("tier_rule_ids", QVariant.String),
+        QgsField("source_ids", QVariant.String),
         QgsField("section10_stand_promoted", QVariant.Bool),
         QgsField("programme_info", QVariant.String, len=8192),
         QgsField("programme_protected_overlap", QVariant.String, len=16),
@@ -88,6 +88,51 @@ def create_classified_result_layer(rows, language="en"):
         feature.setAttributes(attributes)
         features.append(feature)
     require_provider_success(layer.dataProvider().addFeatures(features), "classified result features")
+    layer.updateExtents()
+    return layer
+
+
+def create_water_evidence_layer(evidence, language="en"):
+    """Create the single combined buffered-water evidence layer for a run."""
+    layer = QgsVectorLayer("MultiPolygon?crs=EPSG:3067", tr(language, "water_evidence_layer"), "memory")
+    fields = [
+        QgsField("evidence_id", QVariant.String, len=64),
+        QgsField("source_refs", QVariant.String),
+        QgsField("source_update_dates", QVariant.String),
+        QgsField("buffer_distance_m", QVariant.Double),
+        QgsField("source_retrieved_feature_count", QVariant.Int),
+        QgsField("buffers_generated_count", QVariant.Int),
+        QgsField("aoi_contributing_buffer_feature_count", QVariant.Int),
+    ]
+    require_provider_success(layer.dataProvider().addAttributes(fields), "buffered water evidence fields")
+    layer.updateFields()
+    aliases = {
+        "evidence_id": "water_evidence_id",
+        "source_refs": "water_source_refs",
+        "source_update_dates": "water_source_update_dates",
+        "buffer_distance_m": "water_buffer_distance",
+        "source_retrieved_feature_count": "water_source_retrieved_count",
+        "buffers_generated_count": "water_buffers_generated_count",
+        "aoi_contributing_buffer_feature_count": "water_aoi_contributing_count",
+    }
+    for field_name, label_key in aliases.items():
+        layer.setFieldAlias(layer.fields().indexFromName(field_name), tr(language, label_key))
+    geometry = evidence.get("geometry")
+    if geometry is not None and not geometry.isNull() and not geometry.isEmpty():
+        feature = QgsFeature(layer.fields())
+        geometry = QgsGeometry(geometry)
+        geometry.convertToMultiType()
+        feature.setGeometry(geometry)
+        feature.setAttributes([
+            "combined_riparian_buffer",
+            json.dumps(evidence.get("source_refs", ()), ensure_ascii=False, sort_keys=True),
+            json.dumps(evidence.get("source_update_dates", ()), ensure_ascii=False, sort_keys=True, default=json_default),
+            evidence.get("buffer_distance_m"),
+            evidence.get("source_retrieved_feature_count", 0),
+            evidence.get("buffers_generated_count", 0),
+            evidence.get("aoi_contributing_buffer_feature_count", 0),
+        ])
+        require_provider_success(layer.dataProvider().addFeatures([feature]), "buffered water evidence feature")
     layer.updateExtents()
     return layer
 

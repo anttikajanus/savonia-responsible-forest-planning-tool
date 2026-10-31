@@ -20,13 +20,17 @@ class ClassificationTests(unittest.TestCase):
     sources = ("syke_protected_areas", "forest_centre_habitat",
                "syke_nature_conservation_programme_areas", "syke_groundwater_areas", "forest_centre_stand")
 
+    def available_states(self):
+        return {**dict.fromkeys(self.sources, "AVAILABLE"),
+                "syke_rantaviiva_water_buffers": "AVAILABLE"}
+
     def test_all_trigger_combinations_have_cumulative_classes_and_exact_rules(self):
         # Expected membership comes from CL-02, independently of implementation constants.
         triggers = (("active_protected", "protected", 0), ("section10", "section10", 0),
                     ("programme_area", "programme", 3), ("groundwater_area", "groundwater", 3),
                     ("other_valuable_habitat", "other_habitat", 4),
                     ("potential_protected_age", "potential_protected_age", 4))
-        states = dict.fromkeys(self.sources, "AVAILABLE")
+        states = self.available_states()
         for enabled in itertools.product((False, True), repeat=6):
             evidence = {field: value for (field, _, _), value in zip(triggers, enabled)}
             evidence["source_ids"] = {criterion: ["b-" + criterion, "a-" + criterion,
@@ -55,7 +59,7 @@ class ClassificationTests(unittest.TestCase):
     def test_missing_dependencies_affect_only_dependent_tiers_and_positive_matches_win(self):
         for source, first_tier in zip(self.sources, (0, 0, 3, 3, 4)):
             for state in (None, "NOT_AVAILABLE", "OUT_OF_SCOPE"):
-                states = dict.fromkeys(self.sources, "AVAILABLE")
+                states = self.available_states()
                 if state is None:
                     del states[source]
                 else:
@@ -72,7 +76,7 @@ class ClassificationTests(unittest.TestCase):
                     self.assertTrue(all(rule["source_ids"] == ["habitat-1"] for rule in rules.values()))
 
     def test_piece_exposes_criterion_matches_without_redundant_indicator_payloads(self):
-        states = dict.fromkeys(self.sources, "AVAILABLE")
+        states = self.available_states()
         states["forest_centre_stand"] = "AVAILABLE"
         row = assemble_classified_piece("stand-1", {}, 1, {
             "section10": True, "section10_stand_promoted": True,
@@ -98,8 +102,36 @@ class ClassificationTests(unittest.TestCase):
         positive = assemble_classified_piece("stand-3", {}, 1, {"section10": True}, {})
         self.assertEqual(positive["check_section10"], "MATCH")
 
+    def test_riparian_is_an_available_dependency_from_balance_and_coexists_with_other_reasons(self):
+        states = self.available_states()
+        missing = dict(states)
+        del missing["syke_rantaviiva_water_buffers"]
+        classes, rules = classify_tiers({}, missing)
+        self.assertEqual([classes[tier] for tier in self.tiers], [
+            "ECONOMIC", "ECONOMIC", "ECONOMIC", "UNKNOWN", "UNKNOWN", "UNKNOWN",
+        ])
+        for tier in self.tiers[3:]:
+            self.assertIn("syke_rantaviiva_water_buffers", rules[tier]["unknown_sources"])
+
+        row = assemble_classified_piece("stand", {}, 1, {
+            "groundwater_area": True,
+            "riparian_buffer": True,
+            "source_ids": {
+                "groundwater": ["groundwater-1"],
+                "riparian_buffer": ["syke_rantaviiva_line_river:line-1"],
+            },
+        }, states)
+        self.assertEqual(row["check_riparian_buffer"], "MATCH")
+        self.assertEqual(row["classes"]["all_out"], "ECONOMIC")
+        for tier in self.tiers[3:]:
+            self.assertEqual(row["classes"][tier], "SENSITIVE")
+            self.assertEqual(row["rules"][tier]["criteria"], ["groundwater", "riparian_buffer"])
+            self.assertEqual(row["rules"][tier]["source_ids"], [
+                "groundwater-1", "syke_rantaviiva_line_river:line-1",
+            ])
+
     def test_stand_age_threshold_and_provenance_are_independent_of_grid_age(self):
-        states = dict.fromkeys(self.sources, "AVAILABLE")
+        states = self.available_states()
         for field in ("MEANAGE", "MeanAge", "meanage"):
             for age, match in ((0, False), (79.99, False), (80, False), (80.001, True), (120, True)):
                 with self.subTest(field=field, age=age):
@@ -119,7 +151,7 @@ class ClassificationTests(unittest.TestCase):
                     self.assertEqual(evidence, original)
 
     def test_unknown_stand_age_never_becomes_no_match_or_superprotection_catch_all(self):
-        states = dict.fromkeys(self.sources, "AVAILABLE")
+        states = self.available_states()
         for age in (None, "81", "invalid", True, False, -1, float("nan"), float("inf"), float("-inf"), 81j):
             for evidence in ({}, {"other_valuable_habitat": True}):
                 with self.subTest(age=age, evidence=evidence):

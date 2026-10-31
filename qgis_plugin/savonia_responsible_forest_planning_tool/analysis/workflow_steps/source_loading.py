@@ -344,7 +344,7 @@ def _source_coverage(context, source_id_strategy, features,
                      inspected_feature_count, non_overlapping_feature_count,
                      repaired_feature_count, repaired_feature_ids, derived_buffer_count,
                      selected_feature_id_set, source_id_fallback_count,
-                     coverage_message, spatial_filter):
+                     coverage_message, spatial_filter, filter_rect):
     """Assemble stable retrieval provenance and coverage fields."""
     layer = context.layer
     metadata = context.metadata
@@ -383,9 +383,15 @@ def _source_coverage(context, source_id_strategy, features,
         coverage.update({
             "source_retrieved_feature_count": inspected_feature_count,
             "derived_buffer_feature_count": derived_buffer_count,
+            "buffers_generated_count": derived_buffer_count,
             "buffer_distance_m": WATER_BUFFER_DISTANCE_M,
             "geometry_policy": "buffer_in_epsg_3067_then_clip_to_aoi",
             "query_extent_expansion_m": WATER_QUERY_EXPANSION_M,
+            "request_bbox_crs": layer.crs().authid(),
+            "request_bbox": {
+                "xmin": filter_rect.xMinimum(), "ymin": filter_rect.yMinimum(),
+                "xmax": filter_rect.xMaximum(), "ymax": filter_rect.yMaximum(),
+            },
         })
     return coverage
 
@@ -400,6 +406,14 @@ def _combined_water_evidence(source_features, coverage, language):
         "{0}:{1}".format(record["service_id"], record["source_id"])
         for record in records
     })
+    source_update_dates = []
+    for record in records:
+        attributes = {str(key).lower(): value for key, value in record.get("attributes", {}).items()}
+        reference = "{0}:{1}".format(record["service_id"], record["source_id"])
+        source_update_dates.append({
+            "source_ref": reference,
+            "muutospvm": attributes.get("muutospvm"),
+        })
     if not records:
         geometry = QgsGeometry()
     else:
@@ -411,15 +425,23 @@ def _combined_water_evidence(source_features, coverage, language):
                 language, "error_geometry_overlay",
                 detail="Could not combine buffered water evidence: {0}".format(exc),
             )) from exc
+    combined_output_feature_count = int(not geometry.isNull() and not geometry.isEmpty())
     return {
         "geometry": geometry,
         "source_refs": references,
+        "source_update_dates": source_update_dates,
         "buffer_distance_m": WATER_BUFFER_DISTANCE_M,
         "source_retrieved_feature_count": sum(
             row.get("source_retrieved_feature_count", 0)
             for row in coverage if row.get("service_id") in WATER_SOURCE_IDS
         ),
-        "derived_buffer_feature_count": len(records),
+        "buffers_generated_count": sum(
+            row.get("buffers_generated_count", 0)
+            for row in coverage if row.get("service_id") in WATER_SOURCE_IDS
+        ),
+        "aoi_contributing_buffer_feature_count": len(records),
+        "evidence_feature_count": combined_output_feature_count,
+        "combined_output_feature_count": combined_output_feature_count,
     }
 
 
@@ -670,7 +692,7 @@ def _read_source(context):
         inspected_feature_count, non_overlapping_feature_count,
         repaired_feature_count, repaired_feature_ids,
         derived_buffer_count,
-        selected_feature_id_set, source_id_fallback_count, coverage_message, spatial_filter,
+        selected_feature_id_set, source_id_fallback_count, coverage_message, spatial_filter, filter_rect,
     )
     if service_id == "forest_centre_gridcell":
         coverage["deduplicated_feature_count"] = duplicate_count
@@ -775,6 +797,10 @@ def retrieve_sources(inputs, feedback=None):
         sum(len(source_features.get(service_id, ())) for service_id in inputs["service_ids"]),
     )
     grid_sampler = GridCellSampler(source_features.get("forest_centre_gridcell", ()), language, feedback)
+    if feedback is not None and hasattr(feedback, "pushInfo"):
+        feedback.pushInfo(tr(language, "progress_prepare_water_buffers"))
+        if hasattr(feedback, "setProgressText"):
+            feedback.setProgressText(tr(language, "progress_prepare_water_buffers"))
     water_evidence = _combined_water_evidence(source_features, coverage, language)
     return {
         "coverage": coverage,

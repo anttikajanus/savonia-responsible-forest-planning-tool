@@ -795,6 +795,7 @@ class ResponsibleForestPlanningWizard(QWidget):
             "syke_nature_conservation_programme_areas",
             ("syke_groundwater_areas", "groundwater_layer"),
             ("forest_centre_gridcell", "gridcell_layer"),
+            ("buffered_water_evidence", "water_evidence_layer"),
         )
         for item in snapshot_name_keys:
             service_id, name_key = item if isinstance(item, tuple) else (item, "programme_layer")
