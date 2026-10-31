@@ -6,10 +6,15 @@ information; follow only the branches relevant to the task.
 
 ## Optional agent setup
 
+This repository includes a project-scoped [spec-first development workflow](../../.agents/skills/spec-first-development/SKILL.md). It connects upstream skills to the local spec, tracker, and documentation conventions. Keep reusable upstream skill files outside this repository; the workflow still applies if an upstream skill is unavailable.
+
 For agent-assisted development, install the `mattpocock/skills` collection as an
 external plugin using the [upstream installation instructions](https://github.com/mattpocock/skills#installation-30-second-setup)
-for your agent. Keep upstream skill files outside this repository. This setup is
-optional for developing and running the project.
+for your agent. Keep upstream skill files outside this repository. The repository's
+[spec-first development workflow](../../.agents/skills/spec-first-development/SKILL.md)
+connects those reusable skills to this project's local spec, tracker and documentation
+rules. The plugin setup is optional for developing and running the project; follow
+the repository workflow even when an upstream skill is unavailable.
 
 When a skill asks for project-specific setup, use the [local issue tracker](issue-tracker.md),
 [triage labels](triage-labels.md) and documentation ownership map below for the
