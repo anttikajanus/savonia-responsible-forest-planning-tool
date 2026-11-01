@@ -28,6 +28,7 @@ tracker, labels and document destinations.
 | Current user goals and functional requirements | [Specification index](../specs/README.md) | Start with the affected stories and requirement IDs; use [specification maintenance](specifications.md) for changes. |
 | Technical boundaries, contracts and adopted decisions | [Architecture index](../architecture/README.md) | Read the relevant contract and ADRs; apply [architecture scope](specifications.md#architecture-scope) when writing or reviewing them. |
 | Commands for development, tests and packaging | [Development guide](../architecture/development.md) | Use the documented runtime/commands; summarize checks in the task response. |
+| Software credits, licence texts and dataset attribution | [Acknowledgements](../../OPEN_SOURCE_ACKNOWLEDGEMENTS.md) and [packaged notices](../../qgis_plugin/savonia_responsible_forest_planning_tool/THIRD_PARTY_NOTICES) | Keep credits and upstream links in acknowledgements; the root `LICENSE` owns MIT text and packaged notices own the package summary and exact dataset credits. Copy the root licence during packaging; retain the CC legal code once under `licenses/`. |
 | Personal manual testing | [Manual checklist](../testing/manual-acceptance.md) | Use its steps and expected results when checking the installed plugin; follow its lightweight workflow. |
 | Planner instructions | [English manual](../help/manual_en.html) and [Finnish manual](../help/manual_fi.html) | Maintain equivalent user instructions; [QGIS guidance](qgis.md) owns localization and package checks. |
 | Local working proposals, issues and verification records | Ignored `.scratch/<feature-slug>/` | Follow the [local tracker](issue-tracker.md) and [triage mapping](triage-labels.md). Publish current behavior and remaining gaps in maintained documentation. |
@@ -35,7 +36,7 @@ tracker, labels and document destinations.
 | Research evidence | [Research guidance](research.md) | Save findings under ignored `docs/research/`; promote adopted requirements, decisions and unresolved questions to their maintained owners. |
 | External source material | [Reference index](../references/README.md) | Procurement PDFs are versioned under `procurement/629864/`; provider evidence has a separate cache. |
 | Provider capabilities, schemas and PDF/XLSX documents | [Service metadata](../references/service-metadata/README.md) | Read cached files first. The manifest and instructions are versioned; downloads and retrieval metadata are ignored. |
-| Unresolved implementation gaps, provider questions and pending acceptance | `docs/open-questions.md` | Record unresolved work only in this file. Other maintained documents describe current behavior, decisions and procedures without repeating or linking individual open items. Review affected documentation when implementing a resolution. |
+| Concrete tasks and unresolved questions | `docs/open-questions.md` | Keep actionable changes and specific unknowns here. Routine verification plans/results and hypothetical work outside the prototype scope do not belong in this file. Other maintained documents must not repeat or link open items; review them when implementing a resolution. |
 
 ## Reading and handoff
 

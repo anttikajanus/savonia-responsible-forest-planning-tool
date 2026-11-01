@@ -15,6 +15,7 @@ function Write-PluginArchive {
     $source = Get-Item -LiteralPath $PluginFolder -ErrorAction Stop
     $sourceRoot = $source.FullName.TrimEnd('\', '/')
     $helpFolder = Join-Path $source.Parent.Parent.FullName 'docs/help'
+    $licencePath = Join-Path $source.Parent.Parent.FullName 'LICENSE'
     $destination = [System.IO.Path]::GetFullPath($ArchivePath)
     New-Item -ItemType Directory -Path ([System.IO.Path]::GetDirectoryName($destination)) -Force | Out-Null
     if (Test-Path -LiteralPath $destination) {
@@ -22,6 +23,9 @@ function Write-PluginArchive {
     }
     $archive = [System.IO.Compression.ZipFile]::Open($destination, [System.IO.Compression.ZipArchiveMode]::Create)
     try {
+        [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
+            $archive, $licencePath, $source.Name + '/LICENSE', [System.IO.Compression.CompressionLevel]::Optimal
+        ) | Out-Null
         foreach ($language in @('fi', 'en')) {
             $manualName = "manual_$language.html"
             $manual = [System.IO.File]::ReadAllText((Join-Path $helpFolder $manualName))
@@ -39,7 +43,7 @@ function Write-PluginArchive {
         }
         Get-ChildItem -LiteralPath $sourceRoot -Recurse -File -Force -ErrorAction Stop | ForEach-Object {
             $relative = $_.FullName.Substring($sourceRoot.Length + 1).Replace('\', '/')
-            if ($relative -match '(^|/)__pycache__(/|$)' -or $_.Extension -in '.pyc', '.pyo') {
+            if ($relative -eq 'LICENSE' -or $relative -match '(^|/)__pycache__(/|$)' -or $_.Extension -in '.pyc', '.pyo') {
                 return
             }
             $entryName = $source.Name + '/' + $relative

@@ -1,92 +1,48 @@
-# Open questions and remaining verification
+# Open questions and tasks
 
-This register contains unresolved implementation gaps, provider questions,
-planning assumptions and acceptance/release checks. Settled behavior and scope
-belong in [specs](specs/README.md) and [architecture](architecture/README.md).
-Automated procedures belong to [development](architecture/development.md), and
-interactive procedures to the [manual checklist](testing/manual-acceptance.md).
+Concrete changes to make and questions to resolve for this prototype. Remove an
+item when it is resolved and update the affected documentation at that time.
 
-## Provider evidence
+## To do
 
-### Reference material integrity
+- Fix the XSD parser so saved properties belong only to the selected feature
+  type, rather than every XML element in the schema.
+- Investigate the reported minute-long setup stall and identify whether the
+  delay comes from source initialization or map rendering.
+- Carry the source, licence, provider/dataset credit and delivery date of an
+  externally supplied analysis boundary into shared outputs.
+- Use the prescribed Ranta10 joint credit and direct dataset metadata link in
+  portable output attribution.
+- Add visible source credits to maps and screenshots, including MML dataset and
+  delivery date and the OpenStreetMap contributor credit and licence route.
+- Download the authenticated MML WMTS capabilities reference into the local
+  cache when an API key is available.
 
-The authenticated `mml/wmts/get-capabilities.xml` reference is still missing.
-Capture it when an authorized key is available, following the
-[reference instructions](references/service-metadata/README.md#provider-credentials).
-Keep this material-availability check separate from live feature values and
-coverage verification.
+## Questions to resolve
 
-### Live values and service behavior
-
-| Item | Current limit and next evidence needed |
-| --- | --- |
-| Analysis polygon queries | Verify the original multipart parcel selection interactively, representative AOIs on all eleven sources, provider handling of malformed polygons before local repair, and deployment-specific GET limits. Bounded samples do not establish completeness or a performance guarantee. |
-| Setup responsiveness | Investigate the reported minute-long setup stall end to end. Use the manual checklist's MT-08 to separate source initialization waits from map rendering. |
-| MML property context | Verify both live collections/schemas, paging, representative formatted identifiers and network errors with an authorized key. Cached models alone do not establish live behavior. |
-| Representative classification values | Check sanitized habitat codes, active/inactive protected statuses/categories, programme identifiers/classes and null formats. Verify representative values and completeness across all three protected sources, including wilderness. Saved XSDs do not settle these questions. |
-| Groundwater | Confirm representative identifiers/nulls and service-specific field meanings for VHS2022. The general groundwater PDF does not establish those semantics. |
-| Ranta10 water sources | Verify live access, source subsets/authentication, complete paging, expanded bbox/polygon filtering, nearby outside-AOI river retention, update dates and request failures for all three products. Geographic completeness remains unverified. |
-| Inventory coverage and dates | Check stand/grid identifiers, measurement/update semantics, null prevalence and product freshness. Establish geographic coverage; an empty response alone does not show that habitats or inventory are absent. |
-| Growth meaning | Clarify current versus periodic growth, gross versus net growth, and denominator timing before adopting a stricter description of the derived indicator. |
-
-Evidence locations and primary sources are in [data sources](architecture/data-sources.md) and [indicators](architecture/indicators.md); saved XML/XSD/model artifacts remain under [references](references/service-metadata/README.md).
-
-## Analysis validation
-
-### Large-area memory use
-
-Measure peak memory on representative AOIs and establish practical guidance for
-run size. The [current working set](architecture/overview.md#aoi-wide-working-set)
-can exhaust memory and potentially crash QGIS, but no safe-area threshold or
-reproduced out-of-memory crash has been established.
-
-### Section 10 stand-wide promotion validation
-
-Validate with intended planners whether a qualifying mapped habitat should make
-the entire AOI-clipped parent stand sensitive or only the mapped habitat
-footprint. For example, a 10 ha stand containing a 0.2 ha qualifying habitat
-currently becomes 10 ha of sensitive forest in tiers containing Section 10.
-Agree the rationale and spatial extent; correct implementation alone does not
-establish suitability or planner acceptance.
-
-Check that the explanation of `section10_stand_promoted = true` communicates
-the stand-wide planning assumption without implying every piece overlaps the
-habitat or all 10 ha are legally Section 10 habitat. Current behavior and field
-meaning remain owned by [CL-01](specs/classification.md#cl-01-reporting-domain-and-geometry)
-and the [output contract](architecture/output-schema.md#classification-reasons-and-context).
-
-## Known implementation gaps
-
-### Raw XSD metadata parser
-
-[`describe_feature_type()`](../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py)
-walks all XML elements into saved properties, including feature declarations
-outside the selected type's property sequence. Provider-field readiness bypasses
-this defect, but discovery provenance can contain misleading properties.
-
-Completion requires parsing the selected feature type's actual property
-definitions, with representative multi-type/imported-schema fixtures and
-retained provider-field readiness behavior.
-
-## Acceptance and distribution
-
-### Interactive acceptance
-
-Complete desktop, Finnish/English, Excel, browser and offline-help checks using
-the [personal manual checklist](testing/manual-acceptance.md). Include Water-group
-ordering, symbols and scale restoration; wizard/Processing parity; reopened
-output presentation; and retained snapshot-group behavior. The checklist's
-[open-question mapping](testing/manual-acceptance.md#use-the-checklist-with-open-questions)
-connects the relevant cases to investigation topics.
-
-### Release and distribution verification
-
-- Optional merge blocking needs administrator activation of the checked-in
-  ruleset. See [required merge checks](architecture/development.md#required-merge-checks).
-- Compatibility with releases beyond the QGIS 3.44.0 and 4.2.3 verification
-  baselines remains unverified, including intervening 4.0/4.2 releases admitted
-  by the continuous metadata range. Repeat source and packaged checks for each
-  additional target. Finnish/English desktop acceptance on both baselines
-  remains separate from offscreen automated coverage.
-- Arrange explicit map-visible OpenStreetMap attribution for the basemap and shared maps/screenshots; the reviewed setup and About credits do not establish that display. Separately review tile-client usage-policy behavior if preparing distribution.
-- A full ownership and host/transitive licence-compatibility audit remains outstanding. Recheck inventory and dataset-specific terms when adding copied material, runtime bundles, custom data or a public distribution destination. [Distribution boundaries](architecture/distribution.md).
+- Should a qualifying Section 10 habitat make the whole clipped stand sensitive,
+  or only its mapped footprint? For example, should a 0.2 ha habitat make all of
+  a 10 ha stand sensitive? Agree the spatial rule and how to explain
+  `section10_stand_promoted` to planners.
+- What does the Metsäkeskus growth measure represent: current or periodic growth,
+  gross or net growth, and which volume/date supplies its denominator?
+- What geographic coverage and observation/update dates do the stand, grid and
+  Ranta10 products represent? How can an empty response be distinguished from
+  an area outside the dataset's coverage?
+- Which habitat codes, protected-area statuses/categories, programme classes and
+  null formats do the live sources return, and what do they mean?
+- What are the field meanings and identifier/null conventions for the configured
+  `VHS2022_Pohjavesi` groundwater product?
+- What schemas and identifier formats do the live MML parcel and identifier
+  collections return?
+- Which paging, query-size and geometry-filter limits apply to the configured
+  services, especially multipart or malformed AOIs and water near the AOI edge?
+- What practical analysis-area size can the current in-memory workflow handle?
+- Which current Ranta10 metadata record corresponds to the older pointer
+  advertised by the WFS service?
+- What permission or statutory basis covers republication of the Savonia
+  procurement PDFs and any independent works within them?
+- Does the QGIS OSM tile client need application-specific identification or cache
+  configuration to meet the tile-service policy?
+- Should merges to `main` require the CI checks, and is the repository ruleset
+  enabled if that is the intended policy?

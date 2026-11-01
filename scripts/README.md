@@ -16,7 +16,7 @@ guidance](../docs/agents/issue-tracker.md#local-development-artifacts).
 | [`prepare-worktree.ps1`](prepare-worktree.ps1) | Prepare an isolated ticket worktree and its task context. | [Prepared ticket worktrees](../docs/architecture/development.md#prepared-ticket-worktrees) |
 | [`download_references.py`](download_references.py) | Populate the ignored cache of provider capabilities, schemas and documents. | [Service metadata](../docs/references/service-metadata/README.md) |
 | [`check_consistency.py`](check_consistency.py) | Run offline checks for documentation links and distribution configuration. | [Tooling checks](../docs/architecture/development.md#python-linting) |
-| [`prepare_release.py`](prepare_release.py) | Prepare the next release version in the build workflow. | [GitHub builds and releases](../docs/architecture/distribution.md#github-builds-and-releases) |
+| [`prepare_release.py`](prepare_release.py) | Prepare the next release version in the build workflow. | [GitHub builds and releases](../docs/architecture/development.md#automatic-github-builds-and-releases) |
 
 The PowerShell setup and worktree commands are Windows entry points. Python
 counterparts and focused direct commands are available where documented in the

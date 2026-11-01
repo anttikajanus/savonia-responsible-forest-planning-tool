@@ -1,6 +1,6 @@
 # Help, language and identity specification
 
-[Operations](../architecture/operations.md) owns the language/help design and logging implementation; [distribution](../architecture/distribution.md) owns software inventory, licence decisions and data-attribution details.
+[Operations](../architecture/operations.md) owns the language/help design and logging implementation; [packaged notices](../../qgis_plugin/savonia_responsible_forest_planning_tool/THIRD_PARTY_NOTICES) own the package summary and dataset credits. The [development guide](../architecture/development.md#check-packaging-separately) owns packaging and release procedures.
 
 ## HL-01 Language selection and consistency
 
@@ -34,7 +34,8 @@ removed independent indicator status or diagnostic fields as current interfaces.
 - Use **Savonia - Responsible Forest Planning** in English and **Savonia - Vastuullinen metsäsuunnittelu** in Finnish. Identify Antti Kajanus as author and describe Savonia as the source use case.
 - Prominently state unfinished personal-learning-prototype status and the absence of Savonia endorsement/approval in repository documentation, Plugin Manager information, About, Processing help and newly generated provenance/workbook notes.
 - Working menu, toolbar, wizard, algorithm and result labels use the localized project name without prototype suffixes. The wizard description explains the next user action; it has no prototype banner above the form.
-- About reads the installed name/version from authoritative metadata and provides offline help, online documentation, repository, issue tracker, project licence, third-party notices/inventory and separate data-source credits. Preserve the experimental flag and existing internal identifiers.
+- About reads the installed name/version from authoritative metadata and provides offline help, online documentation, repository, issue tracker, project licence, third-party notices and separate data-source credits. Preserve the experimental flag and existing internal identifiers.
+- The root `LICENSE` is the canonical MIT text and is copied into the installable ZIP. The notices include a concise package summary and bilingual dataset credits. Keep the complete CC BY legal code once in `licenses/CC-BY-4.0.txt`, linked by notices and manuals. Manuals explain sharing requirements and link to the notices for exact credits instead of repeating dataset tables.
 - Keep original required legal texts intact and accessible offline. The project's MIT licence does not replace third-party software or dataset terms. Software credits, service attribution and portable export attribution have distinct purposes.
 - Preserve provider/dataset credits, terms references and change notices in new outputs.
 

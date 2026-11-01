@@ -53,7 +53,7 @@ class ResponsibleForestPlanningAboutDialog(QDialog):
         self.content.setHtml(
             "<h1>{name}</h1><p><strong>{prototype}</strong></p><p>{version}</p><p>{identity}</p>"
             "<p>{manual}<br>{online}<br>{repository}<br>{issues}</p>"
-            "<h2>{licences}</h2><p>{own}<br>{notices}<br>{inventory}</p>"
+            "<h2>{licences}</h2><p>{own}<br>{notices}</p>"
             "<h2>{sources}</h2><p>{sources_text} {sources_link}</p>".format(
                 name=escape(self.info.get("name[" + language + "]", self.info["name"])),
                 prototype=escape(tr(language, "prototype_notice")),
@@ -66,20 +66,19 @@ class ResponsibleForestPlanningAboutDialog(QDialog):
                 licences=escape(tr(language, "about_licences")),
                 own=link("licence", "about_own_licence"),
                 notices=link("notices", "about_notices"),
-                inventory=link("inventory", "about_inventory"),
                 sources=escape(tr(language, "about_data_sources")),
                 sources_text=escape(tr(language, "about_data_text")),
                 sources_link=link("data-sources", "about_data_details")))
 
     def _refresh_legal_title(self):
-        key = {"licence": "about_own_licence", "notices": "about_notices", "inventory": "about_inventory"}[self.active_resource]
+        key = {"licence": "about_own_licence", "notices": "about_notices"}[self.active_resource]
         label = tr(self.language, key)
         self.legal_title.setText(label)
         self.legal_text.setAccessibleName(label)
 
     def open_link(self, url):
         key = url.path()
-        if key in ("licence", "notices", "inventory"):
+        if key in ("licence", "notices"):
             try:
                 resource = documentation.resource_url(key, self.plugin.package_root)
                 path = Path(QUrl(resource).toLocalFile())

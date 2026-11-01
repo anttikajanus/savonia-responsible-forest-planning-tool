@@ -32,8 +32,5 @@ QGIS supplies these runtime components; they are not bundled in the plugin ZIP.
 | Maanmittauslaitos (National Land Survey of Finland) | Parcels, identifiers, orthophoto and topographic maps | [CC BY 4.0 and attribution terms](https://www.maanmittauslaitos.fi/avoindata-lisenssi-cc40) |
 | OpenStreetMap contributors | Display basemap | [ODbL and attribution](https://www.openstreetmap.org/copyright), [tile usage policy](https://operations.osmfoundation.org/policies/tiles/) |
 
-Exact dataset credits and bilingual notices are in the packaged
+Exact dataset credits, the package summary and bilingual notices are in
 [THIRD_PARTY_NOTICES](qgis_plugin/savonia_responsible_forest_planning_tool/THIRD_PARTY_NOTICES).
-The [distribution guide](docs/architecture/distribution.md) owns packaging and
-attribution requirements; the [licensing audit](docs/architecture/licensing-audit.md)
-records ownership and compatibility evidence.

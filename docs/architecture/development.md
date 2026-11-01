@@ -454,7 +454,7 @@ desktop checks, including wizard layout, both languages and expected results.
 The linked development checkout is for fast iteration. Use a ZIP install when checking the distributable package:
 
 - Run `./qgis_plugin/package.ps1` in Windows PowerShell from the repository root to build or refresh the ZIP using the version already in `metadata.txt`. This is the ordinary installation and development packaging command; it preserves the metadata version and replaces the ZIP for that version.
-- The script includes the source package and copies both repository manuals from `docs/help/` into the installed package's `docs/help/`, adjusting local resource links. Keep the full checkout when building.
+- The script includes the source package, copies the canonical root `LICENSE` into the ZIP, and copies both repository manuals from `docs/help/` into the installed package's `docs/help/`, adjusting local resource links. Keep the full checkout when building.
 - **Release maintainers:** `./qgis_plugin/package.ps1 -BumpMinor` increments the minor version in `metadata.txt`, resets the patch to zero and writes a ZIP. Use the switch only when intentionally preparing a new version; it edits metadata before building, so an archive failure can leave the increment in place. Packaging errors stop the command and remove an incomplete ZIP.
 - In QGIS Plugin Manager, use **Install from ZIP** and select the generated file under `qgis_plugin\dist`. For a clean acceptance check, use a separate profile so a previously installed copy cannot be confused with the development source.
 
@@ -490,8 +490,18 @@ This heading retains existing links.
 The [build and release workflow](../../.github/workflows/build-and-release.yml)
 runs after each push to main and for pull requests targeting main. Main builds
 publish the next minor release after tests pass; pull requests expose only an
-installation ZIP artifact. The [distribution contract](distribution.md#github-builds-and-releases)
-owns version selection, release tags, permissions, queuing and recovery.
+installation ZIP artifact.
+
+Version allocation is serialized across release jobs and tied to the tested
+source commit. It selects the next minor version in the metadata's major, using
+metadata as a floor and resetting the patch to zero. The release commit changes
+only metadata, has the tested source as its parent and is published through its
+matching version tag; `main` keeps its development version. Tag, ZIP name and
+installed metadata agree. [Version preparation](../../scripts/prepare_release.py).
+
+Only the release job has repository write permission. It creates a draft,
+attaches the tested ZIP and then publishes. Failures stop publication; tags
+are never force-pushed.
 
 Download `savonia_responsible_forest_planning_tool-<version>.zip` from
 [Releases](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/releases)
@@ -516,8 +526,9 @@ provide diagnostics; exact installation/tooling configuration lives in the
 Continue Finnish/English desktop acceptance using the
 [manual guide](../testing/manual-acceptance.md).
 Offscreen CI does not establish interactive acceptance or compatibility with
-newer QGIS releases. Inspect [hosted checks](distribution.md#hosted-checks) for CI
-results.
+newer QGIS releases. Inspect the source commit's run in
+[GitHub Actions](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/actions/workflows/build-and-release.yml)
+for CI results, diagnostics and artifacts.
 
 ### Required merge checks
 
@@ -550,6 +561,13 @@ Source-linked development resolves these files directly. Both packaging modes
 read this directory and bundle the manuals under the plugin's `docs/help/`,
 adjusting relative legal-resource links to stay inside the installed package.
 Keep the repository layout when copying the packaging script to a test directory.
+
+The root `LICENSE` is the canonical MIT text. Source-linked About reads it there;
+packaging copies it into the plugin. `THIRD_PARTY_NOTICES` owns the package
+summary, host-licensing boundary and bilingual data credits. The original CC BY
+legal code appears once in `licenses/CC-BY-4.0.txt`, linked from both manuals and
+the notices. Preserve original legal texts and keep dataset credit wording in
+the notices aligned with the portable attribution registry.
 
 The resource resolver is independent of QGIS and widgets. Run its standalone tests
 and the disposable-copy packaging checks with Python, then run the complete

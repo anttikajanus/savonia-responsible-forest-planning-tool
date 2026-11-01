@@ -117,7 +117,7 @@ The [protected-area metadata](https://ckan.ymparisto.fi/dataset/luonnonsuojelu-j
 
 Provider metadata describes indicative boundaries, overlap, exclusions and historical records retained despite later protection/programme changes. Programme membership therefore remains separate from established protection; outputs retain programme attributes and observed protected overlap. [Programme metadata](https://ckan.ymparisto.fi/fi/dataset/luonnonsuojeluohjelma-alueet), [attribute dictionary](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/LuonnonsuojeluOhjelmaAlueet.pdf).
 
-The general [groundwater metadata](https://ckan.ymparisto.fi/dataset/pohjavesialueet) and [attribute reference](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Pohjavesialueet.pdf) distinguish groundwater/recharge areas and modern 1/2/E classifications, but these are not a provider mapping to prototype sensitivity tiers. Those documents' CRS and update descriptions are not independent checks of the configured VHS2022 service. Its dataset-specific credit is documented in [distribution](distribution.md#analysis-data-attribution).
+The general [groundwater metadata](https://ckan.ymparisto.fi/dataset/pohjavesialueet) and [attribute reference](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Pohjavesialueet.pdf) distinguish groundwater/recharge areas and modern 1/2/E classifications, but these are not a provider mapping to prototype sensitivity tiers. Those documents' CRS and update descriptions are not independent checks of the configured VHS2022 service. Its dataset-specific credit is documented in the [packaged notices](../../qgis_plugin/savonia_responsible_forest_planning_tool/THIRD_PARTY_NOTICES).
 
 ## WFS retrieval success
 

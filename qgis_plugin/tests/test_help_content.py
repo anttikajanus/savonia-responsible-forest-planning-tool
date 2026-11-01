@@ -1,4 +1,4 @@
-"""Offline manuals, legal resources and inventory describe the actual package."""
+"""Offline manuals, legal texts and notices remain usable after packaging."""
 
 from html import unescape
 from html.parser import HTMLParser
@@ -37,9 +37,11 @@ class HelpContentTests(unittest.TestCase):
         self.package = root / "savonia_responsible_forest_planning_tool"
         self.help = self.package / "docs" / "help"
         self.resource_root = self.package
+        self.licence = self.package / "LICENSE"
         if "RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT" not in os.environ:
             self.resource_root = root.parent
             self.help = root.parent / "docs" / "help"
+            self.licence = root.parent / "LICENSE"
 
     def test_both_manuals_have_equivalent_sections_and_valid_offline_links(self):
         required = {"workflow", "setup", "sources", "area", "wizard", "processing",
@@ -72,8 +74,8 @@ class HelpContentTests(unittest.TestCase):
                             parsed = HtmlResources(target.read_text(encoding="utf-8"))
                         self.assertIn(unquote(url.fragment), parsed.anchors, href)
 
-    def test_full_original_legal_texts_and_inventory_cover_distributed_files(self):
-        licence = (self.package / "LICENSE").read_text(encoding="utf-8")
+    def test_original_legal_texts_and_dataset_credits_are_available_offline(self):
+        licence = self.licence.read_text(encoding="utf-8")
         self.assertIn("Copyright (c) 2026 Antti Kajanus", licence)
         self.assertIn("Permission is hereby granted, free of charge", licence)
         self.assertIn("THE SOFTWARE IS PROVIDED", licence)
@@ -82,18 +84,11 @@ class HelpContentTests(unittest.TestCase):
         notices = (self.package / "THIRD_PARTY_NOTICES").read_text(encoding="utf-8")
         self.assertGreater(len(cc), 18000)
         self.assertIn("Section 8 -- Interpretation", cc)
-        self.assertIn(cc.strip(), notices)
-        inventory = (self.package / "COMPONENT_INVENTORY.txt").read_text(encoding="utf-8")
-        self.assertIn("HOST-PROVIDED DEPENDENCIES", inventory)
-        self.assertIn("EXTERNAL DATA AND SERVICES", inventory)
-        for path in self.package.rglob("*"):
-            if not path.is_file() or "__pycache__" in path.parts:
-                continue
-            relative = path.relative_to(self.package)
-            if path.suffix == ".py" and len(relative.parts) > 1:
-                self.assertIn(relative.parts[0] + "/", inventory)
-                continue
-            self.assertIn(relative.as_posix(), inventory, str(relative))
+        self.assertNotIn(cc.strip(), notices)
+        self.assertIn("licenses/CC-BY-4.0.txt", notices)
+        for credit in ("Suomen metsäkeskus", "Metsähallitus", "Lupa- ja valvontavirasto",
+                       "Rantaviiva10-aineisto, Lähde: Syke, MML", "OpenStreetMap contributors"):
+            self.assertIn(credit, notices)
 
 
 if __name__ == "__main__":

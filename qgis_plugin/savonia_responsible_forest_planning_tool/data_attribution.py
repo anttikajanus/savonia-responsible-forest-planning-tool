@@ -1,7 +1,7 @@
 """Credits for the configured analysis datasets, independent of QGIS and widgets.
 
-Terms checked 2026-10-26; see docs/architecture/distribution.md
-in the source repository. Original provider/dataset names stay intact in both
+Dataset-specific terms are recorded in the packaged THIRD_PARTY_NOTICES.
+Original provider/dataset names stay intact in both
 languages. Retrieved source identities and dates remain in run metadata.
 """
 

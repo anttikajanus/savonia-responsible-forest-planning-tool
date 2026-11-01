@@ -6,7 +6,7 @@ Scope and status follow the [specification index](README.md). These requirements
 
 - Distribute an experimental QGIS plugin with its declared compatibility visible before installation. The current target is QGIS 3.44 and newer 3.x/4.x releases; 3.44.0 and 4.2.3 are the verification baselines. Intervening and newer releases require their own runtime checks. Packaged metadata owns the precise installation range.
 - During development, only the current plugin's project setup, configuration and output formats are supported. Earlier plugin releases have no backward compatibility or migration guarantee; create a fresh setup and rerun the analysis when needed.
-- The installable ZIP includes both manuals, licence texts, notices and inventory, and supports plugin load, Processing registration and unload without duplicate actions or providers on reload.
+- The installable ZIP includes both manuals, the canonical project licence, original CC legal text and notices with a package summary. It supports plugin load, Processing registration and unload without duplicate actions or providers on reload.
 - Analysis uses online configured WFS services and writes results locally. Reading packaged help and notices works offline.
 - Building an installation ZIP preserves the current version by default;
   pushing to `main` triggers a tested GitHub Release with a downloadable plugin

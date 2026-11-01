@@ -158,6 +158,8 @@ class HelpUiTests(unittest.TestCase):
     def test_about_uses_installed_metadata_and_shows_complete_offline_legal_text(self):
         licence = "MIT License\nCopyright (c) 2026 Antti Kajanus\nPermission is hereby granted.\n"
         (self.root / "LICENSE").write_text(licence, encoding="utf-8")
+        notices = "Source credits and licence links.\nFull CC BY terms: licenses/CC-BY-4.0.txt\n"
+        (self.root / "THIRD_PARTY_NOTICES").write_text(notices, encoding="utf-8")
         self.plugin.show_about()
         dialog = self.plugin.about_dialog
         self.assertTrue(dialog.isVisible())
@@ -169,6 +171,11 @@ class HelpUiTests(unittest.TestCase):
         self.assertEqual(self.launch.call_count, 0)
         for language in ("fi", "en"):
             dialog.set_language(language)
+            self.assertNotIn("savonia:inventory", dialog.content.toHtml())
+            self.assertIn("savonia:licence", dialog.content.toHtml())
+            dialog.content.anchorClicked.emit(QUrl("savonia:notices"))
+            self.assertEqual(dialog.legal_text.toPlainText(), notices)
+            self.assertEqual(dialog.legal_title.text(), tr(language, "about_notices"))
             dialog.content.anchorClicked.emit(QUrl("savonia:homepage"))
             self.assertEqual(
                 self.launch.call_args.args[0].toString(),

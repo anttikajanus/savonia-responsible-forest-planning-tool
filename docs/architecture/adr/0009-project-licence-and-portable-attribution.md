@@ -3,7 +3,7 @@
 Status: accepted  
 Recorded: 2026-10-26
 
-Project material uses MIT with Antti Kajanus as developer/copyright holder, as recorded in the [project licence](../../../LICENSE). Ship the project licence, actual component inventory and original applicable notices within the archived plugin directory, keeping host/runtime and data terms distinct. Because snapshots and workbooks may be shared independently of the plugin, retain dataset-specific credits, licence/metadata links and modification notices in the common run record serialized into both outputs. This is more maintenance than About-only credits but preserves attribution alongside redistributed evidence. [Distribution inventory and primary sources](../distribution.md).
+Project material uses MIT with Antti Kajanus as developer/copyright holder, as recorded in the [project licence](../../../LICENSE). Ship the project licence, actual component inventory and original applicable notices within the archived plugin directory, keeping host/runtime and data terms distinct. Because snapshots and workbooks may be shared independently of the plugin, retain dataset-specific credits, licence/metadata links and modification notices in the common run record serialized into both outputs. This is more maintenance than About-only credits but preserves attribution alongside redistributed evidence. [Packaged summary and source notices](../../../qgis_plugin/savonia_responsible_forest_planning_tool/THIRD_PARTY_NOTICES).
 
 This decision covers the prototype's packaging policy. Host licence terms,
 map attribution and public repository requirements apply separately.

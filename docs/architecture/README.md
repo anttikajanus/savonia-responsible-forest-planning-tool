@@ -40,10 +40,10 @@ Start with the [technical architecture diagram and explanation](overview.md#syst
 | Need | Owner |
 | --- | --- |
 | Logging configuration and runtime language/help mechanisms | [Operations](operations.md) |
-| Repeatable setup, reload, debugging, test and packaging procedures | [Development](development.md) |
+| Repeatable setup, reload, debugging, tests, packaging and release mechanics | [Development](development.md) |
 | Personal manual checklist and expected results | [Manual testing](../testing/manual-acceptance.md) |
-| Release mechanics, software inventory, licensing and exported attribution | [Distribution](distribution.md) |
-| Ownership evidence and host/transitive licence compatibility | [Licensing audit](licensing-audit.md) |
+| Software credits and upstream licence references | [Acknowledgements](../../OPEN_SOURCE_ACKNOWLEDGEMENTS.md) |
+| Package summary, offline notices and dataset-specific terms | [Third-party notices](../../qgis_plugin/savonia_responsible_forest_planning_tool/THIRD_PARTY_NOTICES) |
 
 [Project context](../project-context.md) explains the external use case and procurement scope. [GLOSSARY.md](../../GLOSSARY.md) defines domain terminology.
 

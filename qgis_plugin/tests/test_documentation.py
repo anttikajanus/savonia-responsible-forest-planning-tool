@@ -18,6 +18,15 @@ from savonia_responsible_forest_planning_tool.documentation import ResourceError
 
 
 class DocumentationTests(unittest.TestCase):
+    def test_default_licence_resolves_canonical_checkout_or_installed_copy(self):
+        installed = os.environ.get("RESPONSIBLE_FOREST_PLANNING_TEST_PLUGIN_ROOT")
+        root = (Path(installed) / "savonia_responsible_forest_planning_tool" if installed
+                else Path(__file__).resolve().parents[2])
+        parsed = urlsplit(resource_url("licence"))
+        path = Path(unquote(parsed.path).lstrip("/") if os.name == "nt" else unquote(parsed.path))
+        self.assertEqual(path.resolve(), (root / "LICENSE").resolve())
+        self.assertIn("Permission is hereby granted, free of charge", path.read_text(encoding="utf-8"))
+
     def test_default_manuals_are_readable_in_checkout_or_installed_package(self):
         for language in ("fi", "en"):
             with self.subTest(language=language):
@@ -109,8 +118,7 @@ class DocumentationTests(unittest.TestCase):
     def test_notices_and_licence_resolve_only_readable_known_resources(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
-            for resource, filename in (("licence", "LICENSE"), ("notices", "THIRD_PARTY_NOTICES"),
-                                       ("inventory", "COMPONENT_INVENTORY.txt")):
+            for resource, filename in (("licence", "LICENSE"), ("notices", "THIRD_PARTY_NOTICES")):
                 (root / filename).write_text("Original notice", encoding="utf-8")
                 self.assertTrue(resource_url(resource, root).endswith("/" + filename))
                 (root / filename).unlink()

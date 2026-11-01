@@ -83,7 +83,7 @@ def repository_files(root):
 
 def documentation_errors(root, files):
     root = root.resolve()
-    maintained = {root / path for path in files}
+    maintained = {root / path for path in files if (root / path).is_file()}
     directories = {parent for path in maintained for parent in path.parents if parent.is_relative_to(root)}
     manifest = json.loads((root / REFERENCES / "manifest.json").read_text(encoding="utf-8"))
     cached = {(root / REFERENCES / entry["path"]).resolve() for entry in manifest}

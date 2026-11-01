@@ -55,11 +55,14 @@ def manual_url(language, section="workflow", package_root=None):
 def resource_url(resource, package_root=None):
     """Return a validated local URL for a packaged legal/credit resource."""
     root = Path(package_root) if package_root is not None else Path(__file__).parent
-    filenames = {"licence": "LICENSE", "notices": "THIRD_PARTY_NOTICES",
-                 "inventory": "COMPONENT_INVENTORY.txt"}
+    filenames = {"licence": "LICENSE", "notices": "THIRD_PARTY_NOTICES"}
     if resource not in filenames:
         raise ResourceError(resource, root, "unknown_resource")
     path = root / filenames[resource]
+    if resource == "licence" and package_root is None:
+        checkout = root.resolve().parents[1]
+        if (checkout / "qgis_plugin" / "package.ps1").is_file():
+            path = checkout / "LICENSE"
     _read(resource, path)
     return path.resolve().as_uri()
 

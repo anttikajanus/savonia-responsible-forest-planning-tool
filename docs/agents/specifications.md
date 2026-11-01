@@ -79,6 +79,8 @@ The documentation handoff is complete when the affected maintained docs reflect 
   `docs/open-questions.md`. Source measurement/update
   dates and machine-generated retrieval provenance retain their product meaning.
 - Keep descriptions of unresolved work exclusively in `docs/open-questions.md`.
+  Entries are concrete tasks or specific questions to resolve, rather than
+  verification checklists, test results or hypothetical work outside scope.
   Other maintained documents must not repeat the findings or link to open items.
   When implementing a resolution, review the affected specs, contracts, manuals
   and notices, then remove the resolved entry from the register.

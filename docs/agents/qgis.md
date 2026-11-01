@@ -31,7 +31,7 @@ Repeat those checks on other targeted releases before recording them as verified
 | Observable behavior or acceptance | Affected [functional specifications](../specs/README.md) and [specification handoff](specifications.md) |
 | Provider access, readiness or source fields | [Data sources](../architecture/data-sources.md), [source-layer requirements](../architecture/source-layer-requirements.md), then [local references](../references/service-metadata/README.md) |
 | Geometry, classification or aggregation | [Calculation contracts](../architecture/calculations.md) and [indicator limitations](../architecture/indicators.md) |
-| Logging, help, language or distribution | [Operations](../architecture/operations.md), [help/language requirements](../specs/help-and-language.md) and affected [distribution rules](../architecture/distribution.md) |
+| Logging, help, language or distribution | [Operations](../architecture/operations.md), [help/language requirements](../specs/help-and-language.md), [packaging guidance](../architecture/development.md#check-packaging-separately) and [packaged notices](../../qgis_plugin/savonia_responsible_forest_planning_tool/THIRD_PARTY_NOTICES) |
 | Setup, tests or packaging commands | [Development guide](../architecture/development.md); it owns the executable commands |
 
 ## Required implementation workflow

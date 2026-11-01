@@ -66,6 +66,14 @@ class DocumentationLinkTests(unittest.TestCase):
         for target in ("gone.md", "gone.png", "docs/guide.md#old"):
             self.assertTrue(any("README.md: " + target + ":" in error for error in errors), errors)
 
+    def test_removed_tracked_document_is_skipped_but_its_incoming_link_still_fails(self):
+        self.write("README.md", "[old guide](removed.md)")
+        self.write("removed.md", "# Removed guide")
+        (self.root / "removed.md").unlink()
+        self.assertEqual(self.errors(), ["README.md: removed.md: missing maintained target"])
+        self.write("README.md", "# Updated guide")
+        self.assertEqual(self.errors(), [])
+
     def test_external_urls_comments_and_code_examples_are_not_local_links(self):
         self.write("README.md", """[web](https://example.invalid/missing#anchor)
 [mail](mailto:nobody@example.invalid) [network](//example.invalid/missing)
