@@ -20,8 +20,7 @@ change the plugin's QGIS installation range or establish that the plugin is
 incompatible with another operating system. Runtime compatibility and desktop
 acceptance remain separate from development-environment support.
 
-The [development guide](../development.md) owns current setup and check commands;
-the [verification register](../../open-questions.md#release-and-distribution-verification)
-owns remaining runtime and release checks. Expanding development support requires
+The [development guide](../development.md) owns current setup and check commands.
+Expanding development support requires
 an explicit replacement decision, maintained setup instructions and verification
 on the added platform.

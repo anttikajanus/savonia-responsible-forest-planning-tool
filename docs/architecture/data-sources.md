@@ -38,8 +38,7 @@ The project CRS is unchanged.
 
 The [official WMTS technical description](https://www.maanmittauslaitos.fi/en/maps-and-spatial-data/datasets-and-interfaces/map-interface-services/map-image-service-wms-wmts-1)
 and [API-key instructions](https://www.maanmittauslaitos.fi/rajapinnat/api-avaimen-ohje)
-describe authenticated access. Capabilities require credentials; authenticated
-live capabilities/tiles remain unverified here.
+describe authenticated access. Capabilities require credentials.
 The [reference cache](../references/service-metadata/README.md) supports an
 optional `MML_API_KEY` for this download. These are display-only rasters outside
 the eleven-source analysis registry and exports. Preserve MML attribution in
@@ -53,15 +52,15 @@ Project setup also adds `PalstanSijaintitiedot` and
 `KiinteistotunnuksenSijaintitiedot` through QGIS's `oapif` provider
 from `https://avoin-paikkatieto.maanmittauslaitos.fi/kiinteisto-avoin/simple-features/v3/`.
 This is map context outside the eleven analysis sources.
+Selected parcel polygons can also supply the AOI, contributing clipping
+boundaries to exported geometry and areas.
 [MML API-key product description](https://www.maanmittauslaitos.fi/kiinteistotietojen-kyselypalvelu-ogc-api/avoimet-tuotteet-api-avain)
 documents the collections and CRS84 default, with EPSG:3067 also supported.
 The [parcel model](../references/service-metadata/mml/parcels/palstan-sijaintitiedot.pdf)
 defines polygon location. The cached
 [identifier-location model](../references/service-metadata/mml/parcels/kiinteistotunnuksen-sijaintitiedot.pdf)
 defines identifier points (`GM_Point`) and `kiinteistotunnuksenEsitysmuoto`.
-These are older model evidence, not live service schema checks. Live
-credentialed/schema and desktop verification remain in the
-[verification register](../open-questions.md#provider-evidence).
+These are older model evidence, rather than live service schemas.
 
 The mandatory MML key is stored in QGIS settings, separately from SYKE access.
 Blank/cancelled input stops setup before project mutation. Connections use the
@@ -83,9 +82,7 @@ owns initialization and preservation guarantees.
 
 The [source-layer contract](source-layer-requirements.md) owns field readiness, alias priority, source identity and normalization. Setup and analysis use the same provider-field contract; schema readiness remains distinct from valid feature values and complete metric coverage. [Contract implementation](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/source_readiness.py), [QGIS-facing checks](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/source_layers.py).
 
-Saved XSD metadata is provenance rather than a readiness authority. Its known
-parser limitation is tracked separately in the
-[gap register](../open-questions.md#known-implementation-gaps).
+Saved XSD metadata is provenance rather than a readiness authority.
 [ADR-0003](adr/0003-provider-field-source-contracts.md).
 
 ## Provider evidence
@@ -147,8 +144,7 @@ Polygon predicates run before local geometry repair. Returned invalid polygons
 still follow the repair contract, but a malformed feature omitted by a remote
 predicate cannot be recovered locally. Fixture checks of representative invalid
 polygons do not certify provider behavior for all malformed data. Query failures
-remain fatal; they are not retried as successful empty evidence. See
-[provider verification gaps](../open-questions.md#provider-evidence).
+remain fatal; they are not retried as successful empty evidence.
 
 The three Ranta10 water products use a distinct candidate footprint expanded by 31 m in EPSG:3067, transformed to each source CRS, for both bbox and polygon predicates. This conservative margin accounts for the eight-segment 30 m buffer approximation; the derived water buffers remain exactly 30 m. Water features are buffered before exact local clipping to the original AOI, so an outside source feature can contribute inside it and clipping raw source geometry cannot create artificial buffer edges. Polygon products are buffered as polygons; the required line product is buffered as line geometry. The final footprints are unioned across products and clipped to the AOI. Ordinary sources retain their existing AOI query extent and clipping contract.
 Accepting retrieval requires both iterator completion
@@ -169,4 +165,4 @@ Successful empty retrieval is `AVAILABLE` but is not certification of complete g
 
 For sustained/load-generating SYKE use, obtain the provider-issued application identifier and pass it as `sykeuserid`; keep it outside committed source, fixtures and logs. The plugin saves it in QGIS settings and includes it in SYKE WFS layer URLs. Saving a project intentionally persists those URLs, including the identifier, in `.qgs` or `.qgz` so the layers retain their service connection details. Review layer URLs before sharing or committing a project. This persistence is separate from error-message redaction in [sources.py](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py). See [SYKE service guidance](https://www.syke.fi/fi/ymparistotieto/avoimet-rajapinnat/paikkatietorajapinnat), [request parameter guidance](https://wwwi4.ymparisto.fi/i4/fin/eowiki/kysymys_wcs.html), and the [credential setup instructions](../../README.md#get-the-api-key-and-user-identifier).
 
-When investigating a provider question, identify the exact endpoint/type, CRS, required properties and representative sanitized status/code/null formats. Keep schema evidence distinct from feature values, field readiness distinct from metric coverage, and provider facts distinct from application choices. [Outstanding checks](../open-questions.md).
+When investigating a provider question, identify the exact endpoint/type, CRS, required properties and representative sanitized status/code/null formats. Keep schema evidence distinct from feature values, field readiness distinct from metric coverage, and provider facts distinct from application choices.

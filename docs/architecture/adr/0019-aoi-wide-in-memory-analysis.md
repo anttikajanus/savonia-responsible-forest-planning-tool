@@ -37,5 +37,4 @@ buffering are needed to control the working set. A production design must
 preserve neighboring evidence needed by buffers, avoid duplicate contributions
 across work units, and retain consistent coverage, provenance and summaries.
 That redesign is deferred, with no claim that the prototype supports arbitrarily
-large areas. See the [current execution boundary](../overview.md#aoi-wide-working-set)
-and [scalability follow-up](../../open-questions.md#large-area-memory-use).
+large areas. See the [current execution boundary](../overview.md#aoi-wide-working-set).

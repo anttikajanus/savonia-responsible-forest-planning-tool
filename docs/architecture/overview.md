@@ -55,8 +55,7 @@ memory and potentially crash the QGIS process. The wizard's background task
 preserves UI responsiveness but does not bound the analysis working set.
 [ADR-0019](adr/0019-aoi-wide-in-memory-analysis.md) records this prototype trade-off
 and the deferred production direction of bounded geometry-level work with
-limited parallelism; [open questions](../open-questions.md#large-area-memory-use)
-owns the scalability follow-up.
+limited parallelism.
 
 ## Module ownership
 
@@ -121,5 +120,3 @@ Pure policy modules interpret normalized attributes, choose sensitivity criteria
 [`i18n.py`](../../qgis_plugin/savonia_responsible_forest_planning_tool/i18n.py) selects Finnish for a Finnish QGIS locale and English otherwise. The entry point resolves a run's language and passes it into progress, errors and exported presentation text; stable source IDs, classification codes and field names remain language-neutral. [`documentation.py`](../../qgis_plugin/savonia_responsible_forest_planning_tool/documentation.py) resolves packaged bilingual HTML help. These are presentation services around the shared workflow.
 
 Verification follows these boundaries: [ordinary unit tests](../../qgis_plugin/tests/) cover pure policy, workbook serialization, rounding and translations; [PyQGIS tests](../../qgis_plugin/tests/qgis/) exercise adapters, the Processing workflow, persisted outputs and UI integration with local fixtures. Packaged load/run/unload and Finnish/English GUI checks require the supported QGIS runtime. See the [required testing guidance](../agents/qgis.md#testing-and-debugging) and [development guide](development.md).
-
-Remaining provider and QGIS runtime acceptance checks are maintained in [open questions](../open-questions.md).

@@ -30,10 +30,8 @@ The current scope includes:
 Scope boundaries are maintained in
 [classification exclusions](classification.md#cl-04-exclusions-and-interpretation)
 and the [indicator catalogue](indicators-and-outputs.md#io-01-indicator-catalogue).
-The latter links adopted scope decisions; the
-[register](../open-questions.md) tracks unresolved implementation gaps and
-evidence/acceptance checks. Candidate datasets outside the current scope are
-documented in [deferred sources](../architecture/deferred-sources.md).
+The latter links adopted scope decisions. Candidate datasets outside the current
+scope are documented in [deferred sources](../architecture/deferred-sources.md).
 
 ## Maintaining specifications
 
@@ -45,13 +43,8 @@ the owner of each kind of information.
 
 ## Implementation and acceptance status
 
-The behavior described here is implemented unless a requirement identifies a gap
-or work in progress. Acceptance remains separate from implementation; see the
+These specifications describe implemented behavior. Acceptance remains separate
+from implementation; see the
 [development guide](../architecture/development.md) for automated checks and the
 [manual checklist](../testing/manual-acceptance.md) for interactive steps,
 expected results and personal checking.
-
-The [open-question register](../open-questions.md)
-owns unresolved implementation gaps, provider questions and outstanding
-acceptance/release checks.
-Stories with outstanding functionality carry an explicit partial/deferred marker.

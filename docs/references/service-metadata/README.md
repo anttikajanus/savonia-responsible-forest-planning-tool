@@ -97,8 +97,7 @@ the service has multiple schemas in this reference set.
   Ortokuva and Maastokartta use the ETRS-TM35FIN matrix set; authenticated
   retrieval is required. This link is a local download destination and is absent
   until a successful authenticated capture. See the
-  [material availability review](../../open-questions.md#reference-material-integrity)
-  and [basemap contract](../../architecture/data-sources.md#mml-basemap-context).
+  [basemap contract](../../architecture/data-sources.md#mml-basemap-context).
 - [Parcel location model](mml/parcels/palstan-sijaintitiedot.pdf), dated
   5 October 2020: polygon location and `kiinteistotunnuksenEsitysmuoto`.
   This model describes the display-only `PalstanSijaintitiedot` collection;
@@ -152,8 +151,6 @@ types; they do not contain representative feature values.
 The [manifest](manifest.json) lists the complete reference set, including service
 capabilities, layer schemas and provider documents. Provider documents complement
 the service schemas, including the MML parcel and identifier-point models.
-See [provider evidence gaps](../../open-questions.md#provider-evidence)
-for the value, interpretation and completeness checks still needed.
 
 The maintained interpretation and verification limits are in
 [architecture/data-sources.md](../../architecture/data-sources.md).

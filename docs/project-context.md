@@ -99,7 +99,6 @@ Use each maintained document for the information it owns:
 | Domain meanings | [Glossary](../GLOSSARY.md) |
 | Current user goals and functional requirements | [User stories and specifications](specs/README.md) |
 | Technical contracts and adopted design decisions | [Architecture index](architecture/README.md) |
-| Open discrepancies and remaining verification | [Verification register](open-questions.md) |
 
 Implementation status remains separate from acceptance.
 

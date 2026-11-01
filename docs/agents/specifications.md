@@ -60,7 +60,7 @@ Before reporting the feature complete:
 2. Update every affected functional document in `docs/specs/` in the same change. Include changed inputs, outputs, user interactions, failure/unknown behavior and interpretation limits. Update requirements in place so each document describes current behavior directly.
 3. Update `docs/specs/user-stories.md` for added, changed or retired user goals. Preserve stable story/requirement IDs; allocate new IDs for new goals. For a retired goal, retain its ID with its disposition or replacement link rather than reusing the ID.
 4. Review technical references and consequential ADRs in `docs/architecture/` against the [architecture scope](#architecture-scope), updating changed decisions and contracts rather than narrating implementation. Update domain terms in `GLOSSARY.md` and affected manuals/entry-point links. For an internal refactor, update architecture when needed and record that the functional specs were reviewed and behavior is unchanged.
-5. Add links from the local working spec to the maintained specs/technical references that describe its outcome. Keep working records in `.scratch/` and publish final behavior, decisions and remaining evidence gaps in their maintained owners. Public documentation must not link to individual `.scratch/` files or depend on scripts stored there.
+5. Add links from the local working spec to the maintained specs/technical references that describe its outcome. Keep working records in `.scratch/`, final behavior and decisions in their maintained owners, and unresolved work only in `docs/open-questions.md`. Public documentation must not link to individual `.scratch/` files or depend on scripts stored there.
 6. Check local links, requirement/story references and consistency between specs, architecture and actual behavior. Record any unresolved discrepancy explicitly, with its current behavior and follow-up. Keep outstanding checks clear; documentation promotion does not complete acceptance tests.
 
 The documentation handoff is complete when the affected maintained docs reflect the final behavior, the working spec links to them, and remaining verification/deferred items have an explicit home. Use `Status: implemented` for implementation progress under [triage guidance](triage-labels.md); keep that status separate from documentation handoff and acceptance completion. Report any unfinished handoff rather than treating the feature as fully complete.
@@ -76,14 +76,18 @@ The documentation handoff is complete when the affected maintained docs reflect 
 - Summarize checks performed and remaining concerns in the task response.
   Verification reports, date-stamped evidence summaries and test-history
   documentation are not required. Keep substantive unresolved questions in
-  [open questions](../open-questions.md). Source measurement/update
+  `docs/open-questions.md`. Source measurement/update
   dates and machine-generated retrieval provenance retain their product meaning.
+- Keep descriptions of unresolved work exclusively in `docs/open-questions.md`.
+  Other maintained documents must not repeat the findings or link to open items.
+  When implementing a resolution, review the affected specs, contracts, manuals
+  and notices, then remove the resolved entry from the register.
 - Manual testing follows the [personal checklist](../testing/manual-acceptance.md).
   Its lightweight workflow governs manual checks. Local notes may help debugging; keep
   substantive defects and unanswered questions in their maintained owners.
 
 ## Writing a maintained spec
 
-Use the existing functional topic when possible. Add a focused document and an index link only when it covers a distinct user-facing area. Include purpose/scope, user goals or story links, inputs/outputs, observable rules, failure/missing-data behavior, acceptance criteria and explicit gaps. Link exact field tables, formulas and consequential design decisions to their architecture owner under the scope above; routine implementation detail stays in code/tests.
+Use the existing functional topic when possible. Add a focused document and an index link only when it covers a distinct user-facing area. Include purpose/scope, user goals or story links, inputs/outputs, observable rules, failure/missing-data behavior and acceptance criteria. Record unresolved work exclusively in `docs/open-questions.md`. Link exact field tables, formulas and consequential design decisions to their architecture owner under the scope above; routine implementation detail stays in code/tests.
 
 Resolve a conflict by inspecting the implementation, accepted decisions and verification evidence. Keep proposal readiness, implementation status and acceptance evidence separate. Record the disposition of each code/spec mismatch before claiming conformance.

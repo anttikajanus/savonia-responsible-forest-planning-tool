@@ -18,6 +18,10 @@ explains their authority, portal access limits and relationship to this personal
 prototype. These source requirements remain distinct from adopted requirements
 and buyer acceptance.
 
+These PDFs are Savonia material, separate from the project's original MIT
+software and documentation. Public availability and the maintainer's access do
+not change their ownership. The PDFs are retained as original sources.
+
 ## Provider services and layers
 
 [Service metadata](service-metadata/README.md) contains cached WFS capabilities,

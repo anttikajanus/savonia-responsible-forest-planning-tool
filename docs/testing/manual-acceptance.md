@@ -4,8 +4,7 @@ Use this guide to test the installed plugin in QGIS and review its outputs in a
 browser and Microsoft Excel. It owns repeatable manual procedures. The
 [specifications](../specs/README.md) own expected product behavior;
 [development](../architecture/development.md) owns build and automated-test
-commands; [open questions](../open-questions.md) tracks unresolved
-defects, provider questions and planning assumptions.
+commands.
 
 This is a personal checklist for the repository's sole maintainer. Use the steps
 and expected results directly; no manual test reports, status tables, screenshots
@@ -135,24 +134,4 @@ Expected behavior: [HL-01–05](../specs/help-and-language.md#hl-01-language-sel
 | --- | --- | --- |
 | MT-26 | Open Help/About with the wizard closed, docked and floating; open Processing Help. Disconnect networking and follow local manual/legal links. | The selected-language manual opens in the system browser, Processing reaches its section, and essential instructions/full legal texts work offline. Online analysis still requires connectivity. |
 | MT-27 | In the disposable installation, temporarily make a manual unavailable; separately arrange a controlled browser-launch failure when practical and restore the environment afterward. | A localized actionable error appears and diagnostics identify the failure. No silent language substitution or false success occurs. |
-| MT-28 | Inspect About, Plugin Manager, Processing help, exported provenance/workbook notes and an OSM map. | Author/version, personal-prototype identity, software/data credits and portable attribution are present. Inspect map-visible OSM attribution separately; About credits alone do not establish it. |
-
-## Use the checklist with open questions
-
-Use these checks to investigate the corresponding open questions:
-
-| Open item | Relevant checks | What to examine |
-| --- | --- | --- |
-| Installed desktop, language and resources | MT-01–06, MT-09–19, MT-26–27 | Check the installed plugin in each applicable language; offscreen tests do not show desktop layout or browser behavior. |
-| Result interpretation and edge behavior | MT-16–25, MT-30 | Compare known inputs and independently expected results in QGIS and Excel. |
-| MML live context and WFS initialization/query behavior | MT-07–08, MT-14, MT-25 | Try authorized live access and inspect requests when needed. Fixture behavior is separate from live-provider behavior. |
-| OSM display/distribution attribution | MT-28 | Look for attribution on the map; tile-policy and licence review remain separate. |
-| Section 10 stand-wide planning assumption | Separate planner review | Discuss the register's 10 ha stand/0.2 ha habitat example and intended spatial extent with the planner. Correct rendering alone does not establish that the rule is appropriate. |
-
-The [provider evidence](../open-questions.md#provider-evidence)
-questions about representative values, dates, inventory completeness and growth
-meaning require provider samples/documentation or expert clarification. The XSD
-parser gap requires implementation work. Keep substantive unresolved issues in
-the register. When a check reveals a defect, fix it or retain a concise problem
-description and useful reproduction steps; individual manual-check results need
-no separate tracking.
+| MT-28 | Inspect About, Plugin Manager, Processing help, exported provenance/workbook notes and OSM/MML maps. | Author/version, personal-prototype identity, software/data credits and portable attribution are present. Compare source credits with applicable provider terms. Inspect map-visible attribution separately; About credits alone do not establish map attribution. |

@@ -34,9 +34,8 @@ values are explained by durable coverage rather than a per-value log stream.
 ## Development and verification
 
 Use [development](development.md) for runtime setup and repeatable checks.
-Remaining provider/desktop questions belong in
-[open questions](../open-questions.md). Automated checks and adopted policies do
-not establish interactive or live-provider acceptance.
+Automated checks and adopted policies do not establish interactive or
+live-provider acceptance.
 
 ## Language and help
 
@@ -61,4 +60,4 @@ Help/About are available with the dock closed. QGIS language refresh updates
 plugin-owned labels and subsequent help launches; both manuals maintain matching
 anchors, and original legal notices stay untranslated. Observable requirements
 and desktop checks belong to [help and language](../specs/help-and-language.md)
-and the [verification register](../open-questions.md#interactive-acceptance).
+and the [manual checklist](../testing/manual-acceptance.md).

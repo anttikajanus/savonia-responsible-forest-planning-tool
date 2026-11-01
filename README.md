@@ -193,13 +193,7 @@ See the [output examples](docs/examples/classified-forest-polygons.md) and
 ## Known limitations
 
 The analysis retains source evidence and results in memory. Large areas can
-exhaust memory and potentially crash QGIS; no safe area threshold has been
-established. Start small and consult the
-[memory-use limitation](docs/open-questions.md#large-area-memory-use).
-
-Live-provider coverage and Finnish/English desktop acceptance still have
-outstanding checks. The [open-question register](docs/open-questions.md)
-owns current implementation gaps, provider questions and remaining acceptance.
+exhaust memory and potentially crash QGIS. Start with a small area.
 
 ## Development setup
 

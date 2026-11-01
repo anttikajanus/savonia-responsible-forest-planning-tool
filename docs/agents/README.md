@@ -35,7 +35,7 @@ tracker, labels and document destinations.
 | Research evidence | [Research guidance](research.md) | Save findings under ignored `docs/research/`; promote adopted requirements, decisions and unresolved questions to their maintained owners. |
 | External source material | [Reference index](../references/README.md) | Procurement PDFs are versioned under `procurement/629864/`; provider evidence has a separate cache. |
 | Provider capabilities, schemas and PDF/XLSX documents | [Service metadata](../references/service-metadata/README.md) | Read cached files first. The manifest and instructions are versioned; downloads and retrieval metadata are ignored. |
-| Unresolved implementation gaps, provider questions and pending acceptance | [Open questions](../open-questions.md) | Keep only unresolved items here; settled behavior and scope belong in specs and architecture. Implementation completion does not close acceptance. |
+| Unresolved implementation gaps, provider questions and pending acceptance | `docs/open-questions.md` | Record unresolved work only in this file. Other maintained documents describe current behavior, decisions and procedures without repeating or linking individual open items. Review affected documentation when implementing a resolution. |
 
 ## Reading and handoff
 

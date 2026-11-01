@@ -13,9 +13,7 @@ packages or helper plugins are required. See
 installation range and the [development guide](../docs/architecture/development.md#shared-qgis-test-environment)
 for tested runtimes.
 
-Automated verification uses Windows QGIS runtimes. The
-[verification register](../docs/open-questions.md#release-and-distribution-verification)
-tracks remaining runtime compatibility and desktop acceptance checks.
+Automated verification uses Windows QGIS runtimes.
 
 1. Download `savonia_responsible_forest_planning_tool-<version>.zip` from
    [GitHub Releases](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/releases).
@@ -57,7 +55,6 @@ offline through **Help**.
 - [Build a plugin ZIP](../docs/architecture/development.md#check-packaging-separately).
 - [Development guide](../docs/architecture/development.md#supported-development-environment): Windows setup, reload, debugging and tests.
 - [Architecture index](../docs/architecture/README.md): source contracts, calculations and output schemas.
-- [Known limitations and remaining verification](../docs/open-questions.md).
 - [Licences and acknowledgements](../OPEN_SOURCE_ACKNOWLEDGEMENTS.md).
 
 Report bugs and enhancement requests through
