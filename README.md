@@ -133,26 +133,51 @@ The full manuals are available in [English](docs/help/manual_en.html) and
 
 ### Screenshots
 
-These captures show the Finnish interface on 29 October 2026. Open the images
-to inspect them at full resolution.
+These captures show the Finnish interface, following selection → results →
+identify → evidence. Open the images to inspect them at full resolution.
 
-![QGIS with one property highlighted in yellow and the plugin set to analyze only the selected feature, with a sawlog stumpage price of 72 €/m³.](docs/screenshots/selected-stands.png)
+**1. Selection.** Twenty selected property parcels are highlighted in yellow.
+The dock uses the **Kiinteistörajat** (property boundaries) polygon layer with
+**Käytä vain valittuja kohteita** (use only selected features) enabled and a
+sawlog stumpage price of **72 €/m³**.
 
-**Selecting the analysis area.** One selected property is highlighted in
-yellow. The dock on the right uses the **Kiinteistörajat** (property boundaries)
-polygon layer with
-**Käytä vain valittuja kohteita** (use only selected features) enabled; the
-sawlog stumpage price is set to **72 €/m³** and the output folder is set below
-the area controls.
+![QGIS with twenty property parcels highlighted in yellow and the plugin configured to analyze only the selected features.](docs/screenshots/selected-input-parcels.png)
 
-![QGIS analysis results with red sensitive polygons, green economic polygons, source habitat attributes on the right and a warning about overlapping source stands.](docs/screenshots/analysis-results.png)
+**2. Results.** The **Tulokset** (Results) group contains the sensitivity tier
+views. Sensitive polygons appear in red, economic polygons in green, and the
+legend reserves grey for unknown classifications. These four views show the
+same area across increasing sensitivity tiers.
 
-**Reviewing the results.** Sensitive polygons appear in red and economic
-polygons in green. The **Tulokset** (Results) group on the left contains the
-tier views and source snapshots. The upper-right panel shows attributes of an
-identified forest habitat. The yellow banner reports that the analysis
-completed with overlapping source stands: summary areas and timber volumes
-may count the same land more than once.
+**Kaikki pois (All out).** The result polygons in this example are economic.
+
+![All out tier results with the analyzed forest polygons shown in green.](docs/screenshots/result-everything-goes-class.png)
+
+**Tasapaino (Balance).** Sensitive pieces appear along water edges and within
+some stands.
+
+![Balance tier results with red sensitive polygons and green economic polygons.](docs/screenshots/result-balanced-class.png)
+
+**Suojelu (Protection).** Additional forest polygons are classified as sensitive.
+
+![Protection tier results showing additional sensitive polygons in red.](docs/screenshots/result-protection-class.png)
+
+**Tehostettu suojelu (Enhanced protection).** All result polygons in this
+example are sensitive.
+
+![Enhanced protection tier results with all analyzed forest polygons shown in red.](docs/screenshots/result-superprotection-class.png)
+
+**3. Identify.** Identifying a result polygon highlights it on the map and
+shows its tier classifications, criterion checks, forest indicators and source
+references in the **Kohteen tiedot** (Identify Results) panel.
+
+![An identified result polygon highlighted in orange, with its classifications, criterion checks and forest indicators displayed on the right.](docs/screenshots/result-feature-indentify.png)
+
+**4. Evidence.** The **Käytetyt lähdeaineiston tilannekuvat** (used source
+snapshots) group lets you inspect the data used in the analysis. Here, forest
+stand snapshots appear in pink alongside the inventory grid and other source
+evidence layers.
+
+![Source evidence displayed over the aerial basemap, with pink forest stand snapshots, inventory grid cells and the used source snapshots group expanded.](docs/screenshots/used-analysis-data-evidence.png)
 
 ## Expected outputs
 
