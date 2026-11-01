@@ -161,10 +161,10 @@ some stands.
 
 ![Protection tier results showing additional sensitive polygons in red.](docs/screenshots/result-protection-class.png)
 
-**Tehostettu suojelu (Enhanced protection).** All result polygons in this
+**Tehostettu suojelu (Superprotection).** All result polygons in this
 example are sensitive.
 
-![Enhanced protection tier results with all analyzed forest polygons shown in red.](docs/screenshots/result-superprotection-class.png)
+![Superprotection tier results with all analyzed forest polygons shown in red.](docs/screenshots/result-superprotection-class.png)
 
 **3. Identify.** Identifying a result polygon highlights it on the map and
 shows its tier classifications, criterion checks, forest indicators and source
