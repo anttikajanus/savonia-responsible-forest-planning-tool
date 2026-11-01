@@ -14,7 +14,7 @@ def fixture_sources():
     return {
         "forest_centre_stand": {
             "standid": "stand-1", "VOLUME": 200.0, "SAWLOGVOLUME": 100.0,
-            "VolumeGrowth": 4.0, "MeanAge": 40.0, "BasalArea": 20.0, "ProportionPine": 30.0,
+            "VolumeGrowth": 4.0, "MeanAge": 40.0, "SOILTYPE": "10", "BasalArea": 20.0, "ProportionPine": 30.0,
         },
         "forest_centre_habitat": {"HabitatId": "habitat-1", "HabitatType": "3"},
         "syke_protected_areas_state_owned": {"kohdeid": "state-1", "OLOTILA": "Voimassa", "TYYPPILYHENNE": "VSA"},

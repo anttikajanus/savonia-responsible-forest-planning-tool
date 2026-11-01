@@ -74,7 +74,7 @@ class WaterSourceContractTest(unittest.TestCase):
 
     def test_setup_orders_reuses_styles_and_restores_water_visibility_in_both_languages(self):
         sources = {
-            "forest_centre_stand": {"volume": 200., "sawlogvolume": 100., "volumegrowth": 4., "meanage": 40.},
+            "forest_centre_stand": {"volume": 200., "sawlogvolume": 100., "volumegrowth": 4., "meanage": 40., "soiltype": "10"},
             "forest_centre_habitat": {"habitattype": "3"},
             "syke_protected_areas_state_owned": {"olotila": "Voimassa", "tyyppilyhenne": "VSA"},
             "syke_protected_areas_private_land": {"olotila": "Voimassa", "kohdetyyppi": "YSA"},

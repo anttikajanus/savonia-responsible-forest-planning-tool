@@ -46,7 +46,7 @@ def classify(stands, evidence, language):
 class ClassificationGeometryTests(unittest.TestCase):
     def test_protected_strip_splits_only_matching_pieces_and_conserves_area(self):
         geometry = rectangle(0, 0, 100, 100)
-        stand = record("forest_centre_stand", "stand-1", geometry, {"volume": 100, "meanage": 40})
+        stand = record("forest_centre_stand", "stand-1", geometry, {"volume": 100, "meanage": 40, "soiltype": "10"})
         strip = record("syke_protected_areas_state_owned", "strip", rectangle(0, 0, 25, 100),
                        {"olotila": "Voimassa", "tyyppilyhenne": "VSA"})
         for language in ("en", "fi"):
@@ -62,7 +62,7 @@ class ClassificationGeometryTests(unittest.TestCase):
                 self.assertTrue(all(row["classes"]["superprotection"] == "SENSITIVE" for row in rows))
 
     def test_age_check_is_inherited_by_split_pieces_only_in_protection_tiers(self):
-        stand = record("forest_centre_stand", "old-stand", rectangle(0, 0, 100, 100), {"MEANAGE": 80.01})
+        stand = record("forest_centre_stand", "old-stand", rectangle(0, 0, 100, 100), {"MEANAGE": 80.01, "SOILTYPE": "10"})
         protected = record("syke_protected_areas_state_owned", "protected-strip", rectangle(0, 0, 25, 100),
                            {"olotila": "Voimassa", "tyyppilyhenne": "VSA"})
         for language in ("en", "fi"):
@@ -172,7 +172,7 @@ class ClassificationGeometryTests(unittest.TestCase):
                 self.assertEqual(sum(row["geometry"].area() for row in matched), area if expected == "MATCH" else 0)
 
     def test_riparian_boundary_touch_does_not_create_a_match(self):
-        stand = record("forest_centre_stand", "stand", rectangle(0, 0, 10, 10))
+        stand = record("forest_centre_stand", "stand", rectangle(0, 0, 10, 10), {"SOILTYPE": "10"})
         water_polygon = rectangle(40, 0, 5, 10)
         touching_buffer = water_polygon.buffer(30, 8)
         self.assertAlmostEqual(touching_buffer.intersection(stand["geometry"]).area(), 0)
