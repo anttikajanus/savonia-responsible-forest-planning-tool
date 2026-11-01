@@ -124,6 +124,9 @@ This requirement is maintainer/agent tooling, separate from the planner analysis
 
 This requirement covers maintainer tooling; planner behavior is unchanged.
 
+- The supported development environment is Windows. Development setup and
+  instructions for Linux and macOS are outside scope under
+  [ADR-0020](../architecture/adr/0020-windows-only-development-environment.md).
 - A maintainer can run selected tooling, unit, lint and QGIS checks from one
   local command, with an optional current-version package validation pass.
 - Every run reports selected, omitted and unexecuted checks explicitly and

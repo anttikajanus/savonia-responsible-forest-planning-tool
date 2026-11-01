@@ -22,4 +22,4 @@ help. Local dataset support remains deferred work for the full product; this
 decision does not define its formats or integration design, or establish buyer
 acceptance of the prototype's reduced scope.
 [Project context](../../project-context.md),
-[deferred scope](../../open-questions.md#scope-and-source-alternatives).
+[source policy](../../specs/workflow.md#wf-03-source-readiness-and-retrieval).

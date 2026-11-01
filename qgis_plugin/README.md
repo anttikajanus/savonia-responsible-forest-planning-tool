@@ -13,6 +13,10 @@ packages or helper plugins are required. See
 installation range and the [development guide](../docs/architecture/development.md#shared-qgis-test-environment)
 for tested runtimes.
 
+Automated verification uses Windows QGIS runtimes. The
+[verification register](../docs/open-questions.md#release-and-distribution-verification)
+tracks remaining runtime compatibility and desktop acceptance checks.
+
 1. Download `savonia_responsible_forest_planning_tool-<version>.zip` from
    [GitHub Releases](https://github.com/anttikajanus/savonia-responsible-forest-planning-tool/releases).
    Use the plugin ZIP under **Assets**, rather than a **Source code** archive,
@@ -32,6 +36,15 @@ API key, supply a SYKE identifier when needed, set up the source layers and run
 an analysis with a positive sawlog stumpage price. Each successful run writes a
 GeoPackage and an Excel workbook.
 
+For toolbox, batch and model workflows, run
+`savonia_forest_planning:prepare_forest_scenario_inputs` in the Processing
+Toolbox. It uses the same analysis rules; the
+[Processing manual](../docs/help/manual_en.html#processing) describes its inputs
+and outputs.
+
+Start with a small area: large analyses retain evidence in memory and can exhaust
+it. See the [known limitations](../README.md#known-limitations) before a larger run.
+
 ## Language
 
 The plugin follows QGIS's language: Finnish for Finnish QGIS, English otherwise.
@@ -42,7 +55,7 @@ offline through **Help**.
 ## Development and references
 
 - [Build a plugin ZIP](../docs/architecture/development.md#check-packaging-separately).
-- [Development guide](../docs/architecture/development.md): setup, reload, debugging and tests.
+- [Development guide](../docs/architecture/development.md#supported-development-environment): Windows setup, reload, debugging and tests.
 - [Architecture index](../docs/architecture/README.md): source contracts, calculations and output schemas.
 - [Known limitations and remaining verification](../docs/open-questions.md).
 - [Licences and acknowledgements](../OPEN_SOURCE_ACKNOWLEDGEMENTS.md).

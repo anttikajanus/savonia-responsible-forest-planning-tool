@@ -4,7 +4,7 @@
 learning prototype, based on limited understanding and personal assumptions.
 Neither it nor its results are backed, endorsed, finalized, or approved by
 Savonia in any form.** Implementation and test completion here describe this
-prototype only; see the [project context](../../README.md).
+prototype only; see the [project context](../project-context.md).
 
 This guide owns setup, reload, debugger, test and packaging instructions for the Savonia - Responsible Forest Planning plugin. Run commands from the repository root unless stated otherwise. The plugin targets **QGIS 3.44 and newer 3.x/4.x releases**, as declared in [metadata.txt](../../qgis_plugin/savonia_responsible_forest_planning_tool/metadata.txt) (`3.44.0` minimum, `4.99` maximum). The verification baselines are QGIS 3.44.0 and 4.2.3. The continuous metadata range also permits intervening 4.0/4.2 releases; run the suites and packaged load/Processing/unload checks on each additional target before recording it as verified.
 
@@ -16,6 +16,15 @@ Automated headless/offscreen checks do not establish interactive acceptance.
 The maximum uses QGIS's major-version-plus-`.99` convention. QGIS documents [plugin metadata ranges](https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/plugins/plugins.html#metadata-txt)
 separately from [runtime testing](https://docs.qgis.org/4.2/en/docs/developers_guide/unittesting.html)
 and [Processing algorithm tests](https://docs.qgis.org/4.2/en/docs/developers_guide/processingtesting.html).
+
+## Supported development environment
+
+Windows is the only supported development environment for this prototype.
+The setup, tooling, debugging, testing and packaging procedures in this guide
+target Windows; verification of the environment and these instructions is scoped
+to Windows. Linux and macOS development environments and use of this guide on
+those platforms are outside scope under
+[ADR-0020](adr/0020-windows-only-development-environment.md).
 
 ## Development bootstrap
 
@@ -293,20 +302,14 @@ its isolated dependency installation before linting.
 
 ## Local provider references
 
-Populate `docs/references/service-metadata/` once before investigating service contracts:
-
-```powershell
-& 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' scripts/download_references.py
-```
-
-Any Python 3.10+ installation works; the script uses only the standard library.
-Agents can then read capabilities, eight layer schemas and provider PDF/XLSX
-documentation locally. The cache is ignored by Git. Its versioned manifest,
-refresh/filter options, optional `SYKE_USER_ID`, provenance and failure behavior
-are documented in [reference instructions](../references/service-metadata/README.md).
-Maintain this manifest alongside the [source registry contract](data-sources.md)
-when endpoints or required layers change. The downloader deliberately does not
-import the plugin or require QGIS to read development reference material.
+Before investigating service contracts, follow the
+[reference instructions](../references/service-metadata/README.md) to populate
+the ignored local cache. That guide owns downloader commands, provider
+credentials, refresh/filter options, provenance and failure behavior. Any
+Python 3.10+ installation works; QGIS is not required. The
+[manifest](../references/service-metadata/manifest.json) owns the reference set;
+maintain it alongside the [source registry contract](data-sources.md) when
+endpoints or required layers change.
 
 Run tooling checks separately from plugin tests with Python 3.10+, the pinned
 development dependencies and Git available on PATH:

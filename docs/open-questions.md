@@ -1,95 +1,59 @@
-# Remaining verification and deferred work
+# Open questions and remaining verification
 
-This project-wide register tracks unresolved implementation gaps, provider
-questions, acceptance checks and deferred choices. Automated procedures belong to
-[development](architecture/development.md), interactive procedures to the
-[manual acceptance guide](testing/manual-acceptance.md), and current behavior to
-[specs](specs/README.md). Adopted choices are indexed in the
-[ADRs](architecture/README.md#architecture-decision-records).
+This register contains unresolved implementation gaps, provider questions,
+planning assumptions and acceptance/release checks. Settled behavior and scope
+belong in [specs](specs/README.md) and [architecture](architecture/README.md).
+Automated procedures belong to [development](architecture/development.md), and
+interactive procedures to the [manual checklist](testing/manual-acceptance.md).
 
 ## Provider evidence
 
 ### Reference material integrity
 
-`mml/wmts/get-capabilities.xml` is absent from the local cache. Its entry in the
-[reference manifest](references/service-metadata/manifest.json) and link in the
-[reference instructions](references/service-metadata/README.md#maanmittauslaitos)
-identify a download destination, not bundled evidence. Populate it using the
-documented `MML_API_KEY` and `--only mml/wmts/` options when an authorized key is
-available. The missing authenticated material does not establish a plugin failure.
-Cache integrity does not verify
-current provider values or geographic completeness.
+The authenticated `mml/wmts/get-capabilities.xml` reference is still missing.
+Capture it when an authorized key is available, following the
+[reference instructions](references/service-metadata/README.md#provider-credentials).
+Keep this material-availability check separate from live feature values and
+coverage verification.
 
 ### Live values and service behavior
 
 | Item | Current limit and next evidence needed |
 | --- | --- |
-| Analysis polygon queries | A bounded stand probe reproduces the rejection of QGIS's GML 3.2 MultiPolygon and succeeds with OR-combined Polygon predicates; multipart queries now use that encoding. Verify the original parcel selection interactively, representative AOIs on all eleven sources, provider handling of malformed polygons before local repair, and deployment-specific GET limits; large filters retain bbox retrieval. Bounded sample comparisons do not establish completeness or a performance guarantee. |
-| Setup responsiveness | Setup remains synchronous; the reported minute-long desktop stall has not been reproduced end to end. Use the manual checklist's MT-08 to investigate waits separately from map rendering. |
-| MML property context | Cached parcel and identifier-point models do not establish current live schemas. Verify both live collections/schemas, paging, representative formatted identifiers and network errors with an authorized key. |
-| Representative classification values | Saved XSDs are not feature samples. Check sanitized habitat codes, active/inactive protected statuses/categories, programme identifiers/classes and null formats across all three protected sources. Current code rejects unrecognized values; a policy accepting inactive records would require an explicit change. |
-| Groundwater | The cache includes capabilities and the exact VHS2022 XSD. Check representative identifiers/nulls and service-specific field meanings; the general groundwater PDF alone does not establish those semantics. |
-| Ranta10 water sources | Capabilities/schema discovery establishes the three configured feature types and advertised geometry/CRS, not representative values or geographic completeness. Verify live access, source subsets/authentication, paging, server-side expanded bbox/polygon filtering, nearby outside-AOI river retention, update-date values and request failure handling for all three products. |
-| Wilderness evidence | The cache includes its dedicated XSD and protected-sites capabilities. Representative statuses/categories and completeness remain unverified. |
-| Inventory coverage and dates | Check stand/grid identifiers, measurement/update semantics, null prevalence and selected-product freshness. Successful empty retrieval permits a no-hit in the current application but does not establish authoritative geographic coverage or absence of unmapped habitats. |
-| Growth meaning | Units support relative annual volume growth, but current/periodic, gross/net and denominator timing remain unspecified. Keep the transparent derived indicator until provider semantics support stricter wording. |
+| Analysis polygon queries | Verify the original multipart parcel selection interactively, representative AOIs on all eleven sources, provider handling of malformed polygons before local repair, and deployment-specific GET limits. Bounded samples do not establish completeness or a performance guarantee. |
+| Setup responsiveness | Investigate the reported minute-long setup stall end to end. Use the manual checklist's MT-08 to separate source initialization waits from map rendering. |
+| MML property context | Verify both live collections/schemas, paging, representative formatted identifiers and network errors with an authorized key. Cached models alone do not establish live behavior. |
+| Representative classification values | Check sanitized habitat codes, active/inactive protected statuses/categories, programme identifiers/classes and null formats. Verify representative values and completeness across all three protected sources, including wilderness. Saved XSDs do not settle these questions. |
+| Groundwater | Confirm representative identifiers/nulls and service-specific field meanings for VHS2022. The general groundwater PDF does not establish those semantics. |
+| Ranta10 water sources | Verify live access, source subsets/authentication, complete paging, expanded bbox/polygon filtering, nearby outside-AOI river retention, update dates and request failures for all three products. Geographic completeness remains unverified. |
+| Inventory coverage and dates | Check stand/grid identifiers, measurement/update semantics, null prevalence and product freshness. Establish geographic coverage; an empty response alone does not show that habitats or inventory are absent. |
+| Growth meaning | Clarify current versus periodic growth, gross versus net growth, and denominator timing before adopting a stricter description of the derived indicator. |
 
 Evidence locations and primary sources are in [data sources](architecture/data-sources.md) and [indicators](architecture/indicators.md); saved XML/XSD/model artifacts remain under [references](references/service-metadata/README.md).
 
-## Scope and source alternatives
-
-Local analysis datasets are deliberately excluded from the prototype to keep its
-scope manageable. The full product should support user-corrected datasets and
-data supplied by customer organizations, as recorded in
-[ADR-0017](architecture/adr/0017-online-only-prototype-data-sources.md).
-
-User-configurable analysis rules and parameters, such as comparing 15 m and 30 m
-riparian buffers, are deferred to the full product. The prototype uses constants,
-with a user-supplied sawlog stumpage price as the exception to avoid Luke price
-integration. [ADR-0018](architecture/adr/0018-fixed-prototype-analysis-parameters.md)
-records the scope decision.
-
-Local GeoPackage/raster adapters, open-mire/whole-AOI reporting, external potential-protected-site datasets, urban-forest/MY interpretation, other peat sensitivity rules and other water-protection sources remain deferred; the adopted stand SOILTYPE screen and Ranta10 30 m criterion are in scope. Candidate sources and unanswered thresholds/denominators are recorded in [deferred sources](architecture/deferred-sources.md).
-
-No reviewed repository evidence establishes Savonia acceptance of the prototype's tier rules, interpretations or deliverables. Tender requirements and implementation choices have different authority. [Project context](project-context.md).
+## Analysis validation
 
 ### Large-area memory use
 
-The prototype retains AOI-wide source evidence, snapshots, a grid spatial index
-and accumulated results in memory, with no application-level memory-budget or
-AOI-size guard. Large areas can exhaust memory and potentially crash QGIS; no
-safe-area threshold or reproduced out-of-memory crash is established here.
-[ADR-0019](architecture/adr/0019-aoi-wide-in-memory-analysis.md) records the
-current trade-off. For the full product, design bounded geometry-level fetching
-and calculation with limited parallelism and incremental output, preserving
-buffer-neighbor evidence, coverage, provenance and aggregation without duplicate
-contributions. Measure peak memory and verify equivalent results across work-unit
-boundaries before claiming that redesign scales safely.
+Measure peak memory on representative AOIs and establish practical guidance for
+run size. The [current working set](architecture/overview.md#aoi-wide-working-set)
+can exhaust memory and potentially crash QGIS, but no safe-area threshold or
+reproduced out-of-memory crash has been established.
 
 ### Section 10 stand-wide promotion validation
 
-Planning-rule acceptance remains pending. Validate with
-the intended planners whether a qualifying mapped Section 10 habitat overlap
-should make the entire AOI-clipped parent stand sensitive, including result
-pieces outside the mapped habitat, or whether sensitivity should follow only
-the mapped habitat footprint. The current stand-wide assumption is owned by
-[CL-01](specs/classification.md#cl-01-reporting-domain-and-geometry) and
-[ADR-0004](architecture/adr/0004-stand-based-sensitivity-classification.md).
+Validate with intended planners whether a qualifying mapped habitat should make
+the entire AOI-clipped parent stand sensitive or only the mapped habitat
+footprint. For example, a 10 ha stand containing a 0.2 ha qualifying habitat
+currently becomes 10 ha of sensitive forest in tiers containing Section 10.
+Agree the rationale and spatial extent; correct implementation alone does not
+establish suitability or planner acceptance.
 
-Use a concrete example: a 10 ha stand containing a 0.2 ha qualifying habitat
-overlap currently becomes 10 ha of sensitive forest in every tier containing
-Section 10. Check that planners understand and accept this extension as a
-planning assumption; it does not establish that all 10 ha are legally a
-Section 10 habitat. Also validate that the explanation of
-`section10_stand_promoted = true` communicates the stand-wide rule, rather than
-claiming that each result piece overlaps the mapped habitat. The
-[field contract](architecture/output-schema.md#classification-reasons-and-context) owns its
-stored meaning.
-
-Agree the rationale and intended spatial extent. Automated tests of the
-implemented rule do not establish its suitability or acceptance.
-This note leaves current behavior unchanged; a different accepted extent
-requires a specification change and reconsideration of ADR-0004.
+Check that the explanation of `section10_stand_promoted = true` communicates
+the stand-wide planning assumption without implying every piece overlaps the
+habitat or all 10 ha are legally Section 10 habitat. Current behavior and field
+meaning remain owned by [CL-01](specs/classification.md#cl-01-reporting-domain-and-geometry)
+and the [output contract](architecture/output-schema.md#classification-reasons-and-context).
 
 ## Known implementation gaps
 
@@ -102,34 +66,21 @@ this defect, but discovery provenance can contain misleading properties.
 
 Completion requires parsing the selected feature type's actual property
 definitions, with representative multi-type/imported-schema fixtures and
-retained provider-field readiness behavior. Cached XSD availability and passing
-readiness tests do not establish that this parser is correct.
+retained provider-field readiness behavior.
 
 ## Acceptance and distribution
 
-### Riparian water criterion implementation and acceptance
-
-The adopted Ranta10 criterion is implemented at integration revision `cf5e4a0`, but implementation status does not establish full acceptance. The full QGIS 3.44 source suite passed 147/147 tests. `scripts/check.ps1 -Checks qgis -Package` also passed on `7cd8479`: the source and installed-plugin package suites each passed 146 tests. The final `cf5e4a0` change adds one test only; production code is unchanged from the packaged run. Both baseline launchers and their pinned tooling are available through the [development bootstrap](architecture/development.md#development-bootstrap). Use per-run summaries to establish the tested revision, dirty state and selected verification stages. Keep the two QGIS baselines and packaging evidence separate.
-
-Live-provider verification remains distinct: test representative AOIs against all three current feature types, including a line river outside the AOI whose buffer reaches into it, complete paging, source filtering/authentication, update dates and service failures. This does not establish national completeness. Interactive acceptance remains distinct as well: inspect Finnish and English setup, Water ordering/symbols/scale restoration, wizard/Processing parity, reopened output presentation and retained snapshot-group behavior in supported QGIS desktops. No check in this list validates the fixed 30 m assumption as a legal setback or for every site.
 ### Interactive acceptance
 
-Use the [personal manual checklist](testing/manual-acceptance.md) for desktop,
-language, Excel, browser and offline-help checks. Its
+Complete desktop, Finnish/English, Excel, browser and offline-help checks using
+the [personal manual checklist](testing/manual-acceptance.md). Include Water-group
+ordering, symbols and scale restoration; wizard/Processing parity; reopened
+output presentation; and retained snapshot-group behavior. The checklist's
 [open-question mapping](testing/manual-acceptance.md#use-the-checklist-with-open-questions)
-connects relevant checks to investigation topics.
-
-Verification histories and individual test-completion records are not maintained
-here. Keep substantive defects, provider questions and planning decisions in this
-register.
+connects the relevant cases to investigation topics.
 
 ### Release and distribution verification
 
-- Review the pinned Pylint and Astroid versions periodically. Check whether the
-  latest releases support both verified QGIS baselines (3.44.0 and 4.2.3), and
-  update the pins when compatible; record any compatibility reason for keeping
-  older versions. Preserve the Astroid fix needed to avoid an infinite loop on
-  live Qt 5 classes, as described in [Python linting](architecture/development.md#python-linting).
 - Optional merge blocking needs administrator activation of the checked-in
   ruleset. See [required merge checks](architecture/development.md#required-merge-checks).
 - Compatibility with releases beyond the QGIS 3.44.0 and 4.2.3 verification

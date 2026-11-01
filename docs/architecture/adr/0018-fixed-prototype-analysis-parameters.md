@@ -32,4 +32,4 @@ price entry without changing either pricing contract.
 This is a prototype scope decision, not a claim that fixed parameters fulfill
 all requirements of the intended product. See
 [project context](../../project-context.md) and
-[deferred scope](../../open-questions.md#scope-and-source-alternatives).
+[current classification rules](../../specs/classification.md#cl-02-six-cumulative-tiers).

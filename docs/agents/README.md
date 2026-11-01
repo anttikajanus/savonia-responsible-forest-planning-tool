@@ -6,15 +6,13 @@ information; follow only the branches relevant to the task.
 
 ## Optional agent setup
 
-This repository includes a project-scoped [spec-first development workflow](../../.agents/skills/spec-first-development/SKILL.md). It connects upstream skills to the local spec, tracker, and documentation conventions. Keep reusable upstream skill files outside this repository; the workflow still applies if an upstream skill is unavailable.
-
-For agent-assisted development, install the `mattpocock/skills` collection as an
-external plugin using the [upstream installation instructions](https://github.com/mattpocock/skills#installation-30-second-setup)
-for your agent. Keep upstream skill files outside this repository. The repository's
-[spec-first development workflow](../../.agents/skills/spec-first-development/SKILL.md)
-connects those reusable skills to this project's local spec, tracker and documentation
-rules. The plugin setup is optional for developing and running the project; follow
-the repository workflow even when an upstream skill is unavailable.
+For optional agent skills, install the `mattpocock/skills` collection as an
+external plugin using the [upstream installation instructions](https://github.com/mattpocock/skills#installation-30-second-setup).
+Keep reusable upstream skill files outside this repository. For feature and
+behavior work, follow the project-scoped
+[spec-first development workflow](../../.agents/skills/spec-first-development/SKILL.md),
+which connects available skills to local conventions and also applies when an
+upstream skill is unavailable.
 
 When a skill asks for project-specific setup, use the [local issue tracker](issue-tracker.md),
 [triage labels](triage-labels.md) and documentation ownership map below for the
@@ -37,7 +35,7 @@ tracker, labels and document destinations.
 | Research evidence | [Research guidance](research.md) | Save findings under ignored `docs/research/`; promote adopted requirements, decisions and unresolved questions to their maintained owners. |
 | External source material | [Reference index](../references/README.md) | Procurement PDFs are versioned under `procurement/629864/`; provider evidence has a separate cache. |
 | Provider capabilities, schemas and PDF/XLSX documents | [Service metadata](../references/service-metadata/README.md) | Read cached files first. The manifest and instructions are versioned; downloads and retrieval metadata are ignored. |
-| Project-wide gaps, provider questions, pending acceptance and deferred choices | [Open questions](../open-questions.md) | Keep unresolved questions and limitations explicit; implementation completion does not close acceptance. |
+| Unresolved implementation gaps, provider questions and pending acceptance | [Open questions](../open-questions.md) | Keep only unresolved items here; settled behavior and scope belong in specs and architecture. Implementation completion does not close acceptance. |
 
 ## Reading and handoff
 

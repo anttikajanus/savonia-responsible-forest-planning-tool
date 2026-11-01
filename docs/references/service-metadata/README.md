@@ -5,7 +5,12 @@ Saved source descriptions and provider model documents support the
 The decision to download these references locally and keep them out of Git is
 recorded in [ADR-0012](../../architecture/adr/0012-local-reference-downloads.md).
 
-Download the reference set once from the repository root with Python 3.10+:
+## Download and authentication
+
+Before a full download, configure the [provider credentials](#provider-credentials).
+The reference set includes an authenticated MML service.
+
+Download the reference set from the repository root with Python 3.10+:
 
 ```powershell
 python scripts/download_references.py
@@ -38,6 +43,8 @@ requests for them. Missing or invalid files are downloaded; `--refresh` explicit
 replaces valid files too. `--only` selects a local path prefix from the manifest.
 Requests use a 45-second socket timeout and up to two retries for transient
 network/HTTP errors; `--timeout` and `--retries` override those defaults.
+
+### Provider credentials
 
 For sustained SYKE application use, supply the provider-issued identifier in
 `$env:SYKE_USER_ID` before running. The script adds it only to SYKE WFS requests
@@ -142,9 +149,9 @@ the service has multiple schemas in this reference set.
 Downloaded files are retained as source evidence. The XSDs describe field names and
 types; they do not contain representative feature values.
 
-The manifest covers seven WFS services, one WMTS service, eleven layer schemas and
-ten provider documents (29 files), including the MML parcel and identifier-point
-models. Provider documents complement the service schemas.
+The [manifest](manifest.json) lists the complete reference set, including service
+capabilities, layer schemas and provider documents. Provider documents complement
+the service schemas, including the MML parcel and identifier-point models.
 See [provider evidence gaps](../../open-questions.md#provider-evidence)
 for the value, interpretation and completeness checks still needed.
 

@@ -6,40 +6,20 @@ help and output provenance use the corresponding name for the selected language.
 
 **This is my unfinished personal training project**, an independent prototype by Antti Kajanus based on the real forest-planning use case described in Savonia's project and procurement materials. **Neither this prototype nor its results are finalized, official, backed, endorsed, or approved by Savonia in any form.** The design reflects my limited understanding of the intended solution and my own assumptions and interpretations; it does not represent Savonia's implementation or accepted requirements.
 
+Read the [project context](docs/project-context.md) for Savonia's original
+project and follow-on roadshow, the value-table planning method, project and
+procurement source materials, and this prototype's relationship to them.
+
 ## Savonia's forest-planning project
 
-Savonia's **Vastuullista metsäsuunnittelua kuntametsänomistajille** project
-developed a way for municipalities to compare forest-management choices across
-economic, carbon, biodiversity, water and recreation objectives, using
-Siilinjärvi as a case. The aim is to help forest owners and decision-makers
-weigh different goals when deciding how their forests should be managed.
+Savonia's municipal forest-planning approach uses a **value table
+(arvotaulukko)** to compare management choices across economic, carbon,
+biodiversity, water and recreation objectives. Spatial evidence supports a
+wider process involving a separate calculation model, field assessment and
+dialogue with forest owners and the public.
 
-The approach uses a **value table (arvotaulukko)** to compare alternative
-management pathways and their modeled effects. It brings together spatial
-evidence, a separate calculation model, field assessment and dialogue with
-forest owners and the public. The follow-on **Vastuullisen metsänhoidon
-roadshow** project was designed to bring this approach to more municipalities
-and parishes. See [project context](docs/project-context.md#external-use-case)
-for the background and source summaries.
-
-### Project material
-
-- [Savonia project record](https://www.savonia.fi/tki-ja-palvelut/tutkimus-ja-kehittaminen/paattyneet-projektit-ja-hankkeet/?id=1960) — the original municipal forest-planning project.
-- [Planning method](https://vastuullinenmetsasuunnittelu.savonia.fi/metsasuunnitelma/) and [method guide (PDF)](https://laari.info/wp-content/uploads/2026/05/vastuullisen-metsasuunnittelun-opas.pdf) — the value-table approach and wider planning process.
-- [Dataset catalogue](https://vastuullinenmetsasuunnittelu.savonia.fi/paikkatietoaineisto/) — spatial datasets and their original providers.
-- [Roadshow project record](https://hankkeet.savonia.fi/tutustu/kaynnissa-olevat-hankkeet/?id=2438) — the follow-on project for municipalities and parishes.
-
-### Procurement references
-
-The related [procurement 629864, Paikkatietotyökalu](https://tarjouspalvelu.fi/UX/TP/SiirryTarjouspyyntoon/?tpId=629864)
-describes a QGIS tool for preparing classified geography and forest-input
-tables; development of the separate calculation model is excluded.
-The local materials are the [tender report](docs/references/procurement/629864/TarjouspyyntoRaportti629864.pdf),
-[project description (Annex 1)](docs/references/procurement/629864/liite1_hankkeenkuvaus.pdf) and
-[procurement scope (Annex 2)](docs/references/procurement/629864/liite2_hankinnankohteenkuvaus.pdf).
-The complete material and clarifications require access to the authenticated
-procurement portal. See [project context and procurement references](docs/project-context.md#procurement-reference-and-authority)
-for source limitations.
+The [reference index](docs/references/README.md) lists the original procurement
+documents and provider reference material.
 
 ## How this prototype fits in
 
@@ -65,8 +45,7 @@ The analysis clips source data to the selected area, splits forest stands at sen
 Stand and grid indicators remain separate estimates, with source and metric
 coverage reported alongside the results. Missing numeric evidence can leave
 indicators unavailable or partial. Required-source failures and unrecognized
-classification values stop the run before outputs are published. The results
-support planning and do not determine legal harvesting rights.
+classification values stop the run before outputs are published.
 
 See the [classification rules](docs/specs/classification.md),
 [indicator calculations](docs/architecture/indicator-calculations.md),
@@ -108,7 +87,7 @@ repeat setup.
 
 ### Set up layers and run an analysis
 
-Setup adds **16 layers**: eleven analysis sources (three Metsakeskus and eight SYKE), two MML property layers (boundaries and identifiers), and three basemaps (Orthophoto, Topographic map and OpenStreetMap).
+Setup adds **16 layers**: eleven analysis sources (three Metsäkeskus and eight
 SYKE), two MML property layers (boundaries and identifiers), and three basemaps
 (Orthophoto, Topographic map and OpenStreetMap).
 
@@ -120,7 +99,8 @@ SYKE), two MML property layers (boundaries and identifiers), and three basemaps
    Wait for all layers to report ready.
    If MML setup is incomplete, check the key and network connection, then repeat setup.
 4. Start with a small area: draw a polygon, select polygon features from a
-   project layer, or use the current map extent.
+   project layer, or use the current map extent. See the
+   [large-area limitation](#known-limitations) before attempting a larger run.
 5. Enter a positive sawlog stumpage price (€/m³), choose a writable output folder
    and run the analysis. Resolve any reported
    source, geometry or validation error before retrying.
@@ -130,8 +110,13 @@ SYKE), two MML property layers (boundaries and identifiers), and three basemaps
 
 The full manuals are available in [English](docs/help/manual_en.html) and
 [Finnish](docs/help/manual_fi.html), and through the plugin's offline Help.
+For toolbox, batch and model workflows, use the same analysis through
+[Processing](docs/help/manual_en.html#processing).
 
 ### Screenshots
+
+<details>
+<summary>Show the Finnish interface: selection, results, identify and evidence</summary>
 
 These captures show the Finnish interface, following selection → results →
 identify → evidence. Open the images to inspect them at full resolution.
@@ -179,6 +164,8 @@ evidence layers.
 
 ![Source evidence displayed over the aerial basemap, with pink forest stand snapshots, inventory grid cells and the used source snapshots group expanded.](docs/screenshots/used-analysis-data-evidence.png)
 
+</details>
+
 ## Expected outputs
 
 A successful run writes two files with the same basename. The wizard generates
@@ -196,45 +183,45 @@ those stands is not automatically included. Spatial outputs use EPSG:3067;
 areas are planar hectares.
 
 Stand overlaps remain untrimmed and can duplicate area and timber contributions;
-a completion warning points to technical details. The supplied price applies
-only to positive valid stand sawlog volume and is not a total forest valuation.
-A separate calculated sawlog value (€) multiplies unrounded represented sawlog
-volume by the supplied €/m³, with known/unknown coverage preserved in totals.
+a completion warning points to technical details. Calculated sawlog value uses
+the supplied price and represented sawlog volume, with known/unknown coverage
+preserved. It is not a total forest valuation.
 
 See the [output examples](docs/examples/classified-forest-polygons.md) and
 [output schema](docs/architecture/output-schema.md).
 
+## Known limitations
+
+The analysis retains source evidence and results in memory. Large areas can
+exhaust memory and potentially crash QGIS; no safe area threshold has been
+established. Start small and consult the
+[memory-use limitation](docs/open-questions.md#large-area-memory-use).
+
+Live-provider coverage and Finnish/English desktop acceptance still have
+outstanding checks. The [open-question register](docs/open-questions.md)
+owns current implementation gaps, provider questions and remaining acceptance.
+
 ## Development setup
 
-For workspace-only Windows QGIS test runtimes, use
-`./scripts/setup-qgis-runtime.ps1 -Version 3.44.0` (or `4.2.3`). It reuses CI's
-installer pins, caches verified downloads and prints the correct Python launcher.
-See [runtime setup](docs/architecture/development.md#workspace-runtime-setup)
-for prerequisites and existing-download reuse.
-
-After cloning the complete repository, run the reference downloader from the
-repository root with Python 3.10 or newer:
+Windows is the only supported development environment
+([ADR-0020](docs/architecture/adr/0020-windows-only-development-environment.md)).
+Start with the [development bootstrap](docs/architecture/development.md#development-bootstrap),
+which prepares the developer tools and both pinned QGIS verification baselines.
+Run it from the repository root:
 
 ```powershell
-python scripts/download_references.py
+./scripts/setup-dev-environment.ps1
 ```
 
-If Python is available through your Windows QGIS installation, use its launcher:
+The [development guide](docs/architecture/development.md) owns prerequisites,
+QGIS profiles, reload, debugging, checks and packaging commands. The
+[script index](scripts/README.md) lists reusable entry points.
 
-```powershell
-& 'C:\Program Files\QGIS 4.2.3\bin\python-qgis.bat' scripts/download_references.py
-```
-
-This populates `docs/references/service-metadata/` with WFS capabilities, layer schemas and
-provider PDF/XLSX documentation so developers and agents can read them locally.
-Downloaded files and retrieval metadata are ignored by Git; the README and
-source manifest stay versioned. Repeated runs reuse valid cached files. Add
-`--refresh` when you want to update them.
-
-See the [reference instructions](docs/references/service-metadata/README.md) for source selection
-and SYKE configuration, then follow the
-[development guide](docs/architecture/development.md) for the QGIS development
-profile and testing setup.
+Before investigating provider contracts, follow the
+[reference-cache instructions](docs/references/service-metadata/README.md) to
+download schemas and model documents. The downloader uses its own environment
+settings, including `MML_API_KEY` for authenticated MML references; the plugin's
+saved QGIS key does not configure it.
 
 ## Report an issue or contribute
 
@@ -254,14 +241,8 @@ third-party software and data retain their [own terms and credits](OPEN_SOURCE_A
 ## Project contents
 
 - [External reference material](docs/references/README.md) — original procurement PDFs and the provider service metadata cache.
-- [Service metadata](docs/references/service-metadata/README.md) — run `python scripts/download_references.py` once to cache WFS capabilities, layer schemas and provider PDF/XLSX documentation for offline reading. Downloads stay out of Git; the manifest and downloader are versioned.
 - [User stories and specifications](docs/specs/README.md) — current product scope, user goals, behavior and acceptance requirements.
 - [Agent guidance and documentation map](docs/agents/README.md) — documentation ownership and task instructions.
 - [Open-source licences and acknowledgements](OPEN_SOURCE_ACKNOWLEDGEMENTS.md) — software dependencies, upstream licence references, and data-source credits.
-- [`qgis_plugin/README.md`](qgis_plugin/README.md) — plugin installation and documentation entry point.
-- [`docs/architecture/development.md`](docs/architecture/development.md) — practical QGIS plugin development, reload, debugging, and the local `./scripts/check.ps1` check runner.
-- [Geometry and classification](docs/architecture/calculations.md) — geometry mechanics, tolerances and classification field mapping.
-- [Indicator calculations](docs/architecture/indicator-calculations.md) — formulas, aggregation and worked examples.
-- [Output schema](docs/architecture/output-schema.md) — result fields, coverage statistics and output layout.
 - [Architecture and ADRs](docs/architecture/README.md) — adopted design decisions, source evidence, technical guidance and remaining questions.
 - [Project context](docs/project-context.md) — source use case, procurement references and project scope.

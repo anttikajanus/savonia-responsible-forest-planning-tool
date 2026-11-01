@@ -78,3 +78,4 @@ establish implementation or provider/desktop acceptance.
 | [0017](adr/0017-online-only-prototype-data-sources.md) | Limit prototype analysis sources to online services; defer local datasets to the full product |
 | [0018](adr/0018-fixed-prototype-analysis-parameters.md) | Fix prototype analysis rules as constants; accept a user-supplied price to avoid Luke integration |
 | [0019](adr/0019-aoi-wide-in-memory-analysis.md) | Retain AOI-wide evidence in memory before classification; defer bounded parallel processing |
+| [0020](adr/0020-windows-only-development-environment.md) | Support and verify the development environment and guide only on Windows |

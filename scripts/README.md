@@ -22,19 +22,5 @@ The PowerShell setup and worktree commands are Windows entry points. Python
 counterparts and focused direct commands are available where documented in the
 development guide.
 
-## Supporting scripts
-
-These are implementation details of the commands above or of CI; normally use
-their owning command or workflow instead.
-
-| Script | Used by |
-| --- | --- |
-| `development-paths.ps1`, `dev_environment.py` | Resolve shared Python, QGIS and tooling paths across linked worktrees. |
-| `setup_dev_environment.py`, `setup_qgis_runtime.py`, `qgis-runtimes.json` | Bootstrap tools and runtimes from the PowerShell setup commands and CI. |
-| `development_sitecustomize.py` | Load bundled Python DLL paths in the managed development environment. |
-| `check_tooling_environment.py`, `check_lint_environment.py` | Preflight parser and lint dependencies for the check runner. |
-| `run_dev_tool.py` | Run lint tools with the managed dependencies inside QGIS Python. |
-| `run_qgis_tests.py` | Run isolated PyQGIS checks from the check runner and CI. |
-| `check_report.py` | Write check-run summaries and stage records. |
-
-Automated tests for these scripts are in [`tests/`](tests/).
+Other files support these commands and CI. Use the linked development or release
+guide when changing their behavior. Automated script tests are in [`tests/`](tests/).
