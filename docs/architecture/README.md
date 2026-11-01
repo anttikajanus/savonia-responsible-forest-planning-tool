@@ -63,7 +63,7 @@ establish implementation or provider/desktop acceptance.
 | [0002](adr/0002-shared-processing-workflow.md) | Share one workflow between the wizard and Processing |
 | [0003](adr/0003-provider-field-source-contracts.md) | Validate provider fields against semantic contracts |
 | [0004](adr/0004-stand-based-sensitivity-classification.md) | Keep stand-based pieces and cumulative sensitivity tiers |
-| [0005](adr/0005-independent-stand-and-grid-indicators.md) | Combine stand geometry with independent grid indicators |
+| [0005](adr/0005-independent-stand-and-grid-indicators.md) | Use stands as analysis units and retain independent grid indicators |
 | [0006](adr/0006-evidence-coverage-and-publication.md) | Preserve unknown evidence and coordinate paired outputs |
 | [0007](adr/0007-separate-operational-log-channels.md) | Separate technical diagnostics and business-action records |
 | [0008](adr/0008-qgis-language-and-offline-help.md) | Follow QGIS language and ship offline help |
@@ -75,3 +75,6 @@ establish implementation or provider/desktop acceptance.
 | [0014](adr/0014-user-supplied-sawlog-price.md) | Apply one explicit user price to represented sawlogs |
 | [0015](adr/0015-metric-coverage-as-indicator-interface.md) | Remove independent indicator status/diagnostics while retaining metric coverage |
 | [0016](adr/0016-calculated-sawlog-value.md) | Publish a calculated sawlog euro amount; partially supersede ADR-0014's price-only scope |
+| [0017](adr/0017-online-only-prototype-data-sources.md) | Limit prototype analysis sources to online services; defer local datasets to the full product |
+| [0018](adr/0018-fixed-prototype-analysis-parameters.md) | Fix prototype analysis rules as constants; accept a user-supplied price to avoid Luke integration |
+| [0019](adr/0019-aoi-wide-in-memory-analysis.md) | Retain AOI-wide evidence in memory before classification; defer bounded parallel processing |

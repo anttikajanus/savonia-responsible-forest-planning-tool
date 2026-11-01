@@ -6,6 +6,10 @@ This page owns indicator rationale, provider evidence and interpretation limits.
 
 Stand geometry preserves the forest-management unit, while independent grid evidence supports finer indicator sampling without introducing new sensitivity boundaries. This choice reports analyzed forest rather than every land type inside the AOI. The exact stand/grid allocation is in the [field dictionary](output-schema.md#per-polygon-fields) and [source contract](source-layer-requirements.md).
 
+[ADR-0005's analysis-unit rationale](adr/0005-independent-stand-and-grid-indicators.md#analysis-unit-rationale)
+explains why missing grid attributes are neither reconstructed through provider
+methods nor inferred by distributing stand values to grid cells.
+
 The checked grid schema lacks separate birch, sawlog and annual-growth fields.
 The [provider grid dictionary](https://www.metsakeskus.fi/sites/default/files/document/hila-koodisto-ja-tietokantakuvaus.xlsx)
 supports that source limitation. The current indicator selection is in

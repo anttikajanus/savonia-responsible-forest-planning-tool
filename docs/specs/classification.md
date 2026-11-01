@@ -59,6 +59,14 @@ conservation of the parent geometry and full-precision area.
 
 ## CL-04 Exclusions and interpretation
 
+Analysis thresholds, buffer distances and sensitivity rules are fixed in the
+prototype; users cannot configure alternative values such as a 15 m riparian
+buffer. Configurable planning parameters for scenario comparison are deferred to
+the full product. The user-supplied sawlog stumpage price is the deliberate
+exception, avoiding Luke price integration.
+[ADR-0018](../architecture/adr/0018-fixed-prototype-analysis-parameters.md)
+records this scope decision.
+
 Other SYKE forest-sensitive-water criteria, peat/mire sensitivity criteria beyond the adopted stand `SOILTYPE` 60–69 screen, recreation areas, external potential-protected-site datasets and MY plan areas are out of scope. The adopted Ranta10 lakes-and-rivers 30 m buffer criterion is included; it is a planning assumption, not a legal setback or site-specific assessment. Do not treat it as adoption of other water-protection sources or rules.
 
 Grid peatland and natural-mire **indicators** are included within analyzed forest and do not themselves add sensitivity criteria; the adopted stand soil-code screen is separate. Programme membership does not establish current legal protection, and Section 10 stand promotion is a conservative prototype assumption. No mapped habitat does not prove habitat absence.

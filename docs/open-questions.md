@@ -38,9 +38,33 @@ Evidence locations and primary sources are in [data sources](architecture/data-s
 
 ## Scope and source alternatives
 
+Local analysis datasets are deliberately excluded from the prototype to keep its
+scope manageable. The full product should support user-corrected datasets and
+data supplied by customer organizations, as recorded in
+[ADR-0017](architecture/adr/0017-online-only-prototype-data-sources.md).
+
+User-configurable analysis rules and parameters, such as comparing 15 m and 30 m
+riparian buffers, are deferred to the full product. The prototype uses constants,
+with a user-supplied sawlog stumpage price as the exception to avoid Luke price
+integration. [ADR-0018](architecture/adr/0018-fixed-prototype-analysis-parameters.md)
+records the scope decision.
+
 Local GeoPackage/raster adapters, open-mire/whole-AOI reporting, external potential-protected-site datasets, urban-forest/MY interpretation, other peat sensitivity rules and other water-protection sources remain deferred; the adopted stand SOILTYPE screen and Ranta10 30 m criterion are in scope. Candidate sources and unanswered thresholds/denominators are recorded in [deferred sources](architecture/deferred-sources.md).
 
 No reviewed repository evidence establishes Savonia acceptance of the prototype's tier rules, interpretations or deliverables. Tender requirements and implementation choices have different authority. [Project context](project-context.md).
+
+### Large-area memory use
+
+The prototype retains AOI-wide source evidence, snapshots, a grid spatial index
+and accumulated results in memory, with no application-level memory-budget or
+AOI-size guard. Large areas can exhaust memory and potentially crash QGIS; no
+safe-area threshold or reproduced out-of-memory crash is established here.
+[ADR-0019](architecture/adr/0019-aoi-wide-in-memory-analysis.md) records the
+current trade-off. For the full product, design bounded geometry-level fetching
+and calculation with limited parallelism and incremental output, preserving
+buffer-neighbor evidence, coverage, provenance and aggregation without duplicate
+contributions. Measure peak memory and verify equivalent results across work-unit
+boundaries before claiming that redesign scales safely.
 
 ### Section 10 stand-wide promotion validation
 

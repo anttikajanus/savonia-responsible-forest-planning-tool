@@ -39,6 +39,25 @@ The workflow validates inputs, retrieves evidence, classifies stand pieces and
 samples indicators, then prepares and writes one publication. Grid intersections
 supply indicator statistics without creating classification boundaries.
 
+### AOI-wide working set
+
+Retrieval completes for all required sources before stand classification and
+indicator calculation begin. It transforms, repairs, clips and buffers evidence
+as it arrives, accumulating source records and memory-layer snapshots for the
+whole AOI, then builds the grid sampler's in-memory spatial index. Classification
+iterates over stand pieces sequentially against that retained evidence and
+accumulates result rows for publication. WFS paging does not make this a bounded
+fetch/calculate/release pipeline.
+
+The workflow has no application-level AOI-size, retained-feature or memory-budget
+guard. Large areas, particularly those containing many grid cells, can exhaust
+memory and potentially crash the QGIS process. The wizard's background task
+preserves UI responsiveness but does not bound the analysis working set.
+[ADR-0019](adr/0019-aoi-wide-in-memory-analysis.md) records this prototype trade-off
+and the deferred production direction of bounded geometry-level work with
+limited parallelism; [open questions](../open-questions.md#large-area-memory-use)
+owns the scalability follow-up.
+
 ## Module ownership
 
 | Boundary | Responsibility and owning implementation |
