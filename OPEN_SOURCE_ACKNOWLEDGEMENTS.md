@@ -28,7 +28,7 @@ QGIS supplies these runtime components; they are not bundled in the plugin ZIP.
 | --- | --- | --- |
 | Suomen metsäkeskus (Finnish Forest Centre) | Forest stands, habitats and inventory grid | [CC BY 4.0 and provider guidance](https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto/avoimen-metsa-ja-luontotiedon-tuotteet) |
 | Metsähallitus, distributed by Syke | Protected and wilderness areas | [CC BY 4.0 and dataset credits](https://ckan.ymparisto.fi/dataset/luonnonsuojelu-ja-eramaa-alueet) |
-| Suomen ympäristökeskus (Syke) | Conservation programmes, groundwater and Ranta10 water evidence; dataset credits also identify MML and other producers | [Syke terms](https://www.syke.fi/fi/ymparistotieto/kayttolupa-ja-vastuut) |
+| Suomen ympäristökeskus (Syke) | Conservation programmes, groundwater and Ranta10 water evidence; dataset credits also identify MML and other producers | [CC BY 4.0 and attribution terms](https://www.syke.fi/fi/ymparistotieto/kayttolupa-ja-vastuut); dataset credits: [conservation programmes](https://ckan.ymparisto.fi/dataset/luonnonsuojeluohjelma-alueet), [groundwater](https://ckan.ymparisto.fi/dataset/vesipuitedirektiivin-mukaiset-vesimuodostumat), [Ranta10](https://ckan.ymparisto.fi/dataset/ranta10-rantaviiva-1-10-000) |
 | Maanmittauslaitos (National Land Survey of Finland) | Parcels, identifiers, orthophoto and topographic maps | [CC BY 4.0 and attribution terms](https://www.maanmittauslaitos.fi/avoindata-lisenssi-cc40) |
 | OpenStreetMap contributors | Display basemap | [ODbL and attribution](https://www.openstreetmap.org/copyright), [tile usage policy](https://operations.osmfoundation.org/policies/tiles/) |
 
