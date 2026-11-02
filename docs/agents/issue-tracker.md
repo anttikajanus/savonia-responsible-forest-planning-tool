@@ -32,19 +32,30 @@ reporting follows [specification guidance](specifications.md#scope-verification-
 - One feature per directory: `.scratch/<feature-slug>/`
 - The spec is `.scratch/<feature-slug>/spec.md`
 - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`, never a single combined tickets file
+- A spec prepared for `implement-spec` has a complete planned ticket graph before handoff: its `issues/` directory contains one file for each implementation slice, the spec links each ticket and its dependencies, and dependent tickets name their blockers with `Blocked by:`. Keep slices small enough to have distinct outcomes and verification; use one focused ticket with `implement` when decomposition adds no value.
 - Record triage readiness as `Status:` using the [triage labels](triage-labels.md).
   Track ticket progress separately with `Execution: open`, `claimed` or `resolved`;
-  completion of a ticket does not establish completed feature acceptance.
+  new tickets start at `Execution: open`, and completion of a ticket does not
+  establish completed feature acceptance.
 - Working specs use `Status: implemented` when their implementation work is
   complete. Keep outstanding verification and documentation handoff explicit.
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
 
 ## When a skill says "publish to the issue tracker"
 
-For a feature proposal, create `.scratch/<feature-slug>/spec.md`. For a task,
-create `.scratch/<feature-slug>/issues/<NN>-<slug>.md`. Include the question or
+For a feature proposal, use `mattpocock-skills:to-spec` to create
+`.scratch/<feature-slug>/spec.md`, then use `mattpocock-skills:to-tickets` to
+draft the implementation graph. Get agreement on its granularity and blockers
+before publishing the approved tickets as
+`.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01` in
+dependency order. Link every ticket from the spec, record its dependencies
+there, and use `Blocked by:` on dependent tickets. Adapt the upstream local
+ticket template by including the repository's `Execution: open` field. For a
+single scoped task, create one ticket and use `implement`. Include each ticket's
 scope, expected outcome, relevant maintained requirement IDs, dependencies and
 verification needed. Readiness must reflect unanswered blocking questions.
+Add review-fix tickets when review findings establish their scope, then link
+them into the spec's graph.
 
 ## When a skill says "fetch the relevant ticket"
 

@@ -8,7 +8,7 @@ For local scripts, debugging and generated artifacts, follow the
 
 ## Skills
 
-For feature and behavior work, start with the project [spec-first development workflow](.agents/skills/spec-first-development/SKILL.md). It routes to `mattpocock-skills:to-spec`, `implement-spec` or `implement`, and `tdd` when those upstream skills are installed. Keep upstream skill files outside this repository; local tracker, documentation, and QGIS conventions remain owned by the repository guides below.
+For feature and behavior work, start with the project [spec-first development workflow](.agents/skills/spec-first-development/SKILL.md). For planning, it can use `mattpocock-skills:grill-me` or `grill-with-docs`, then `to-spec` followed by `to-tickets` before `implement-spec` or `implement`; use `tdd` during implementation when available. Keep upstream skill files outside this repository; local tracker, documentation, and QGIS conventions remain owned by the repository guides below.
 
 For other tasks, use relevant `mattpocock-skills:*` skills when available, following their `SKILL.md` alongside repository guidance.
 

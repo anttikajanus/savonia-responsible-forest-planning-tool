@@ -45,7 +45,7 @@ their recorded context and explicit supersession links.
 
 1. Read the affected current specs and relevant architecture before writing the proposal. Use the existing story and requirement IDs when describing a change.
 2. Create or update `.scratch/<feature-slug>/spec.md` with the proposed behavior, acceptance criteria, failure policy and exclusions. After grilling, finish this working spec before implementation.
-3. Link the current specs the work is expected to change. Keep undecided ideas, abandoned alternatives and implementation tickets in `.scratch/` until their outcome is resolved. A proposal does not establish current product behavior.
+3. Link the current specs the work is expected to change. After preparing the spec with `to-spec`, use `to-tickets` to propose implementation slices and blockers; get agreement on the breakdown before creating the approved files under `issues/`. Link each ticket and its dependencies from the spec. Use distinct, implementable slices instead of a catch-all ticket; choose one focused ticket and `implement` when a graph adds no value. Review-fix tickets can be added and linked when review findings make their scope known. Keep undecided ideas, abandoned alternatives and implementation tickets in `.scratch/` until their outcome is resolved. A proposal does not establish current product behavior.
 
 After grilling, the working spec must be ready before implementation begins.
 For a wording, navigation or link correction that preserves behavior, edit the
