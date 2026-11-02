@@ -208,6 +208,9 @@ Forest area classified as peat soil. It is a land-area indicator, distinct from 
 **Stand-based peatland screen (kuvion turvemaaluokitus)**:
 A planning screen based on a forest stand's peatland classification. It is distinct from the peatland-area indicator and does not establish legal protection.
 
+**Stand natural-state mire screen (kuvion luonnontilaisen suon tarkistus)**:
+A planning sensitivity check based on stand `DRAINAGESTATE` code 6. It is distinct from the inventory-grid natural-mire area indicator and does not certify present ecological condition or establish legal protection.
+
 **Source-classified natural mire area (lähteen luonnontilaisten soiden pinta-ala)**:
 Forest area classified as natural mire in a source dataset. This classification does not certify the area's present ecological condition.
 _Avoid_: verified pristine mire area, whole-AOI mire area

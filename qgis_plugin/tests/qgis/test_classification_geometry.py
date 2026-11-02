@@ -28,7 +28,13 @@ def record(source, identifier, geometry, values=None):
 
 def classify(stands, evidence, language):
     source_features = {source: [] for source in SERVICE_DEFINITIONS}
-    source_features["forest_centre_stand"] = stands
+    source_features["forest_centre_stand"] = []
+    for stand in stands:
+        attributes = {"MEANAGE": 40, "SOILTYPE": "10", "DRAINAGESTATE": "1",
+                      **stand.get("attributes", {})}
+        source_features["forest_centre_stand"].append({
+            **stand, "attributes": attributes, "values": {"DRAINAGESTATE": "1", **stand.get("values", {})},
+        })
     for item in evidence:
         source_features[item["service_id"]].append(item)
     water_records = [item for source in (

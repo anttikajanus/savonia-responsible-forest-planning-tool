@@ -15,7 +15,7 @@ METRIC_GROUPS = (
 METRIC_FIELDS = tuple(metric for _group, metrics in METRIC_GROUPS for metric in metrics)
 STAND_SCHEMA_FIELD_CANDIDATES = frozenset((
     "standid", "area", "basalarea", "proportionpine", "proportionspruce", "proportionother",
-    "meanage", "volume", "sawlogvolume", "pulpwoodvolume", "volumegrowth",
+    "meanage", "volume", "sawlogvolume", "pulpwoodvolume", "volumegrowth", "drainagestate",
 ))
 METRIC_FIELD_MAPS = {
     # The Metsäkeskus 2.1.3 workbook and saved WFS XSD define volume and

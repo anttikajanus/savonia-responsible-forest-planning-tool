@@ -32,9 +32,27 @@ class ClassificationTests(unittest.TestCase):
                     ("potential_protected_age_100", "potential_protected_age_100", 2),
                     ("potential_protected_age_90", "potential_protected_age_90", 3),
                     ("potential_protected_age", "potential_protected_age", 4),
-                    ("potential_protected_peatland", "potential_protected_peatland", 3))
+                    ("potential_protected_peatland", "potential_protected_peatland", 3),
+                    ("natural_state_mire", "natural_state_mire", 1))
         states = self.available_states()
+        tier_criteria = {
+            "all_out": {"protected", "section10"},
+            "bau": {"protected", "section10", "natural_state_mire"},
+            "light": {"protected", "section10", "potential_protected_age_100", "natural_state_mire"},
+            "balance": {"protected", "section10", "programme", "groundwater", "riparian_buffer",
+                        "potential_protected_age_90", "potential_protected_peatland", "natural_state_mire"},
+            "protection": {"protected", "section10", "programme", "groundwater", "riparian_buffer",
+                           "other_habitat", "potential_protected_age", "potential_protected_peatland",
+                           "natural_state_mire"},
+            "superprotection": {"protected", "section10", "programme", "groundwater", "riparian_buffer",
+                                "other_habitat", "potential_protected_age", "potential_protected_peatland",
+                                "natural_state_mire"},
+        }
         for enabled in itertools.product((False, True), repeat=len(triggers)):
+            # Threshold booleans from one age value must be ordered: reaching
+            # 100 implies also reaching 90 and 80; reaching 90 implies 80.
+            if (enabled[5] and not enabled[6]) or (enabled[6] and not enabled[7]):
+                continue
             evidence = {field: value for (field, _, _), value in zip(triggers, enabled)}
             evidence["source_ids"] = {criterion: ["b-" + criterion, "a-" + criterion,
                                                    "a-" + criterion, None]
@@ -43,8 +61,8 @@ class ClassificationTests(unittest.TestCase):
             classes, rules = classify_tiers(evidence, states)
             with self.subTest(enabled=enabled):
                 for index, tier in enumerate(self.tiers):
-                    matches = [criterion for (_, criterion, first), value in zip(triggers, enabled)
-                               if value and first <= index]
+                    matches = [criterion for (_, criterion, _), value in zip(triggers, enabled)
+                               if value and criterion in tier_criteria[tier]]
                     expected = "SENSITIVE" if matches or index == 5 else "ECONOMIC"
                     self.assertEqual(classes[tier], expected)
                     self.assertEqual(rules[tier]["criteria"], matches or (
@@ -55,7 +73,7 @@ class ClassificationTests(unittest.TestCase):
                 self.assertEqual(evidence, before)
 
     def test_missing_dependencies_affect_only_dependent_tiers_and_positive_matches_win(self):
-        for source, first_tier in zip(self.sources, (0, 0, 3, 3, 2)):
+        for source, first_tier in zip(self.sources, (0, 0, 3, 3, 1)):
             for state in (None, "NOT_AVAILABLE", "OUT_OF_SCOPE"):
                 states = self.available_states()
                 if state is None:
@@ -67,6 +85,7 @@ class ClassificationTests(unittest.TestCase):
                         "potential_protected_age": False, "potential_protected_age_90": False,
                         "potential_protected_age_100": False,
                         "potential_protected_peatland": False,
+                        "natural_state_mire": False,
                     }, states)
                     for index, tier in enumerate(self.tiers):
                         self.assertEqual(classes[tier], "UNKNOWN" if index >= first_tier else "ECONOMIC")
@@ -108,7 +127,11 @@ class ClassificationTests(unittest.TestCase):
         states = self.available_states()
         missing = dict(states)
         del missing["syke_rantaviiva_water_buffers"]
-        classes, rules = classify_tiers({}, missing)
+        classes, rules = classify_tiers({
+            "potential_protected_age": False, "potential_protected_age_90": False,
+            "potential_protected_age_100": False, "potential_protected_peatland": False,
+            "natural_state_mire": False,
+        }, missing)
         self.assertEqual([classes[tier] for tier in self.tiers], [
             "ECONOMIC", "ECONOMIC", "ECONOMIC", "UNKNOWN", "UNKNOWN", "UNKNOWN",
         ])
@@ -139,7 +162,7 @@ class ClassificationTests(unittest.TestCase):
                 with self.subTest(field=field, age=age):
                     evidence = {"source_ids": {"protected": []}}
                     original = copy.deepcopy(evidence)
-                    row = assemble_classified_piece("parent", {field: age, "SOILTYPE": "10"}, 0.25, evidence, states,
+                    row = assemble_classified_piece("parent", {field: age, "SOILTYPE": "10", "DRAINAGESTATE": "1"}, 0.25, evidence, states,
                         grid_intersections=[{"area_ha": 0.25, "values": {"age": 150 if age <= 80 else 10}}])
                     self.assertEqual(row["check_potential_protected_age"], "MATCH" if match else "NO_MATCH")
                     self.assertEqual(row["check_protected"], "NO_MATCH")
@@ -159,7 +182,7 @@ class ClassificationTests(unittest.TestCase):
         for age in (None, "81", "invalid", True, False, -1, float("nan"), float("inf"), float("-inf"), 81j):
             for evidence in ({}, {"other_valuable_habitat": True}):
                 with self.subTest(age=age, evidence=evidence):
-                    row = assemble_classified_piece("parent", {"MEANAGE": age, "SOILTYPE": "10"}, 1, evidence, states)
+                    row = assemble_classified_piece("parent", {"MEANAGE": age, "SOILTYPE": "10", "DRAINAGESTATE": "1"}, 1, evidence, states)
                     self.assertEqual(row["check_potential_protected_age"], "UNKNOWN")
                     for tier in ("protection", "superprotection"):
                         self.assertEqual(row["classes"][tier], "SENSITIVE" if evidence else "UNKNOWN")
@@ -167,9 +190,9 @@ class ClassificationTests(unittest.TestCase):
                             self.assertEqual(row["rules"][tier]["unknown_sources"], ["forest_centre_stand"])
                     self.assertEqual(row["classes"]["light"], "UNKNOWN")
                     self.assertEqual(row["classes"]["balance"], "UNKNOWN")
-        missing = assemble_classified_piece("parent", {}, 1, {}, states)
+        missing = assemble_classified_piece("parent", {"DRAINAGESTATE": "1"}, 1, {}, states)
         self.assertEqual(missing["check_potential_protected_age"], "UNKNOWN")
-        unavailable = assemble_classified_piece("parent", {"MEANAGE": 100}, 1, {},
+        unavailable = assemble_classified_piece("parent", {"MEANAGE": 100, "DRAINAGESTATE": "1"}, 1, {},
             {**states, "forest_centre_stand": "NOT_AVAILABLE"})
         self.assertEqual(unavailable["check_potential_protected_age"], "UNKNOWN")
 
@@ -183,7 +206,7 @@ class ClassificationTests(unittest.TestCase):
         for field in ("SOILTYPE", "SoilType", "soiltype"):
             for soil, check in cases:
                 with self.subTest(field=field, soil=soil):
-                    row = assemble_classified_piece("parent", {"MEANAGE": 79, field: soil},
+                    row = assemble_classified_piece("parent", {"MEANAGE": 79, field: soil, "DRAINAGESTATE": "1"},
                         1, {}, self.available_states(), grid_intersections=[{
                             "area_ha": 1, "values": {"soiltype": 10 if check == "MATCH" else 60},
                         }])
@@ -209,6 +232,44 @@ class ClassificationTests(unittest.TestCase):
                     self.assertEqual(row["classes"][tier], "SENSITIVE")
                     self.assertEqual(row["rules"][tier]["criteria"], [criterion])
                     self.assertEqual(row["rules"][tier]["source_ids"], ["parent"])
+
+    def test_stand_natural_state_mire_codes_and_unknowns(self):
+        states = self.available_states()
+        cases = [(6, "MATCH"), ("6.0", "MATCH")] + [
+            (code, "NO_MATCH") for code in (1, 2, 3, 7, 8, 9)
+        ] + [
+            (None, "UNKNOWN"), ("", "UNKNOWN"), ("bad", "UNKNOWN"),
+            (True, "UNKNOWN"), (False, "UNKNOWN"), (6.5, "UNKNOWN"),
+            (12, "UNKNOWN"), (float("nan"), "UNKNOWN"), (float("inf"), "UNKNOWN"),
+        ]
+        for value, expected in cases:
+            with self.subTest(value=value):
+                row = assemble_classified_piece("parent", {
+                    "MEANAGE": 40, "SOILTYPE": "10", "DRAINAGESTATE": value,
+                }, 1, {}, states)
+                self.assertEqual(row["check_natural_state_mire"], expected)
+                self.assertEqual(row["classes"]["all_out"], "ECONOMIC")
+                self.assertEqual(row["classes"]["bau"],
+                                 "SENSITIVE" if expected == "MATCH" else
+                                 "UNKNOWN" if expected == "UNKNOWN" else "ECONOMIC")
+                for tier in ("light", "balance", "protection"):
+                    self.assertEqual(row["classes"][tier],
+                                     "SENSITIVE" if expected == "MATCH" else
+                                     "UNKNOWN" if expected == "UNKNOWN" else "ECONOMIC")
+                self.assertEqual(row["classes"]["superprotection"],
+                                 "SENSITIVE" if expected in ("MATCH", "NO_MATCH") else "UNKNOWN")
+                self.assertEqual(row["rules"]["bau"]["source_ids"], ["parent"] if expected == "MATCH" else [])
+
+    def test_natural_state_mire_positive_wins_over_unknowns_and_preserves_all_out(self):
+        row = assemble_classified_piece("parent", {
+            "MEANAGE": None, "SOILTYPE": "bad", "DRAINAGESTATE": "6",
+        }, 1, {}, self.available_states())
+        self.assertEqual(row["check_natural_state_mire"], "MATCH")
+        self.assertEqual(row["classes"]["all_out"], "ECONOMIC")
+        for tier in ("bau", "light", "balance", "protection", "superprotection"):
+            self.assertEqual(row["classes"][tier], "SENSITIVE")
+            self.assertIn("natural_state_mire", row["rules"][tier]["criteria"])
+            self.assertEqual(row["rules"][tier]["source_ids"], ["parent"])
 
     def test_unrecognized_classification_records_are_diagnostic_not_no_hits(self):
         cases = (
