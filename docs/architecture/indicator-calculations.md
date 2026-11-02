@@ -108,7 +108,7 @@ also has null value. A total is never derived from rounded polygon amounts.
 
 This sawlog-only amount retains duplicate contributions from overlapping
 stands. It is not a whole-forest value or an income/harvest forecast.
-[ADR-0016](adr/0016-calculated-sawlog-value.md) extends the previous price-only scope.
+[ADR-0016](adr/0016-calculated-sawlog-value.md) records the calculated-value decision.
 
 ## Grid ages and categorical area totals
 

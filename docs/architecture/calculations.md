@@ -35,7 +35,7 @@ every derived piece of either parent, regardless of the individual piece's
 location. Technical logs retain pair evidence and an aggregate completion warning
 discloses possible duplicate contributions. Pairwise areas must not be summed
 as unique ground area.
-[ADR-0013](adr/0013-nonfatal-stand-overlaps.md) supersedes the previous limit.
+[ADR-0013](adr/0013-nonfatal-stand-overlaps.md) records the adopted overlap policy.
 Identical
 repeated grid IDs/records are deduplicated; conflicting records of one ID or
 overlaps between distinct cells stop publication. Shared edges are allowed.
@@ -70,14 +70,41 @@ output recipients can interpret the GeoPackage from one reference. Unrecognized
 returned protected, habitat and programme classification inputs stop the run;
 invalid individual stand ages follow the explicit unknown policy below.
 
-The cumulative criteria are evaluated independently for each output piece. A
-recognized positive match makes the tier `SENSITIVE`, even if another required
-source is unavailable. Without a positive match, all sources required by that
-tier must be `AVAILABLE` before a no-hit can be `ECONOMIC`; otherwise the result
-is `UNKNOWN`. A successful source request with no AOI-clipped features is still
-marked `AVAILABLE`, so an empty response currently permits a no-hit
-classification. Feature counts describe returned data and do not establish
-complete service coverage.
+### Sensitivity criteria by tier
+
+Each tier classifies the same result piece using the criteria in its column.
+The tiers are cumulative: All out, BAU and Light use the same criteria, while
+each later tier adds criteria. A check means that a positive match can make the
+piece `SENSITIVE` in that tier. A dash means the criterion does not affect that
+tier.
+
+| Criterion / calculation | [All out](../specs/classification.md#cl-02-six-cumulative-tiers) | [BAU](../specs/classification.md#cl-02-six-cumulative-tiers) | [Light](../specs/classification.md#cl-02-six-cumulative-tiers) | [Balance](../specs/classification.md#cl-02-six-cumulative-tiers) | [Protection](../specs/classification.md#cl-02-six-cumulative-tiers) | [Superprotection](../specs/classification.md#cl-02-six-cumulative-tiers) |
+| --- | --- | --- | --- | --- | --- | --- |
+| [Recognized active protected area](../specs/classification.md#cl-02-six-cumulative-tiers) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Section 10 habitat](../specs/classification.md#cl-02-six-cumulative-tiers) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Nature conservation programme area](../specs/classification.md#cl-02-six-cumulative-tiers) | — | — | — | ✓ | ✓ | ✓ |
+| [Groundwater area](../specs/classification.md#cl-02-six-cumulative-tiers) | — | — | — | ✓ | ✓ | ✓ |
+| [Ranta10 riparian buffer](../specs/classification.md#cl-02-six-cumulative-tiers) | — | — | — | ✓ | ✓ | ✓ |
+| [Parent stand peatland screen (`SOILTYPE` 60–69)](#stand-peatland-screen) | — | — | — | ✓ | ✓ | ✓ |
+| [Other valuable habitat](../specs/classification.md#cl-02-six-cumulative-tiers) | — | — | — | — | ✓ | ✓ |
+| [Parent stand age screen (`MEANAGE` > 80)](#stand-age-screen) | — | — | — | — | ✓ | ✓ |
+| [Remaining analyzed forest](../specs/classification.md#cl-02-six-cumulative-tiers) | — | — | — | — | — | ✓ |
+
+`✓` means the criterion is included; `—` means it is not included. In every
+tier, a positive match to any included criterion makes the result
+`SENSITIVE`. Without a positive match, the piece is `ECONOMIC` only when all
+evidence required for that tier's no-hit decision is available; otherwise it is
+`UNKNOWN`. The [required evidence by tier](#no-hit-evidence) table explains
+which sources and stand values affect that decision. `UNKNOWN` is an evidence
+state, not another forest type.
+
+### Class result and evidence
+
+Evaluation is independent for each output piece, and a positive match takes
+precedence over unavailable evidence. A successful source request with no
+AOI-clipped features is still marked `AVAILABLE`, so an empty response
+currently permits a no-hit classification. Feature counts describe returned
+data and do not establish complete service coverage.
 
 These dependency rules describe the pure classification policy. The application
 workflow requires all eleven sources and stops before publication on a required
@@ -91,6 +118,7 @@ The criterion membership is defined in
 [tier-to-field table](output-schema.md#classification-fields-and-values) maps
 those tiers to machine fields. Required source groups for a no-hit decision are:
 
+<a id="no-hit-evidence"></a>
 | Tiers | Required source groups |
 | --- | --- |
 | All out, BAU, Light | Protected + Habitat |
@@ -102,6 +130,8 @@ Protected combines the three required protected-area products in the
 Groundwater refer to their semantic source groups, not display-layer names.
 Excluded criteria follow [CL-04](../specs/classification.md#cl-04-exclusions-and-interpretation).
 
+### Stand age screen
+
 The stand-age criterion consumes case-insensitive stand `MEANAGE` in years.
 Finite nonnegative numeric values are valid; booleans and numeric text are not.
 The unrounded value must be strictly greater than 80. Every piece of that
@@ -111,6 +141,8 @@ ages leave this criterion unknown even when Stand is available. Without any
 positive trigger, Protection and Superprotection are `UNKNOWN`, identifying
 `forest_centre_stand` in `unknown_sources`; a positive trigger still wins.
 This rule uses no grid age substitute or age extrapolation.
+
+### Stand peatland screen
 
 The stand peatland screen consumes `SOILTYPE` from `forest_centre_stand`.
 Finite integral numeric codes 60–69 inclusive match; other valid integral
@@ -138,23 +170,3 @@ and their limits remain in [source evidence](data-sources.md#interpretation-and-
 Provenance is local to each result piece: matching one piece must not alter
 sibling source identifiers. Section 10 stand-wide promotion is the explicit
 exception. Output identifiers are sorted and unique.
-
-## Previous calculation-reference sections
-
-These links preserve the previous section anchors and lead to their current owners.
-
-- <a id="analysis-workflow"></a>[Analysis workflow](overview.md#one-execution-path).
-- <a id="datasets-used-by-the-calculations"></a>[Datasets used by the calculations](data-sources.md#required-sources).
-- <a id="indicators-and-summaries"></a>[Indicators and summaries](indicator-calculations.md).
-- <a id="per-polygon-fields"></a>[Per-polygon fields](output-schema.md#per-polygon-fields).
-- <a id="result-land-area--tuloksen-maapinta-ala"></a>[Result land area / Tuloksen maapinta-ala](output-schema.md#result-land-area--tuloksen-maapinta-ala).
-- <a id="stand-tree-indicators--kuvio-puustotunnukset"></a>[Stand tree indicators / Kuvio: puustotunnukset](output-schema.md#stand-tree-indicators--kuvio-puustotunnukset).
-- <a id="grid-volumes--hila-puuston-tilavuudet"></a>[Grid volumes / Hila: puuston tilavuudet](output-schema.md#grid-volumes--hila-puuston-tilavuudet).
-- <a id="grid-age-shares--hila-ikäosuudet"></a>[Grid age shares / Hila: ikäosuudet](output-schema.md#grid-age-shares--hila-ikäosuudet).
-- <a id="grid-land-areas--hila-maa-alat"></a>[Grid land areas / Hila: maa-alat](output-schema.md#grid-land-areas--hila-maa-alat).
-- <a id="unavailable-indicators--tunnusluvut-jotka-eivät-ole-käytettävissä"></a>[Unavailable indicators / Tunnusluvut, jotka eivät ole käytettävissä](output-schema.md#unavailable-indicators--tunnusluvut-jotka-eivät-ole-käytettävissä).
-- <a id="comparing-indicators-and-reporting-precision"></a>[Comparing indicators and reporting precision](indicator-calculations.md#comparing-indicators-and-reporting-precision).
-- <a id="exact-intersections-and-volume-means"></a>[Exact intersections and volume means](indicator-calculations.md#exact-intersections-and-volume-means).
-- <a id="grid-ages-and-categorical-area-totals"></a>[Grid ages and categorical area totals](indicator-calculations.md#grid-ages-and-categorical-area-totals).
-- <a id="tierclass-summaries-and-metric-coverage"></a>[Tier/class summaries and metric coverage](indicator-calculations.md#tierclass-summaries-and-metric-coverage).
-- <a id="outputs-and-coverage"></a>[Outputs and coverage](output-schema.md#outputs-and-coverage).
