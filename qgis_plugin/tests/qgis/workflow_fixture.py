@@ -14,7 +14,8 @@ def fixture_sources():
     return {
         "forest_centre_stand": {
             "standid": "stand-1", "VOLUME": 200.0, "SAWLOGVOLUME": 100.0,
-            "VolumeGrowth": 4.0, "MeanAge": 40.0, "SOILTYPE": "10", "BasalArea": 20.0, "ProportionPine": 30.0,
+            "VolumeGrowth": 4.0, "MeanAge": 40.0, "SOILTYPE": "10", "DRAINAGESTATE": "1",
+            "BasalArea": 20.0, "ProportionPine": 30.0,
         },
         "forest_centre_habitat": {"HabitatId": "habitat-1", "HabitatType": "3"},
         "syke_protected_areas_state_owned": {"kohdeid": "state-1", "OLOTILA": "Voimassa", "TYYPPILYHENNE": "VSA"},
@@ -46,11 +47,16 @@ class WorkflowFixtureMixin:
         self.addCleanup(self.temp.cleanup)
 
     @contextmanager
-    def scenario(self, grid, stands=None, aoi=None, prime=False, version="1.0.0", page_size=0):
+    def scenario(self, grid, stands=None, aoi=None, prime=False, version="1.0.0", page_size=0,
+                 omit_stand_fields=(), additional_records=None):
         schemas = fixture_sources()
+        for field in omit_stand_fields:
+            schemas["forest_centre_stand"].pop(field, None)
         records = {source: [] for source in schemas}
         records["forest_centre_gridcell"] = grid
         records["forest_centre_stand"] = stands if stands is not None else [source_record(schemas["forest_centre_stand"])]
+        for source, features in (additional_records or {}).items():
+            records[source].extend(features)
         with LocalWfs(schemas, records=records, version=version, page_size=page_size,
                       geometry_types={"syke_rantaviiva_line_river": "LineString"}) as fixture:
             definitions = {source: {**definition, "endpoint": fixture.endpoint}

@@ -15,6 +15,7 @@ _REQUIRED_FIELD_GROUPS = {
     # the stand-based potential-protection criteria.
     "forest_centre_stand": (
         ("volume",), ("sawlogvolume",), ("volumegrowth",), ("meanage",), ("soiltype",),
+        ("drainagestate",),
     ),
     "forest_centre_gridcell": (
         ("gridcellid",), ("volume",), ("volumepine",), ("volumespruce",),
