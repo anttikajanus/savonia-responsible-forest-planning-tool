@@ -54,6 +54,9 @@ class ClassificationTests(unittest.TestCase):
             if (enabled[5] and not enabled[6]) or (enabled[6] and not enabled[7]):
                 continue
             evidence = {field: value for (field, _, _), value in zip(triggers, enabled)}
+            # This matrix exercises tier membership for each explicit trigger
+            # combination; omitted evidence has its own UNKNOWN regression.
+            evidence["natural_state_mire"] = evidence.get("natural_state_mire", False)
             evidence["source_ids"] = {criterion: ["b-" + criterion, "a-" + criterion,
                                                    "a-" + criterion, None]
                                       for _, criterion, _ in triggers}
@@ -95,6 +98,15 @@ class ClassificationTests(unittest.TestCase):
                         "source_ids": {"section10": ["habitat-1"]}}, states)
                     self.assertEqual(set(classes.values()), {"SENSITIVE"})
                     self.assertTrue(all(rule["source_ids"] == ["habitat-1"] for rule in rules.values()))
+
+    def test_omitted_natural_state_mire_evidence_is_unknown_for_applicable_tiers(self):
+        classes, rules = classify_tiers({}, self.available_states())
+
+        self.assertEqual(classes["all_out"], "ECONOMIC")
+        for tier in self.tiers[1:]:
+            with self.subTest(tier=tier):
+                self.assertEqual(classes[tier], "UNKNOWN")
+                self.assertEqual(rules[tier]["unknown_sources"], ["forest_centre_stand"])
 
     def test_piece_exposes_criterion_matches_without_redundant_indicator_payloads(self):
         states = self.available_states()
