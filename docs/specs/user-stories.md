@@ -127,5 +127,11 @@ Unless explicitly marked partial, deferred or retired, stories describe implemen
 | US-078 | As a planner, I want the three Ranta10 line-river, polygon-river and lake references set up beneath groundwater in the Water group, so I can inspect the exact water products used by the analysis. | [WF-02](workflow.md#wf-02-project-setup) |
 | US-079 | As a planner, I want a fixed 30 m buffer derived before AOI clipping, with outside-AOI candidates retrieved and overlapping buffered ground counted once, so nearby water evidence is applied reproducibly to only affected result pieces. | [WF-03](workflow.md#wf-03-source-readiness-and-retrieval), [CL-01](classification.md#cl-01-reporting-domain-and-geometry), [CL-02](classification.md#cl-02-six-cumulative-tiers) |
 | US-080 | As an auditor, I want source-qualified contributing feature references, separate retrieval coverage and buffer assumptions retained with the combined evidence, so the result remains interpretable and traceable. | [IO-05](indicators-and-outputs.md#io-05-files-and-publication) |
+
+## Stand natural-state mire evidence
+
+| ID | User story | Acceptance |
+| --- | --- | --- |
+| US-081 | As a planner, I want recognized stand drainage code 6 to affect BAU through Superprotection and remain distinct from grid natural-mire area, so stand-level natural-state mire evidence is visible without changing All out or the inventory indicator. | [CL-02](classification.md#cl-02-six-cumulative-tiers), [CL-03](classification.md#cl-03-classes-and-evidence-policy), [IO-05](indicators-and-outputs.md#io-05-files-and-publication) |
 Technical design, module boundaries and verification belong in
 [architecture](../architecture/README.md).

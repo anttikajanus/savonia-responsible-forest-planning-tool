@@ -85,6 +85,7 @@ the [output schema](output-schema.md#classification-fields-and-values).
 | Groundwater area | — | — | — | ✓ | ✓ | ✓ |
 | Ranta10 riparian buffer | — | — | — | ✓ | ✓ | ✓ |
 | Parent-stand peatland screen | — | — | — | ✓ | ✓ | ✓ |
+| Parent-stand natural-state mire screen | — | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Other valuable habitat | — | — | — | — | ✓ | ✓ |
 | Parent-stand age screen at 100 years | — | — | ✓ | — | — | — |
 | Parent-stand age screen at 90 years | — | — | — | ✓ | — | — |
@@ -127,6 +128,23 @@ Provider value acceptance is owned by the
 Stand criteria inherit the parent stand's interpretation; see
 [CL-01](../specs/classification.md#cl-01-reporting-domain-and-geometry) for
 their spatial effect.
+
+### Stand natural-state mire screen
+
+The stand-level sensitivity check consumes categorical `DRAINAGESTATE` from
+`forest_centre_stand`: recognized code 6 matches; recognized codes 1, 2, 3, 7,
+8 and 9 do not. Finite integral numeric values and numeric strings are accepted
+under the source normalization convention; null, boolean, malformed, nonfinite,
+fractional and unrecognized values are unknown. The criterion affects BAU,
+Light, Balance, Protection and Superprotection, never All out. It is evaluated
+from the parent stand and inherited by every result piece without creating a
+geometry boundary. Positive matches take precedence over other unknown
+evidence; without a positive trigger, an unknown value makes an applicable
+tier's no-hit result unknown, including Superprotection. The grid
+`DRAINAGESTATE` natural-mire area indicator remains independent and unchanged.
+See [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers),
+[CL-03](../specs/classification.md#cl-03-classes-and-evidence-policy) and the
+[source contract](source-layer-requirements.md#accepted-classification-values).
 
 ### Stand peatland screen
 

@@ -132,6 +132,7 @@ def prepare_publication(inputs, retrieved, classified, run_id):
         tr(language, "note_deferred_metrics"),
         tr(language, "note_sawlog_value"),
         tr(language, "note_water_buffer"),
+        tr(language, "note_natural_state_mire"),
     ]
     grid_fields = {
         name.lower(): name for name in source_metadata["forest_centre_gridcell"]["provider_fields"]
@@ -193,6 +194,14 @@ def prepare_publication(inputs, retrieved, classified, run_id):
                 "scope": "all pieces of the parent stand",
                 "unknown": "missing, nonnumeric, boolean, nonfinite, fractional or unrecognized soil code",
                 "interpretation": "potential protection based on stand soil code; not legal protection",
+            },
+            "natural_state_mire": {
+                "source_id": "forest_centre_stand", "field": "DRAINAGESTATE", "unit": "drainage code",
+                "rule": "DRAINAGESTATE == 6",
+                "tiers": ["bau", "light", "balance", "protection", "superprotection"],
+                "scope": "all pieces of the parent stand",
+                "unknown": "missing, boolean, malformed, nonfinite, fractional or unrecognized drainage code",
+                "interpretation": "source-classified natural-state mire sensitivity; not a legal protection determination",
             },
             "riparian_buffer": {
                 "source_ids": water_source_ids,

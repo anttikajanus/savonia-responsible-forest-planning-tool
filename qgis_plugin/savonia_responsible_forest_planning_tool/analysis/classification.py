@@ -26,6 +26,7 @@ CRITERION_FIELDS = (
     ("check_potential_protected_age_90", "potential_protected_age_90", "forest_centre_stand"),
     ("check_potential_protected_age_100", "potential_protected_age_100", "forest_centre_stand"),
     ("check_potential_protected_peatland", "potential_protected_peatland", "forest_centre_stand"),
+    ("check_natural_state_mire", "natural_state_mire", "forest_centre_stand"),
     ("check_riparian_buffer", "riparian_buffer", "syke_rantaviiva_water_buffers"),
 )
 SOURCE_STATES = ("AVAILABLE", "NOT_AVAILABLE", "OUT_OF_SCOPE")
@@ -38,6 +39,7 @@ PROTECTED_CATEGORIES = frozenset((
     "ELD", "ERM", "UTL",
 ))
 PROGRAMME_CLASS_CODES = frozenset(("AMO", "HSO", "LHO", "LVO", "MAO", "PMO", "KLO", "RSO", "SSO"))
+DRAINAGE_CODES = frozenset((1, 2, 3, 6, 7, 8, 9))
 
 
 def _status(value):
@@ -78,6 +80,22 @@ def potential_protection_by_peatland(stand_attributes, source_status):
     if soil_code not in SOIL_CODES and soil_code not in (68, 69):
         return None
     return 60 <= soil_code <= 69
+
+
+def natural_state_mire_match(stand_attributes, source_status):
+    """Return whether the stand has drainage code 6, or None if unusable."""
+    values = {str(field).lower(): value for field, value in stand_attributes.items()}
+    value = values.get("drainagestate")
+    if (source_status != "AVAILABLE" or isinstance(value, bool)
+            or not isinstance(value, (Number, str))):
+        return None
+    try:
+        code = float(value.strip() if isinstance(value, str) else value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if not math.isfinite(code) or not code.is_integer() or int(code) not in DRAINAGE_CODES:
+        return None
+    return int(code) == 6
 
 
 def interpret_sources(source_features, source_states):
@@ -206,22 +224,23 @@ def classify_tiers(evidence, source_states):
         "potential_protected_age_90": evidence.get("potential_protected_age_90"),
         "potential_protected_age_100": evidence.get("potential_protected_age_100"),
         "potential_protected_peatland": evidence.get("potential_protected_peatland"),
+        "natural_state_mire": evidence.get("natural_state_mire", False),
     }
     tier_criteria = {
         "all_out": ("protected", "section10"),
-        "bau": ("protected", "section10"),
-        "light": ("protected", "section10", "potential_protected_age_100"),
+        "bau": ("protected", "section10", "natural_state_mire"),
+        "light": ("protected", "section10", "potential_protected_age_100", "natural_state_mire"),
         "balance": (
             "protected", "section10", "programme", "groundwater", "riparian_buffer",
-            "potential_protected_age_90", "potential_protected_peatland",
+            "potential_protected_age_90", "potential_protected_peatland", "natural_state_mire",
         ),
         "protection": (
             "protected", "section10", "programme", "groundwater", "riparian_buffer",
-            "other_habitat", "potential_protected_age", "potential_protected_peatland",
+            "other_habitat", "potential_protected_age", "potential_protected_peatland", "natural_state_mire",
         ),
         "superprotection": (
             "protected", "section10", "programme", "groundwater", "riparian_buffer",
-            "other_habitat", "potential_protected_age", "potential_protected_peatland",
+            "other_habitat", "potential_protected_age", "potential_protected_peatland", "natural_state_mire",
         ),
     }
     dependencies = {
@@ -235,6 +254,7 @@ def classify_tiers(evidence, source_states):
         "potential_protected_age_90": ("forest_centre_stand",),
         "potential_protected_age_100": ("forest_centre_stand",),
         "potential_protected_peatland": ("forest_centre_stand",),
+        "natural_state_mire": ("forest_centre_stand",),
     }
     classes = {}
     rules = {}
@@ -298,12 +318,17 @@ def assemble_classified_piece(stand_id, stand_attributes, area_ha, evidence, sou
     peatland_match = potential_protection_by_peatland(
         stand_attributes, source_states.get("forest_centre_stand"),
     )
+    mire_match = natural_state_mire_match(
+        stand_attributes, source_states.get("forest_centre_stand"),
+    )
     evidence = {**evidence, **age_matches,
                 "potential_protected_peatland": peatland_match,
+                "natural_state_mire": mire_match,
                 "source_ids": {**evidence.get("source_ids", {}),
                                **{key: [stand_id] if match else []
                                   for key, match in age_matches.items()},
-                               "potential_protected_peatland": [stand_id] if peatland_match else []}}
+                               "potential_protected_peatland": [stand_id] if peatland_match else [],
+                               "natural_state_mire": [stand_id] if mire_match else []}}
     classes, rules = classify_tiers(evidence, source_states)
     for tier in rules:
         rules[tier]["unknown_sources"] = rules[tier].get("unknown_sources", [])

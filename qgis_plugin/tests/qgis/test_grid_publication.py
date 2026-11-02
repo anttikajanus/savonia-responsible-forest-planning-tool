@@ -134,7 +134,7 @@ class GridPublicationTests(unittest.TestCase):
                     "aoi_name": "AOI", "selected_only": False,
                     "service_ids": ["forest_centre_stand", "forest_centre_gridcell"],
                     "source_metadata": {
-                        "forest_centre_stand": {"provider_fields": ["VOLUME", "SAWLOGVOLUME", "VOLUMEGROWTH", "BASALAREA", "MEANAGE", "PROPORTIONPINE"]},
+                        "forest_centre_stand": {"provider_fields": ["VOLUME", "SAWLOGVOLUME", "VOLUMEGROWTH", "BASALAREA", "MEANAGE", "PROPORTIONPINE", "DRAINAGESTATE"]},
                         "forest_centre_gridcell": {"provider_fields": ["VOLUME", "AGE", "TREEDATADATE", "UPDATETIME"]}}}
                 inputs["source_metadata"].update({
                     source_id: {"provider_fields": ["objectid", "muutospvm"]}
