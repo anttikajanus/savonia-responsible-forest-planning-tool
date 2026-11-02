@@ -59,14 +59,10 @@ def potential_protection_by_age(stand_attributes, source_status, threshold=80):
     return age >= threshold if math.isfinite(age) and age >= 0 else None
 
 
-def potential_protection_by_peatland(stand_attributes, source_status):
-    """Return a stand-wide SOILTYPE match, or None when its code is unusable.
-
-    The stand WFS schema exposes SOILTYPE as text, so integral numeric strings
-    are accepted alongside numeric provider values.
-    """
+def _stand_integral_code(stand_attributes, field, source_status):
+    """Normalize a finite integral stand code, or return None if unavailable."""
     values = {str(field).lower(): value for field, value in stand_attributes.items()}
-    value = values.get("soiltype")
+    value = values.get(field.lower())
     if (source_status != "AVAILABLE" or isinstance(value, bool)
             or not isinstance(value, (Number, str))):
         return None
@@ -76,7 +72,15 @@ def potential_protection_by_peatland(stand_attributes, source_status):
         return None
     if not math.isfinite(code) or not code.is_integer():
         return None
-    soil_code = int(code)
+
+    return int(code)
+
+
+def potential_protection_by_peatland(stand_attributes, source_status):
+    """Return a stand-wide SOILTYPE match, or None when its code is unusable."""
+    soil_code = _stand_integral_code(stand_attributes, "soiltype", source_status)
+    if soil_code is None:
+        return None
     if soil_code not in SOIL_CODES and soil_code not in (68, 69):
         return None
     return 60 <= soil_code <= 69
@@ -84,18 +88,10 @@ def potential_protection_by_peatland(stand_attributes, source_status):
 
 def natural_state_mire_match(stand_attributes, source_status):
     """Return whether the stand has drainage code 6, or None if unusable."""
-    values = {str(field).lower(): value for field, value in stand_attributes.items()}
-    value = values.get("drainagestate")
-    if (source_status != "AVAILABLE" or isinstance(value, bool)
-            or not isinstance(value, (Number, str))):
+    code = _stand_integral_code(stand_attributes, "drainagestate", source_status)
+    if code is None or code not in DRAINAGE_CODES:
         return None
-    try:
-        code = float(value.strip() if isinstance(value, str) else value)
-    except (TypeError, ValueError, OverflowError):
-        return None
-    if not math.isfinite(code) or not code.is_integer() or int(code) not in DRAINAGE_CODES:
-        return None
-    return int(code) == 6
+    return code == 6
 
 
 def interpret_sources(source_features, source_states):
@@ -224,7 +220,7 @@ def classify_tiers(evidence, source_states):
         "potential_protected_age_90": evidence.get("potential_protected_age_90"),
         "potential_protected_age_100": evidence.get("potential_protected_age_100"),
         "potential_protected_peatland": evidence.get("potential_protected_peatland"),
-        "natural_state_mire": evidence.get("natural_state_mire", False),
+        "natural_state_mire": evidence.get("natural_state_mire"),
     }
     tier_criteria = {
         "all_out": ("protected", "section10"),
