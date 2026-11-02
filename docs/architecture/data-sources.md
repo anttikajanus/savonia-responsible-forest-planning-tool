@@ -17,10 +17,10 @@ Eleven WFS layers are required. The three protected-area layers form one interpr
 | SYKE private-land protected areas | Same protected-sites endpoint | `PS.ProtectedSitesYksityistenMaillaOlevaLuonnonsuojelualue` | Active protected-area criterion |
 | SYKE wilderness | Same protected-sites endpoint | `PS.ProtectedSitesEramaaAlue` | Active protected-area criterion |
 | SYKE conservation programmes | `https://paikkatiedot.ymparisto.fi/geoserver/syke_luonnonsuojeluohjelma_alueet/wfs` | `syke_luonnonsuojeluohjelma_alueet:Luonnonsuojeluohjelmaalueet` | Programme criterion, distinct from established protection |
-| SYKE groundwater | `https://paikkatiedot.ymparisto.fi/geoserver/syke_vhspohjavesi/wfs` | `syke_vhspohjavesi:VHS2022_Pohjavesi` | All returned polygon footprints; Balance and higher |
-| SYKE Ranta10 line rivers | `https://paikkatiedot.ymparisto.fi/geoserver/syke_rantaviiva/wfs` | `syke_rantaviiva:Ranta10_Viivamainen_joki` | Required line evidence for the riparian-buffer criterion; 30 m two-sided buffer |
-| SYKE Ranta10 polygon rivers | Same Ranta10 endpoint | `syke_rantaviiva:Ranta10_Aluemainen_joki` | Required polygon evidence; full polygon plus 30 m outward buffer |
-| SYKE Ranta10 lakes | Same Ranta10 endpoint | `syke_rantaviiva:Ranta10_Jarvi` | Required polygon evidence; full polygon plus 30 m outward buffer |
+| SYKE groundwater | `https://paikkatiedot.ymparisto.fi/geoserver/syke_vhspohjavesi/wfs` | `syke_vhspohjavesi:VHS2022_Pohjavesi` | Groundwater-area evidence |
+| SYKE Ranta10 line rivers | `https://paikkatiedot.ymparisto.fi/geoserver/syke_rantaviiva/wfs` | `syke_rantaviiva:Ranta10_Viivamainen_joki` | Required line evidence for the adopted riparian criterion |
+| SYKE Ranta10 polygon rivers | Same Ranta10 endpoint | `syke_rantaviiva:Ranta10_Aluemainen_joki` | Required polygon evidence for the adopted riparian criterion |
+| SYKE Ranta10 lakes | Same Ranta10 endpoint | `syke_rantaviiva:Ranta10_Jarvi` | Required polygon evidence for the adopted riparian criterion |
 Metsäkeskus and SYKE list their services in the [Metsäkeskus interface directory](https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto/aineistot-paikkatieto-ohjelmille/rajapinnat) and [SYKE service directory](https://www.syke.fi/fi/ymparistotieto/avoimet-rajapinnat/paikkatietorajapinnat). WMS is map context; analysis uses vector WFS. `inspire_ps` contains multiple feature families: a Natura type does not satisfy the required protected/wilderness contract. Compare the provider's [Natura dictionary](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Natura.pdf) with the [protected/wilderness dictionary](https://geoportal.ymparisto.fi/meta/julkinen/dokumentit/Luonnonsuojelujaeramaaalueet.pdf).
 
 MML WMTS basemaps and OpenStreetMap are display context and do not enter classifications or exported analysis snapshots. Stand mean age and stand soil type supply the included potential-protection screens. Other SYKE forest-sensitive-water products, separate water-protection buffer datasets, other peatland sensitivity rules, recreation, external potential-protected-site datasets and MY plan areas are excluded; [deferred sources](deferred-sources.md) records alternatives without activating them.
@@ -111,7 +111,13 @@ The grid evidence came from the [DescribeFeatureType request](https://avoin.mets
 
 The provider defines habitat code 1 as an ML10 habitat, code 3 as other valuable habitat, and code 5 as an ML10 habitat requiring ML20 corrective measures, following the workbook code reference and [provider guide](https://www.metsakeskus.fi/sites/default/files/document/tiedosto-geopackage-sisaltoohjeet-tietomalli-2-0.pdf). The adopted [accepted-value mapping](source-layer-requirements.md#accepted-classification-values) is separate from these provider definitions. Mapped habitat inventories are incomplete; no mapped hit does not establish absence of a habitat. [Provider data quality](https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto/tietojen-yllapito/tiedon-laatu).
 
-Stand-wide promotion is the prototype's conservative spatial assumption. The [Forest Act](https://www.finlex.fi/fi/lainsaadanto/saadoskokoelma/1996/1093), [2026 amendment](https://www.finlex.fi/fi/lainsaadanto/saadoskokoelma/2026/448), and [Metsäkeskus interpretation guidance](https://www.metsakeskus.fi/sites/default/files/document/metsalain-10-pykalan-kohteiden-tulkintasuositus.pdf) provide background; operational/legal use needs current authoritative guidance and site evidence.
+The prototype's adopted Section 10 interpretation is described in
+[CL-01](../specs/classification.md#cl-01-reporting-domain-and-geometry). The
+[Forest Act](https://www.finlex.fi/fi/lainsaadanto/saadoskokoelma/1996/1093),
+[2026 amendment](https://www.finlex.fi/fi/lainsaadanto/saadoskokoelma/2026/448),
+and [Metsäkeskus interpretation guidance](https://www.metsakeskus.fi/sites/default/files/document/metsalain-10-pykalan-kohteiden-tulkintasuositus.pdf)
+provide background; operational/legal use needs current authoritative guidance
+and site evidence.
 
 The [protected-area metadata](https://ckan.ymparisto.fi/dataset/luonnonsuojelu-ja-eramaa-alueet) describes updates, overlapping records and exclusion of Åland; it does not independently verify the plugin's entire accepted-status mapping.
 
@@ -146,7 +152,17 @@ predicate cannot be recovered locally. Fixture checks of representative invalid
 polygons do not certify provider behavior for all malformed data. Query failures
 remain fatal; they are not retried as successful empty evidence.
 
-The three Ranta10 water products use a distinct candidate footprint expanded by 31 m in EPSG:3067, transformed to each source CRS, for both bbox and polygon predicates. This conservative margin accounts for the eight-segment 30 m buffer approximation; the derived water buffers remain exactly 30 m. Water features are buffered before exact local clipping to the original AOI, so an outside source feature can contribute inside it and clipping raw source geometry cannot create artificial buffer edges. Polygon products are buffered as polygons; the required line product is buffered as line geometry. The final footprints are unioned across products and clipped to the AOI. Ordinary sources retain their existing AOI query extent and clipping contract.
+The three Ranta10 water products use a distinct candidate footprint expanded by
+31 m in EPSG:3067, transformed to each source CRS, for both bbox and polygon
+predicates. This margin accounts for the approximation used by the adopted
+buffer geometry. Water features are buffered before exact local clipping to the
+original AOI, so an outside source feature can contribute inside it and clipping
+raw source geometry cannot create artificial buffer edges. The polygon products
+are buffered as polygons; the required line product is buffered as line
+geometry. The final footprints are unioned across products and clipped to the
+AOI. Exact buffer dimensions and geometry are owned by
+[calculations](calculations.md#area-and-geometry). Ordinary sources retain their
+existing AOI query extent and clipping contract.
 Accepting retrieval requires both iterator completion
 and a provider-error check. QGIS can deliver request errors asynchronously, so
 the adapter must collect pending errors in the provider's owning thread before
@@ -159,7 +175,10 @@ and its [workflow regressions](../../qgis_plugin/tests/qgis/test_workflow_contra
 own the QGIS-specific cache and event handling. Verification covers the QGIS
 3.44.0 and 4.2.3 WFS boundaries; it is not a guarantee for arbitrary providers.
 
-Successful empty retrieval is `AVAILABLE` but is not certification of complete geographic coverage. This distinction also applies to the three required Ranta10 sources: a successful empty set produces available evidence with no riparian match; it does not establish that no nearby water exists. Source request/iteration failures stop the run. Metric nulls are handled independently as documented in [indicators](indicators.md).
+Observable behavior for successful empty retrievals, failed requests and metric
+nulls is owned by [WF-03](../specs/workflow.md#wf-03-source-readiness-and-retrieval),
+[WF-07](../specs/workflow.md#wf-07-failure-cancellation-and-observability)
+and [IO-03](../specs/indicators-and-outputs.md#io-03-unavailable-and-partial-values).
 
 ## Access and evidence maintenance
 

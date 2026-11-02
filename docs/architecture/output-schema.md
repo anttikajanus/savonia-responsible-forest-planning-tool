@@ -18,22 +18,20 @@ coverage interpretation, see the [worked output examples](../examples/classified
 
 Each row carries six text fields classifying the **same land** under different
 tiers. Select one tier for area reporting; adding areas across tiers counts
-the land repeatedly. The tier key is also used inside `tier_rule_ids`.
-Criteria accumulate from one tier to the next.
+the land repeatedly. The tier key is also used inside `tier_rule_ids`. Tier
+membership is owned by
+[CL-02](../specs/classification.md#cl-02-six-cumulative-tiers), and class and
+evidence meaning by
+[CL-03](../specs/classification.md#cl-03-classes-and-evidence-policy).
 
-| Result field | Tier / JSON tier key | Sensitivity represented by this tier |
-| --- | --- | --- |
-| `class_all_out` | All out / `all_out` | Recognized active protected areas and mapped Section 10 habitats. |
-| `class_bau` | BAU / `bau` | Same criteria as All out; retained as a separate tier. |
-| `class_light` | Light / `light` | Same criteria as All out and BAU. |
-| `class_balance` | Balance / `balance` | Light criteria plus nature conservation programme areas, groundwater areas, Ranta10 riparian buffers and parent stands with peatland soil type (`SOILTYPE` 60–69). |
-| `class_protection` | Protection / `protection` | Balance criteria plus other valuable habitats and potential protected areas based on stand age or peatland soil code. |
-| `class_superprotection` | Superprotection / `superprotection` | Protection criteria plus all remaining analyzed forest with available required evidence. |
-
-Protected areas include state-owned protected areas, private-land protected
-areas and wilderness areas. All out, BAU and Light currently carry identical
-classifications. Tier names describe planning classifications; they are not
-modeled harvest or financial outcomes.
+| Result field | Tier / JSON tier key |
+| --- | --- |
+| `class_all_out` | All out / `all_out` |
+| `class_bau` | BAU / `bau` |
+| `class_light` | Light / `light` |
+| `class_balance` | Balance / `balance` |
+| `class_protection` | Protection / `protection` |
+| `class_superprotection` | Superprotection / `superprotection` |
 
 ### Class codes
 
@@ -45,10 +43,11 @@ Each `class_*` field stores one of these exact values:
 | `ECONOMIC` | No included sensitivity criterion matched, and all source groups required for that tier's no-hit decision were available. | The piece falls in the economic-forest class under this tier's evidence and rules. This code does not establish profitability, harvesting permission or absence of unmapped constraints. |
 | `UNKNOWN` | No positive criterion matched and evidence required to establish a no-hit decision was unavailable. | A data-quality state: classification cannot be resolved from the available evidence. It is neither a forest type nor a numeric zero. |
 
-The current application publishes results only when required sources are
-available. Missing or invalid individual stand ages can still leave Protection
-and Superprotection `UNKNOWN` when no other positive criterion matches.
-Indicator availability is recorded independently.
+Application source-failure and unknown-classification behavior is defined in
+[CL-03](../specs/classification.md#cl-03-classes-and-evidence-policy) and
+[WF-07](../specs/workflow.md#wf-07-failure-cancellation-and-observability).
+Indicator availability is recorded independently under
+[IO-03](../specs/indicators-and-outputs.md#io-03-unavailable-and-partial-values).
 
 ### Classification reasons and context
 
@@ -58,13 +57,13 @@ lists use these codes; several reasons can apply to one piece.
 | Reason code | Meaning |
 | --- | --- |
 | `protected` | Match to a recognized active protected-area polygon. |
-| `section10` | A mapped Forest Act Section 10 habitat triggered promotion of the parent stand. |
+| `section10` | Section 10 stand-wide promotion; see [CL-01](../specs/classification.md#cl-01-reporting-domain-and-geometry). |
 | `programme` | Match to a recognized nature conservation programme polygon. Programme membership is distinct from established protection. |
 | `groundwater` | Match to a groundwater-area footprint. |
-| `riparian_buffer` | Match to the combined Ranta10 30 m buffer footprint. |
+| `riparian_buffer` | Match to the adopted Ranta10 riparian criterion; see [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers). |
 | `other_habitat` | Match to another valuable habitat. |
-| `potential_protected_age` | Parent stand matches the potential-protection criterion based on forest age. This is distinct from established legal protection. |
-| `potential_protected_peatland` | Parent stand has a SOILTYPE code from 60 through 69, inclusive; a planning screen distinct from established legal protection. |
+| `potential_protected_age` | Parent stand matches the age-based potential-protection screen; see [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers). |
+| `potential_protected_peatland` | Parent stand matches the peatland potential-protection screen; see [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers). |
 | `remaining_analyzed_forest` | Superprotection's rule for analyzed forest with no more specific sensitivity match and available required evidence. This is a policy reason and has no matched source-feature identifier. |
 
 Ordinary source-check attributes complement the structured reasons:
@@ -72,23 +71,21 @@ Ordinary source-check attributes complement the structured reasons:
 | Field | Meaning |
 | --- | --- |
 | `check_protected` | Recognized active protected-area match. |
-| `check_section10` | Parent stand promoted by Section 10 evidence, including pieces outside its footprint. |
+| `check_section10` | Section 10 stand-wide promotion check; see [CL-01](../specs/classification.md#cl-01-reporting-domain-and-geometry). |
 | `check_programme` | Conservation programme match. |
 | `check_groundwater` | Groundwater footprint match. |
-| `check_riparian_buffer` | Match to the combined Ranta10 30 m buffer footprint. |
+| `check_riparian_buffer` | Match to the adopted Ranta10 riparian criterion; see [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers). |
 | `check_other_habitat` | Other valuable habitat match. |
-| `check_potential_protected_age` | Potential protected-area match based on parent stand age. |
-| `check_potential_protected_peatland` | Potential protected-area match based on parent stand soil code. |
+| `check_potential_protected_age` | Parent-stand age screen; see [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers). |
+| `check_potential_protected_peatland` | Parent-stand peatland screen; see [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers). |
 
 Each stores `MATCH`, `NO_MATCH` or `UNKNOWN`, with localized presentation.
-Display labels describe the criterion without embedding formulas or thresholds.
-Unavailable dependencies are unknown rather than no-match; stand-age and
-stand-soil checks also remain unknown for missing or invalid individual values. Each check reports its own
-criterion independently, even when another criterion determines a tier's class.
-Superprotection's remaining-forest rule stays in `tier_rule_ids` rather than
-another check field. Exact matching rules are defined in
-[geometry and classification](calculations.md#classification); saved calculation
-definitions are described under [Supporting metadata](#supporting-metadata).
+Unknown-value behavior is owned by
+[CL-03](../specs/classification.md#cl-03-classes-and-evidence-policy). Each
+check reports its criterion independently, even when another criterion
+determines a tier's class. Superprotection's remaining-forest rule stays in
+`tier_rule_ids` rather than another check field. Saved calculation definitions
+are described under [Supporting metadata](#supporting-metadata).
 
 Additional fields describe classification and parent geometry context:
 

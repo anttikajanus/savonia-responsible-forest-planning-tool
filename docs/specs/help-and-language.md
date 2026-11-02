@@ -22,12 +22,16 @@
 
 Provide bilingual short help explaining the algorithm, inputs, outputs and limits, plus a link to the packaged manual's Processing section in the QGIS language. Matching section links must work in both manuals after ZIP installation, including installation paths with spaces or non-ASCII characters. Keep instructions aligned with the current shared workflow and source requirements.
 
-Explain the explicit required sawlog price, its eligibility and constant unit-price
-meaning, recoverable stand-overlap warnings and possible duplicate contributions.
-Distinguish the €/m³ assumption from calculated sawlog value in euros, including
-unrounded-volume multiplication, zero/unknown stock and incomplete group totals.
-Describe readable criterion checks and retained metric coverage without presenting
-removed independent indicator status or diagnostic fields as current interfaces.
+Explain the required sawlog price as a user assumption and distinguish it from
+the calculated euro value. Describe that the estimate uses represented
+unrounded sawlog volume and the supplied €/m³ price; known zero stock gives
+zero euros, while missing stock and incomplete group totals remain blank with
+their known subtotal and coverage retained.
+Cover recoverable stand-overlap warnings and possible duplicate contributions.
+Describe readable criterion checks and retained metric coverage without
+presenting removed independent indicator status or diagnostic fields as current
+interfaces. Detailed results semantics are defined in
+[IO-01–IO-03](indicators-and-outputs.md).
 
 ## HL-04 Identity, credits and attribution
 

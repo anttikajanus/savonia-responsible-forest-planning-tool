@@ -3,8 +3,8 @@
 # Geometry and classification contracts
 
 This reference owns geometry mechanics, numerical tolerances and classification
-evaluation. Observable planning rules belong to
-[CL-01–CL-04](../specs/classification.md); accepted inputs belong to
+evaluation. Observable planning rules belong to the
+[classification requirements](../specs/classification.md); accepted inputs belong to
 [source-layer requirements](source-layer-requirements.md).
 
 For related contracts, use [indicator calculations](indicator-calculations.md),
@@ -39,13 +39,12 @@ as unique ground area.
 Identical
 repeated grid IDs/records are deduplicated; conflicting records of one ID or
 overlaps between distinct cells stop publication. Shared edges are allowed.
-Apply the direct-hit threshold in
-[CL-01](../specs/classification.md#cl-01-reporting-domain-and-geometry).
-A shared boundary or point has no hit area. Protected areas, programme
-areas, and other valuable habitats mark only the overlapping output piece(s).
-Section 10 uses the same overlap threshold, then promotes every output piece
-from the original stand. The hit threshold avoids tiny edge discrepancies
-between source datasets. The separate `1e-8` m² output-geometry
+Mapped area criteria match only when their overlap with a result piece is
+strictly greater than 1 m² in EPSG:3067. Equal or smaller overlaps and shared
+edges/points do not match. Section 10 applies the same hit threshold before its
+stand-wide promotion. Other mapped criteria affect the overlapping output
+pieces. The threshold avoids tiny edge discrepancies between source datasets.
+The separate `1e-8` m² output-geometry
 tolerance only discards negligible fragments when retaining split polygons; it
 does not determine whether a criterion hit occurs. Clipped numerical fragments
 at or below this tolerance are excluded.
@@ -66,95 +65,76 @@ before publication under the existing no-stands policy.
 
 The [output schema](output-schema.md#classification-fields-and-values) owns the
 six stored tier fields, class-code meanings and reason-code dictionary so that
-output recipients can interpret the GeoPackage from one reference. Unrecognized
-returned protected, habitat and programme classification inputs stop the run;
-invalid individual stand ages follow the explicit unknown policy below.
+output recipients can interpret the GeoPackage from one reference. Normalized
+input values belong to the
+[source contract](source-layer-requirements.md#accepted-classification-values).
 
 ### Sensitivity criteria by tier
 
-Each tier classifies the same result piece using the criteria in its column.
-The tiers are cumulative: All out, BAU and Light use the same criteria, while
-each later tier adds criteria. A check means that a positive match can make the
-piece `SENSITIVE` in that tier. A dash means the criterion does not affect that
-tier.
+The matrix summarizes which criteria affect each tier.
+[CL-02](../specs/classification.md#cl-02-six-cumulative-tiers) owns tier
+membership; [CL-03](../specs/classification.md#cl-03-classes-and-evidence-policy)
+owns class and evidence behavior. Stored fields and reason codes are defined in
+the [output schema](output-schema.md#classification-fields-and-values).
 
-| Criterion / calculation | [All out](../specs/classification.md#cl-02-six-cumulative-tiers) | [BAU](../specs/classification.md#cl-02-six-cumulative-tiers) | [Light](../specs/classification.md#cl-02-six-cumulative-tiers) | [Balance](../specs/classification.md#cl-02-six-cumulative-tiers) | [Protection](../specs/classification.md#cl-02-six-cumulative-tiers) | [Superprotection](../specs/classification.md#cl-02-six-cumulative-tiers) |
+| Criterion | All out | BAU | Light | Balance | Protection | Superprotection |
 | --- | --- | --- | --- | --- | --- | --- |
-| [Recognized active protected area](../specs/classification.md#cl-02-six-cumulative-tiers) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Section 10 habitat](../specs/classification.md#cl-02-six-cumulative-tiers) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Nature conservation programme area](../specs/classification.md#cl-02-six-cumulative-tiers) | — | — | — | ✓ | ✓ | ✓ |
-| [Groundwater area](../specs/classification.md#cl-02-six-cumulative-tiers) | — | — | — | ✓ | ✓ | ✓ |
-| [Ranta10 riparian buffer](../specs/classification.md#cl-02-six-cumulative-tiers) | — | — | — | ✓ | ✓ | ✓ |
-| [Parent stand peatland screen (`SOILTYPE` 60–69)](#stand-peatland-screen) | — | — | — | ✓ | ✓ | ✓ |
-| [Other valuable habitat](../specs/classification.md#cl-02-six-cumulative-tiers) | — | — | — | — | ✓ | ✓ |
-| [Parent stand age screen (`MEANAGE` > 80)](#stand-age-screen) | — | — | — | — | ✓ | ✓ |
-| [Remaining analyzed forest](../specs/classification.md#cl-02-six-cumulative-tiers) | — | — | — | — | — | ✓ |
+| Recognized active protected area | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Section 10 habitat | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Nature conservation programme area | — | — | — | ✓ | ✓ | ✓ |
+| Groundwater area | — | — | — | ✓ | ✓ | ✓ |
+| Ranta10 riparian buffer | — | — | — | ✓ | ✓ | ✓ |
+| Parent-stand peatland screen | — | — | — | ✓ | ✓ | ✓ |
+| Other valuable habitat | — | — | — | — | ✓ | ✓ |
+| Parent-stand age screen | — | — | — | — | ✓ | ✓ |
+| Remaining analyzed forest | — | — | — | — | — | ✓ |
 
-`✓` means the criterion is included; `—` means it is not included. In every
-tier, a positive match to any included criterion makes the result
-`SENSITIVE`. Without a positive match, the piece is `ECONOMIC` only when all
-evidence required for that tier's no-hit decision is available; otherwise it is
-`UNKNOWN`. The [required evidence by tier](#no-hit-evidence) table explains
-which sources and stand values affect that decision. `UNKNOWN` is an evidence
-state, not another forest type.
+`✓` indicates that a criterion can affect the tier's class.
+
+In every tier, a positive match to any included criterion makes the result `SENSITIVE`. Without a positive match, the piece is `ECONOMIC` only when all evidence required for that tier's no-hit decision is available; otherwise it is `UNKNOWN`.
 
 ### Class result and evidence
 
 Evaluation is independent for each output piece, and a positive match takes
-precedence over unavailable evidence. A successful source request with no
-AOI-clipped features is still marked `AVAILABLE`, so an empty response
-currently permits a no-hit classification. Feature counts describe returned
-data and do not establish complete service coverage.
+precedence over unavailable evidence. The pure policy's no-hit and unknown
+behavior is defined in [CL-03](../specs/classification.md#cl-03-classes-and-evidence-policy).
+The workflow's source-readiness, failure, and publication behavior is defined in
+[WF-03](../specs/workflow.md#wf-03-source-readiness-and-retrieval) and
+[WF-07](../specs/workflow.md#wf-07-failure-cancellation-and-observability).
+Indicator missingness is defined in
+[IO-03](../specs/indicators-and-outputs.md#io-03-unavailable-and-partial-values).
 
-These dependency rules describe the pure classification policy. The application
-workflow requires all eleven sources and stops before publication on a required
-source or fatal interpretation failure; it does not publish a partial-source run
-using these `UNKNOWN` rules. Missing numeric indicator evidence can still produce
-partial or unknown metrics in a successful run. Missing/invalid individual stand
-ages can produce unknown classifications under CL-03 without a source failure.
-
-The criterion membership is defined in
-[CL-02](../specs/classification.md#cl-02-six-cumulative-tiers). The
-[tier-to-field table](output-schema.md#classification-fields-and-values) maps
-those tiers to machine fields. Required source groups for a no-hit decision are:
+The required evidence for a no-hit decision is defined in
+[CL-03](../specs/classification.md#cl-03-classes-and-evidence-policy).
+The implementation evaluates that policy using the normalized source inputs
+defined by [source-layer requirements](source-layer-requirements.md#accepted-classification-values).
 
 <a id="no-hit-evidence"></a>
-| Tiers | Required source groups |
-| --- | --- |
-| All out, BAU, Light | Protected + Habitat |
-| Balance | Protected + Habitat + Programme + Groundwater + Ranta10 water buffers + valid stand soil code |
-| Protection, Superprotection | Protected + Habitat + Programme + Groundwater + Ranta10 water buffers + valid stand mean age and soil code |
-
-Protected combines the three required protected-area products in the
-[source inventory](data-sources.md#required-sources). Habitat, Programme and
-Groundwater refer to their semantic source groups, not display-layer names.
-Excluded criteria follow [CL-04](../specs/classification.md#cl-04-exclusions-and-interpretation).
+See the [required evidence table in CL-03](../specs/classification.md#cl-03-classes-and-evidence-policy).
 
 ### Stand age screen
 
 The stand-age criterion consumes case-insensitive stand `MEANAGE` in years.
-Finite nonnegative numeric values are valid; booleans and numeric text are not.
-The unrounded value must be strictly greater than 80. Every piece of that
-parent stand inherits the match and stand ID under `potential_protected_age`,
-without a geometry split or overlap threshold. Missing/invalid individual
-ages leave this criterion unknown even when Stand is available. Without any
-positive trigger, Protection and Superprotection are `UNKNOWN`, identifying
-`forest_centre_stand` in `unknown_sources`; a positive trigger still wins.
-This rule uses no grid age substitute or age extrapolation.
+The cutoff and tier membership are owned by
+[CL-02](../specs/classification.md#cl-02-six-cumulative-tiers); missing-value
+behavior is owned by [CL-03](../specs/classification.md#cl-03-classes-and-evidence-policy).
+Provider value acceptance is owned by the
+[source contract](source-layer-requirements.md#accepted-classification-values).
+Stand criteria inherit the parent stand's interpretation; see
+[CL-01](../specs/classification.md#cl-01-reporting-domain-and-geometry) for
+their spatial effect.
 
 ### Stand peatland screen
 
 The stand peatland screen consumes `SOILTYPE` from `forest_centre_stand`.
-Finite integral numeric codes 60–69 inclusive match; other valid integral
-codes do not. Recognized codes outside that range are no-match; missing,
-nonnumeric, boolean, fractional, nonfinite and unrecognized individual values
-are unknown. The required provider field is
-checked at readiness. A match promotes every piece of a parent stand in
-Balance, Protection and Superprotection, with that stand ID in
-`potential_protected_peatland` provenance. An age match can independently promote
-Protection and Superprotection. With no positive trigger and a required stand
-check unknown, the affected tier remains unknown. No grid soil substitute is
-used.
+The matching codes and tier membership are owned by
+[CL-02](../specs/classification.md#cl-02-six-cumulative-tiers); missing-value
+behavior is owned by [CL-03](../specs/classification.md#cl-03-classes-and-evidence-policy).
+Provider value acceptance is owned by the
+[source contract](source-layer-requirements.md#accepted-classification-values).
+Stand criteria inherit the parent stand's interpretation; see
+[CL-01](../specs/classification.md#cl-01-reporting-domain-and-geometry) for
+their spatial effect.
 
 The [input contract](source-layer-requirements.md#accepted-classification-values)
 owns accepted statuses, categories, habitat codes and programme identifiers.
