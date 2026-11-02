@@ -29,7 +29,7 @@ class StandAgeProtectionTests(WorkflowFixtureMixin, unittest.TestCase):
                 features = {feature["source_stand_id"]: feature for feature in layer.getFeatures()}
                 self.assertEqual(set(features), {"at-80", "over-80", "unknown"})
                 for identifier, check, protection, superprotection in (
-                        ("at-80", "NO_MATCH", "ECONOMIC", "SENSITIVE"),
+                        ("at-80", "MATCH", "SENSITIVE", "SENSITIVE"),
                         ("over-80", "MATCH", "SENSITIVE", "SENSITIVE"),
                         ("unknown", "UNKNOWN", "UNKNOWN", "UNKNOWN")):
                     feature = features[identifier]
@@ -37,13 +37,16 @@ class StandAgeProtectionTests(WorkflowFixtureMixin, unittest.TestCase):
                     self.assertEqual(feature["check_protected"], "NO_MATCH")
                     self.assertEqual(feature["class_protection"], protection)
                     self.assertEqual(feature["class_superprotection"], superprotection)
-                    for tier in ("all_out", "bau", "light", "balance"):
+                    for tier in ("all_out", "bau"):
                         self.assertEqual(feature["class_" + tier], "ECONOMIC")
+                    for tier in ("light", "balance"):
+                        self.assertEqual(feature["class_" + tier],
+                                         "UNKNOWN" if identifier == "unknown" else "ECONOMIC")
                 rules = json.loads(features["over-80"]["tier_rule_ids"])
                 self.assertEqual(rules["protection"]["criteria"], ["potential_protected_age"])
                 self.assertEqual(rules["protection"]["source_ids"], ["over-80"])
-                expected_alias = ("Metsän ikään perustuvan mahdollisen suojelualueen tarkistus"
-                                  if language == "fi" else "Potential protected-area check based on forest age")
+                expected_alias = ("Metsänikään perustuva mahdollinen suojelu (80 vuotta)"
+                                  if language == "fi" else "Potential protected area based on forest age (80 years)")
                 self.assertEqual(layer.attributeAlias(layer.fields().indexFromName("check_potential_protected_age")),
                                  expected_alias)
                 metadata = QgsVectorLayer(result["RESULT"].split("|", 1)[0] + "|layername=run_metadata", "metadata", "ogr")
@@ -51,7 +54,7 @@ class StandAgeProtectionTests(WorkflowFixtureMixin, unittest.TestCase):
                 semantics = json.loads(next(metadata.getFeatures())["classification_semantics"])
                 self.assertEqual(semantics["potential_protected_age"], {
                     "source_id": "forest_centre_stand", "field": "MEANAGE", "unit": "years",
-                    "rule": "MEANAGE > 80", "tiers": ["protection", "superprotection"],
+                    "rule": "MEANAGE >= 80", "tiers": ["protection", "superprotection"],
                     "scope": "all pieces of the parent stand",
                     "unknown": "missing, nonnumeric, boolean, nonfinite or negative age",
                     "interpretation": "potential protection based on age; not legal protection",

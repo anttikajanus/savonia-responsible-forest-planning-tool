@@ -167,7 +167,21 @@ def prepare_publication(inputs, retrieved, classified, run_id):
         "classification_semantics": {
             "potential_protected_age": {
                 "source_id": "forest_centre_stand", "field": "MEANAGE", "unit": "years",
-                "rule": "MEANAGE > 80", "tiers": ["protection", "superprotection"],
+                "rule": "MEANAGE >= 80", "tiers": ["protection", "superprotection"],
+                "scope": "all pieces of the parent stand",
+                "unknown": "missing, nonnumeric, boolean, nonfinite or negative age",
+                "interpretation": "potential protection based on age; not legal protection",
+            },
+            "potential_protected_age_90": {
+                "source_id": "forest_centre_stand", "field": "MEANAGE", "unit": "years",
+                "rule": "MEANAGE >= 90", "tiers": ["balance"],
+                "scope": "all pieces of the parent stand",
+                "unknown": "missing, nonnumeric, boolean, nonfinite or negative age",
+                "interpretation": "potential protection based on age; not legal protection",
+            },
+            "potential_protected_age_100": {
+                "source_id": "forest_centre_stand", "field": "MEANAGE", "unit": "years",
+                "rule": "MEANAGE >= 100", "tiers": ["light"],
                 "scope": "all pieces of the parent stand",
                 "unknown": "missing, nonnumeric, boolean, nonfinite or negative age",
                 "interpretation": "potential protection based on age; not legal protection",

@@ -32,16 +32,18 @@ EXPECTED_METRICS = (
 class ResultFieldOrganizationTests(unittest.TestCase):
     def assert_presentation(self, layer, language):
         names = [name for name in layer.fields().names() if name != "fid"]
-        self.assertEqual(names[16:32], ["area_ha", *EXPECTED_METRICS])
-        self.assertEqual(names[7:16], ["check_protected", "check_section10", "check_programme",
+        self.assertEqual(names[18:34], ["area_ha", *EXPECTED_METRICS])
+        self.assertEqual(names[7:18], ["check_protected", "check_section10", "check_programme",
                                      "check_groundwater", "check_other_habitat",
-                                     "check_potential_protected_age", "check_potential_protected_peatland",
+                                     "check_potential_protected_age", "check_potential_protected_age_90",
+                                     "check_potential_protected_age_100", "check_potential_protected_peatland",
                                      "check_riparian_buffer",
                                      "stand_has_overlap"])
         self.assertNotIn("indicator_status", names)
         self.assertNotIn("indicator_diagnostics", names)
         for field in ("check_protected", "check_section10", "check_programme",
                       "check_groundwater", "check_other_habitat", "check_potential_protected_age",
+                      "check_potential_protected_age_90", "check_potential_protected_age_100",
                       "check_potential_protected_peatland", "check_riparian_buffer"):
             self.assertEqual(next(layer.getFeatures())[field], "UNKNOWN")
             index = layer.fields().indexFromName(field)

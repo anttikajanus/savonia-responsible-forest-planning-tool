@@ -23,6 +23,8 @@ CRITERION_FIELDS = (
     ("check_groundwater", "groundwater_area", "syke_groundwater_areas"),
     ("check_other_habitat", "other_valuable_habitat", "forest_centre_habitat"),
     ("check_potential_protected_age", "potential_protected_age", "forest_centre_stand"),
+    ("check_potential_protected_age_90", "potential_protected_age_90", "forest_centre_stand"),
+    ("check_potential_protected_age_100", "potential_protected_age_100", "forest_centre_stand"),
     ("check_potential_protected_peatland", "potential_protected_peatland", "forest_centre_stand"),
     ("check_riparian_buffer", "riparian_buffer", "syke_rantaviiva_water_buffers"),
 )
@@ -42,8 +44,8 @@ def _status(value):
     return " ".join(str(value or "").strip().lower().split())
 
 
-def potential_protection_by_age(stand_attributes, source_status):
-    """Return a stand-wide age match, or None when MEANAGE is unusable."""
+def potential_protection_by_age(stand_attributes, source_status, threshold=80):
+    """Return a stand-wide threshold match, or None when MEANAGE is unusable."""
     values = {str(field).lower(): value for field, value in stand_attributes.items()}
     value = values.get("meanage")
     if source_status != "AVAILABLE" or isinstance(value, bool) or not isinstance(value, Number):
@@ -52,7 +54,7 @@ def potential_protection_by_age(stand_attributes, source_status):
         age = float(value)
     except (TypeError, ValueError, OverflowError):
         return None
-    return age > 80 if math.isfinite(age) and age >= 0 else None
+    return age >= threshold if math.isfinite(age) and age >= 0 else None
 
 
 def potential_protection_by_peatland(stand_attributes, source_status):
@@ -201,15 +203,26 @@ def classify_tiers(evidence, source_states):
         "riparian_buffer": bool(evidence.get("riparian_buffer")),
         "other_habitat": bool(evidence.get("other_valuable_habitat")),
         "potential_protected_age": evidence.get("potential_protected_age"),
+        "potential_protected_age_90": evidence.get("potential_protected_age_90"),
+        "potential_protected_age_100": evidence.get("potential_protected_age_100"),
         "potential_protected_peatland": evidence.get("potential_protected_peatland"),
     }
     tier_criteria = {
         "all_out": ("protected", "section10"),
         "bau": ("protected", "section10"),
-        "light": ("protected", "section10"),
-        "balance": ("protected", "section10", "programme", "groundwater", "riparian_buffer", "potential_protected_peatland"),
-        "protection": ("protected", "section10", "programme", "groundwater", "riparian_buffer", "other_habitat", "potential_protected_age", "potential_protected_peatland"),
-        "superprotection": ("protected", "section10", "programme", "groundwater", "riparian_buffer", "other_habitat", "potential_protected_age", "potential_protected_peatland"),
+        "light": ("protected", "section10", "potential_protected_age_100"),
+        "balance": (
+            "protected", "section10", "programme", "groundwater", "riparian_buffer",
+            "potential_protected_age_90", "potential_protected_peatland",
+        ),
+        "protection": (
+            "protected", "section10", "programme", "groundwater", "riparian_buffer",
+            "other_habitat", "potential_protected_age", "potential_protected_peatland",
+        ),
+        "superprotection": (
+            "protected", "section10", "programme", "groundwater", "riparian_buffer",
+            "other_habitat", "potential_protected_age", "potential_protected_peatland",
+        ),
     }
     dependencies = {
         "protected": ("syke_protected_areas",),
@@ -219,6 +232,8 @@ def classify_tiers(evidence, source_states):
         "riparian_buffer": ("syke_rantaviiva_water_buffers",),
         "other_habitat": ("forest_centre_habitat",),
         "potential_protected_age": ("forest_centre_stand",),
+        "potential_protected_age_90": ("forest_centre_stand",),
+        "potential_protected_age_100": ("forest_centre_stand",),
         "potential_protected_peatland": ("forest_centre_stand",),
     }
     classes = {}
@@ -269,16 +284,25 @@ def classify_tiers(evidence, source_states):
 def assemble_classified_piece(stand_id, stand_attributes, area_ha, evidence, source_states,
                               grid_intersections=None, sawlog_price_eur_m3=None):
     """Turn normalized piece evidence into a complete, QGIS-independent result row."""
-    age_match = potential_protection_by_age(
-        stand_attributes, source_states.get("forest_centre_stand"),
-    )
+    age_matches = {
+        "potential_protected_age": potential_protection_by_age(
+            stand_attributes, source_states.get("forest_centre_stand"), 80,
+        ),
+        "potential_protected_age_90": potential_protection_by_age(
+            stand_attributes, source_states.get("forest_centre_stand"), 90,
+        ),
+        "potential_protected_age_100": potential_protection_by_age(
+            stand_attributes, source_states.get("forest_centre_stand"), 100,
+        ),
+    }
     peatland_match = potential_protection_by_peatland(
         stand_attributes, source_states.get("forest_centre_stand"),
     )
-    evidence = {**evidence, "potential_protected_age": age_match,
+    evidence = {**evidence, **age_matches,
                 "potential_protected_peatland": peatland_match,
                 "source_ids": {**evidence.get("source_ids", {}),
-                               "potential_protected_age": [stand_id] if age_match else [],
+                               **{key: [stand_id] if match else []
+                                  for key, match in age_matches.items()},
                                "potential_protected_peatland": [stand_id] if peatland_match else []}}
     classes, rules = classify_tiers(evidence, source_states)
     for tier in rules:

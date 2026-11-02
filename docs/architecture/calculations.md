@@ -86,7 +86,9 @@ the [output schema](output-schema.md#classification-fields-and-values).
 | Ranta10 riparian buffer | — | — | — | ✓ | ✓ | ✓ |
 | Parent-stand peatland screen | — | — | — | ✓ | ✓ | ✓ |
 | Other valuable habitat | — | — | — | — | ✓ | ✓ |
-| Parent-stand age screen | — | — | — | — | ✓ | ✓ |
+| Parent-stand age screen at 100 years | — | — | ✓ | — | — | — |
+| Parent-stand age screen at 90 years | — | — | — | ✓ | — | — |
+| Parent-stand age screen at 80 years | — | — | — | — | ✓ | ✓ |
 | Remaining analyzed forest | — | — | — | — | — | ✓ |
 
 `✓` indicates that a criterion can affect the tier's class.
@@ -114,10 +116,12 @@ See the [required evidence table in CL-03](../specs/classification.md#cl-03-clas
 
 ### Stand age screen
 
-The stand-age criterion consumes case-insensitive stand `MEANAGE` in years.
-The cutoff and tier membership are owned by
-[CL-02](../specs/classification.md#cl-02-six-cumulative-tiers); missing-value
-behavior is owned by [CL-03](../specs/classification.md#cl-03-classes-and-evidence-policy).
+The stand-age criteria consume case-insensitive stand `MEANAGE` in years.
+Inclusive cutoffs are 100 years for Light, 90 for Balance, and 80 for
+Protection and Superprotection. Each cutoff has an independent check and
+reason code, while using the same parent stand source value. The tier policy
+is owned by [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers);
+missing-value behavior is owned by [CL-03](../specs/classification.md#cl-03-classes-and-evidence-policy).
 Provider value acceptance is owned by the
 [source contract](source-layer-requirements.md#accepted-classification-values).
 Stand criteria inherit the parent stand's interpretation; see
