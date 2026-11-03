@@ -68,7 +68,7 @@ establish implementation or provider/desktop acceptance.
 | [0007](adr/0007-separate-operational-log-channels.md) | Separate technical diagnostics and business-action records |
 | [0008](adr/0008-qgis-language-and-offline-help.md) | Follow QGIS language and ship offline help |
 | [0009](adr/0009-project-licence-and-portable-attribution.md) | Package MIT project notices and portable dataset attribution |
-| [0010](adr/0010-wfs-2-only.md) | Support only WFS 2.0; exclude legacy WFS 1.x compatibility |
+| [0010](adr/0010-wfs-2-only.md) | Use WFS 2.0 for managed sources |
 | [0011](adr/0011-deciduous-volume-instead-of-birch.md) | Use deciduous volume instead of supporting birch-specific volume |
 | [0012](adr/0012-local-reference-downloads.md) | Download provider references locally and keep the cache out of Git |
 | [0013](adr/0013-nonfatal-stand-overlaps.md) | Retain overlapping stands with warnings; supersede ADR-0004's stand-overlap limit |

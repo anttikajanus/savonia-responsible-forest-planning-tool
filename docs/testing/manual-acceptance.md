@@ -39,8 +39,9 @@ accepting planning assumptions or establishing provider completeness.
 5. For online setup/run checks, use authorized provider access and the documented
    MML/SYKE setup. Review saved projects before sharing them because saved
    connections can contain credentials.
-6. For controlled numerical and failure cases, arrange known WFS 2.0 fixture
-   services/inputs and expected values before testing. Existing
+6. For controlled numerical and failure cases, arrange fixture services/inputs
+   that match the supported WFS contract and expected values before testing
+   ([ADR-0010](../architecture/adr/0010-wfs-2-only.md)). Existing
    [workflow fixtures](../../qgis_plugin/tests/qgis/workflow_fixture.py) and
    [regression entry points](../architecture/development.md#regression-seams)
    describe reproducible scenarios, but their automated runner is not a

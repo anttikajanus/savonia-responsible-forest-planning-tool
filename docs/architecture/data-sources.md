@@ -75,8 +75,8 @@ owns validation and reuse.
 ## Readiness and normalization
 
 WFS setup discovers schemas without downloading sample features or counting
-records. Managed connections use explicit WFS 2.0, view/AOI-bounded reads and
-paged responses with no total feature cap. Repeated setup upgrades older
+records. Managed connections use view/AOI-bounded, paged reads with no total
+feature cap. Repeated setup upgrades older
 connection options; the [source-layer contract](source-layer-requirements.md#configured-layer-behavior)
 owns initialization and preservation guarantees.
 
@@ -127,9 +127,8 @@ The general [groundwater metadata](https://ckan.ymparisto.fi/dataset/pohjavesial
 
 ## WFS retrieval success
 
-Only WFS 2.0 is supported, with managed sources configured as WFS 2.0.0.
-[ADR-0010](adr/0010-wfs-2-only.md) records why WFS 1.x compatibility, downgrade
-fallback and legacy exception handling are outside the planned scope.
+Managed analysis sources use WFS 2.0.0. [ADR-0010](adr/0010-wfs-2-only.md)
+records this protocol scope decision.
 
 A single AOI-bounded read retrieves each source; selected-feature snapshots
 bypass that provider read. Ordinary reads use a literal AOI polygon expression

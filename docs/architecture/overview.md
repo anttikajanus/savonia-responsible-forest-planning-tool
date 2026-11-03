@@ -35,10 +35,6 @@ flowchart TD
     O --> U[Return results for project and UI updates]
 ```
 
-The workflow validates inputs, retrieves evidence, classifies stand pieces and
-samples indicators, then prepares and writes one publication. Grid intersections
-supply indicator statistics without creating classification boundaries.
-
 ### AOI-wide working set
 
 Retrieval completes for all required sources before stand classification and
@@ -85,38 +81,29 @@ model keeps asynchronous execution from becoming a separate analysis path.
 See the [worker adapter](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/worker_task.py)
 and [QGIS guidance](../agents/qgis.md#architecture-and-qgis-practices).
 
-## Geometry, evidence and publication boundaries
-
-The AOI is dissolved and transformed to EPSG:3067. Returned source geometries are transformed and validated; ordinary polygon sources are repaired when possible, clipped, and retained as snapshots with original attributes and identifiers. Ranta10 products provide combined buffer evidence that is retained as one snapshot. Classification uses stand pieces, while grid intersections provide independent indicator evidence. Use the [geometry contract](calculations.md#area-and-geometry), [functional tier rules](../specs/classification.md#cl-02-six-cumulative-tiers) and [output schema](output-schema.md) for details; [ADR-0004](adr/0004-stand-based-sensitivity-classification.md) records the rationale.
+## Failure and publication boundaries
 
 All eleven required sources must pass validation. Request failures, missing required fields, unusable geometries/transforms, uninterpretable protected/habitat/programme classification values, and invariant violations stop publication. Missing individual numeric indicator values may instead produce partial/unknown metrics. Missing or invalid individual stand ages produce unknown age evidence under [CL-03](../specs/classification.md#cl-03-classes-and-evidence-policy). Pure classification still defines positive-match precedence and `UNKNOWN` for unavailable dependencies; that policy does not mean the current application continues after a required-source failure. See [ADR-0006](adr/0006-evidence-coverage-and-publication.md).
 
-One prepared publication record supplies a GeoPackage containing result polygons, source snapshots, coverage and metadata, and a workbook containing tier/class summaries, coverage and notes. Dedicated writers serialize each format; the publishing phase coordinates writes and removes partial outputs on failure. This is application cleanup rather than a filesystem transaction. [Publishing implementation](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/publishing.py).
+One publication record supplies a GeoPackage with result polygons, source
+snapshots, coverage and metadata, plus a workbook with tier/class summaries,
+coverage and notes. Dedicated writers serialize each format. The coordinator
+cleans up partial outputs after caught write failures or cancellation, but this
+is not a filesystem transaction; cleanup can fail, and a process crash is
+outside the guarantee. Existing output names are rejected before writing. See
+the [publication coordinator](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/publishing.py).
 
-QGIS writes the GeoPackage; the workbook writer uses standard-library ZIP/XML,
-so export requires neither Excel nor an external spreadsheet package. Existing
-output names are rejected before writing. Caught write failures or cancellation
-trigger cleanup of both outputs; deletion can fail and a process crash is
-outside that guarantee. See the [publication coordinator](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/publishing.py).
-
-Required GeoPackage field/form presentation is saved through the QGIS 3.44
-error-string API or the QGIS 4 structured-result API, selected in the
-[GeoPackage adapter](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/geopackage_writer.py).
-Either API reporting an error stops paired publication; both baselines check
-the saved presentation after reopening the file.
-[QGIS 3.44 style API](https://api.qgis.org/api/3.44/classQgsMapLayer.html),
-[QGIS 4 style API](https://api.qgis.org/api/4.0/classQgsMapLayer.html).
-
-## Data flow and policy boundaries
-
-The [source registry](../../qgis_plugin/savonia_responsible_forest_planning_tool/adapters/sources.py) defines three Metsäkeskus products and eight SYKE products. QGIS WFS providers retrieve evidence for the AOI; provider errors are checked separately from a successful empty response. The Ranta10 products use the expanded candidate extent and derive one combined buffer evidence layer before classification. Required provider field names are resolved into a normalized source contract once. Retrieved geometries and original attributes are retained as clipped snapshots so exported evidence can be reviewed later. Source availability, geographic completeness and valid metric coverage remain separate concepts; see [data sources](data-sources.md).
-
-Pure policy modules interpret normalized attributes, choose sensitivity criteria and calculate indicators without widgets or QGIS project state. The QGIS workflow phases perform geometry operations and call that policy. AOI-clipped source stands remain the parent units; relevant criterion boundaries divide them into classified forest polygons. Every polygon carries classes for all six sensitivity tiers. Grid estimates contribute independent volume, age, soil and drainage indicators, with separate valid/unknown areas for each metric. Stand and grid volume estimates retain their own denominators. The [indicator calculations](indicator-calculations.md) define aggregation; [indicator design](indicators.md) explains evidence limits.
+The [geometry contract](calculations.md) owns spatial operations and tolerances.
+[Source-layer requirements](source-layer-requirements.md) and [data sources](data-sources.md)
+own provider inputs and retrieval; [output schema](output-schema.md) owns
+published fields and coverage. Classification uses stand pieces, while grid
+intersections provide independent indicator evidence, as recorded in
+[ADR-0004](adr/0004-stand-based-sensitivity-classification.md).
 
 ## Logging, language and verification
 
-[`app_logging.py`](../../qgis_plugin/savonia_responsible_forest_planning_tool/app_logging.py) separates technical diagnostics from business-action records. The [logging contract](operations.md#logging) owns channel payloads, destinations, rotation and lifecycle. Selected concise diagnostics also reach QGIS Log Messages. Run IDs connect workflow stages and output metadata. These local operational records serve a different purpose from the durable evidence saved in a result pair.
-
-[`i18n.py`](../../qgis_plugin/savonia_responsible_forest_planning_tool/i18n.py) selects Finnish for a Finnish QGIS locale and English otherwise. The entry point resolves a run's language and passes it into progress, errors and exported presentation text; stable source IDs, classification codes and field names remain language-neutral. [`documentation.py`](../../qgis_plugin/savonia_responsible_forest_planning_tool/documentation.py) resolves packaged bilingual HTML help. These are presentation services around the shared workflow.
-
-Verification follows these boundaries: [ordinary unit tests](../../qgis_plugin/tests/) cover pure policy, workbook serialization, rounding and translations; [PyQGIS tests](../../qgis_plugin/tests/qgis/) exercise adapters, the Processing workflow, persisted outputs and UI integration with local fixtures. Packaged load/run/unload and Finnish/English GUI checks require the supported QGIS runtime. See the [required testing guidance](../agents/qgis.md#testing-and-debugging) and [development guide](development.md).
+Logging, language selection and help are presentation and operational services
+around the shared workflow. Their policies belong to [operations](operations.md).
+Verification boundaries and repeatable checks belong to the [QGIS guidance](../agents/qgis.md#testing-and-debugging)
+and [development guide](development.md); automated checks do not establish
+interactive or live-provider acceptance.

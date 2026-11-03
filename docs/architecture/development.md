@@ -401,9 +401,9 @@ For QGIS integration, use the declared runtime's configured Python launcher:
 The integration suite uses generated local data and loopback WFS/OAPIF/WMTS
 fixtures with real QGIS providers. It checks the shared Processing workflow,
 GeoPackage/workbook outputs and Finnish/English failures without online services.
-Loopback network access is required. WFS 2.0 cases cover production connection
-construction, paging, successful-empty responses and later-page failures;
-legacy WFS 1.0 fixture transport does not establish production support.
+Loopback network access is required. WFS cases cover connection construction,
+paging, successful-empty responses and later-page failures. The supported
+protocol scope is recorded in [ADR-0010](adr/0010-wfs-2-only.md).
 
 ### Regression seams
 

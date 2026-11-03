@@ -9,4 +9,4 @@ Volumes publish as whole m³/ha and areas as 0.01 ha using half-up rounding afte
 
 ## Current contract
 
-The decision above retains its recorded context. [IO-04](../../specs/indicators-and-outputs.md#io-04-labels-order-and-precision) owns current rounding; [publication boundaries](../overview.md#geometry-evidence-and-publication-boundaries) own cleanup mechanics.
+The decision above retains its recorded context. [IO-04](../../specs/indicators-and-outputs.md#io-04-labels-order-and-precision) owns current rounding; [publication boundaries](../overview.md#failure-and-publication-boundaries) own cleanup mechanics.

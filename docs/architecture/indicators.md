@@ -1,6 +1,16 @@
 # Indicator design and reporting
 
-This page owns indicator rationale, provider evidence and interpretation limits. The adopted hybrid design is recorded in [ADR-0005](adr/0005-independent-stand-and-grid-indicators.md); evidence retention and precision are recorded in [ADR-0006](adr/0006-evidence-coverage-and-publication.md). The [indicator calculation reference](indicator-calculations.md) owns formulas, worked examples and aggregation; [output schema](output-schema.md) owns field layout; [source contracts](source-layer-requirements.md) own accepted input values.
+This page adds indicator rationale, provider evidence and interpretation limits.
+For the complete published indicator list and required meanings, see
+[IO-01](../specs/indicators-and-outputs.md#io-01-indicator-catalogue); the
+[output schema](output-schema.md) defines each stored field, the
+[calculation reference](indicator-calculations.md) owns formulas and
+aggregation, and [source-layer requirements](source-layer-requirements.md)
+own accepted input values. This page does not repeat those catalog, field or
+calculation definitions. The adopted hybrid design is recorded in
+[ADR-0005](adr/0005-independent-stand-and-grid-indicators.md); evidence
+retention and precision are recorded in
+[ADR-0006](adr/0006-evidence-coverage-and-publication.md).
 
 ## Reporting domain and source allocation
 
@@ -18,43 +28,37 @@ decision and procurement distinction are recorded in [ADR-0011](adr/0011-deciduo
 
 ## Area-weighted evidence
 
-Exact intersection weighting allocates the source estimate uniformly within each intersected cell; it does not measure sub-cell variation or establish better accuracy. The [intersection formulas and worked example](indicator-calculations.md#exact-intersections-and-volume-means) define that allocation. [Pure indicator implementation](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/grid_indicators.py), [grid sampling](../../qgis_plugin/savonia_responsible_forest_planning_tool/analysis/workflow_steps/grid_sampling.py).
+Grid indicators allocate each cell's estimate uniformly within its intersected
+area. This does not measure sub-cell variation or establish better accuracy;
+the [calculation reference](indicator-calculations.md#exact-intersections-and-volume-means)
+owns the weighting formula and examples.
 
 Metric coverage describes which part of the reporting area supports each estimate. Different species coverage and independent stand/grid estimates can explain apparent disagreement between reported values. A successful source request alone cannot establish complete inventory coverage. Use the [comparison guidance](indicator-calculations.md#comparing-indicators-and-reporting-precision) and [summary example](indicator-calculations.md#tierclass-summaries-and-metric-coverage) when interpreting partial values.
 
 ## Sawlog price assumption
 
-The explicit user-supplied sawlog price is an assumption rather than a provider
-price estimate. Stand `sawlogvolume` establishes its applicability and volume
-weight; the saved Metsäkeskus 2.1.3 model workbook's MV GeoServer rows 34–35
-define sawlog and pulpwood densities in m³/ha. Only sawlogs are priced. One
-unit price stays constant across eligible polygons and groups, and is not a
-composition-dependent all-timber average or total valuation. See
-[ADR-0014](adr/0014-user-supplied-sawlog-price.md) and the
-[calculation contract](indicator-calculations.md#sawlog-stumpage-price).
-
-A separate calculated euro amount multiplies original represented sawlog stock
-by that assumption. It describes sawlogs only; it does not establish a market
-valuation of the whole forest or predict harvested income. Zero and unknown
-stock remain distinct, and partial coverage leaves totals null with the known
-subtotal disclosed. [Value contract](indicator-calculations.md#calculated-sawlog-value),
-[ADR-0016](adr/0016-calculated-sawlog-value.md).
+The sawlog price is an explicit user assumption, not a provider price estimate.
+The saved Metsäkeskus 2.1.3 model workbook's MV GeoServer rows 34–35 define
+sawlog and pulpwood densities in m³/ha. The chosen price applies to sawlogs;
+it is not an all-timber average or whole-forest valuation. The calculation
+reference owns eligibility, weighting and the separately published calculated
+amount. See [ADR-0014](adr/0014-user-supplied-sawlog-price.md),
+[ADR-0016](adr/0016-calculated-sawlog-value.md), the [price contract](indicator-calculations.md#sawlog-stumpage-price),
+and the [value contract](indicator-calculations.md#calculated-sawlog-value).
 
 ## Growth percentage
 
 The [growth formula](indicator-calculations.md#exact-intersections-and-volume-means) uses stand increment and stock. The saved [Metsäkeskus 2.1.3 workbook](../references/service-metadata/metsakeskus/tiedosto-tietomallikaavio-mv_ey_2-1-3-metsakeskuksen-tietomallin-uudistus.xlsx), **MV GeoServer** A33:B33 and A36:B36, defines m³/ha and m³/ha/year, supporting a percentage-per-year interpretation. [Saved stand XSD](../references/service-metadata/metsakeskus/stands/describe-feature-type.xsd).
 
-The adopted summary combines per-stand rates rather than weighting by standing
-stock. [Calculation mechanics](indicator-calculations.md#tierclass-summaries-and-metric-coverage)
-define the statistic. For equal 1 ha pieces, stock/growth values 100/10 and 300/3
-give rates 10% and 1%, an adopted mean of 5.5%; the ratio of total growth to stock
-would instead be 3.25%. This illustrates why the alternative has a different meaning.
-
 The ratio is compatible with the standing-volume increment relationship in [iForest equation 1](https://iforest.sisef.org/contents/?id=ifor0635-005), but the provider definitions do not establish current versus periodic, gross versus net increment or the exact denominator date. Avoid stricter CAI/PAI labels. Other period formulas require observations not supplied by these fields; see the forestry discussion in [FRM 503, printed pp. 17–18](https://funaab.edu.ng/funaab-ocw/opencourseware/Forest%20Management%20Techniques.pdf).
 
 ## Ages, soil and drainage
 
-Grid mean age supports area shares of inventory-cell mean ages; it does not describe stand counts or the ages of individual trees. The [age and categorical-area contract](indicator-calculations.md#grid-ages-and-categorical-area-totals) defines area weighting, unknown coverage and lower-bound reporting; the [source contract](source-layer-requirements.md#accepted-indicator-categories) owns accepted codes.
+Grid mean age supports area shares of inventory-cell mean ages; it does not
+describe stand counts or individual-tree age distributions. The [calculation
+reference](indicator-calculations.md#grid-ages-and-categorical-area-totals)
+owns weighting and unknown-coverage behavior; the [source contract](source-layer-requirements.md#accepted-indicator-categories)
+owns accepted codes.
 
 Soil and drainage describe independent source classifications. Source-classified natural mire is not all undrained land or a certification of current ecological condition. The provider code definitions remain the evidence for interpreting these categories. [Soil code list](https://koodistot.suomi.fi/codelist-api/api/v1/coderegistries/metsarek/codeschemes/maalaji-v_1_0/codes), [drainage code list](https://koodistot.suomi.fi/codelist-api/api/v1/coderegistries/metsarek/codeschemes/kuivatustilanne-v_1_0/codes).
 

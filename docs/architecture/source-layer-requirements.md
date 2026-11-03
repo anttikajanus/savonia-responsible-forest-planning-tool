@@ -42,8 +42,8 @@ All eleven configured WFS sources are required. Each must have a usable CRS and 
 
 ## Configured layer behavior
 
-Managed WFS sources use WFS 2.0.0 with paging and view/AOI-bounded requests,
-without a total feature cap. Setup discovers metadata and provider fields
+Managed WFS sources use paging and view/AOI-bounded requests, without a total
+feature cap. Setup discovers metadata and provider fields
 without downloading sample features or counting records. Analysis retrieves
 each source once for the AOI and clips it exactly; the grid is reused locally
 across result polygons. Ordinary WFS reads combine the bounding rectangle with
