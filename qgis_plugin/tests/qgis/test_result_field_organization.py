@@ -32,11 +32,12 @@ EXPECTED_METRICS = (
 class ResultFieldOrganizationTests(unittest.TestCase):
     def assert_presentation(self, layer, language):
         names = [name for name in layer.fields().names() if name != "fid"]
-        self.assertEqual(names[19:35], ["area_ha", *EXPECTED_METRICS])
-        self.assertEqual(names[7:19], ["check_protected", "check_section10", "check_programme",
+        self.assertEqual(names[20:36], ["area_ha", *EXPECTED_METRICS])
+        self.assertEqual(names[7:20], ["check_protected", "check_section10", "check_programme",
                                      "check_groundwater", "check_other_habitat",
                                      "check_potential_protected_age", "check_potential_protected_age_90",
                                      "check_potential_protected_age_100", "check_potential_protected_peatland",
+                                     "check_parent_peatland_watercourse",
                                      "check_natural_state_mire",
                                      "check_riparian_buffer",
                                      "stand_has_overlap"])
@@ -45,7 +46,8 @@ class ResultFieldOrganizationTests(unittest.TestCase):
         for field in ("check_protected", "check_section10", "check_programme",
                       "check_groundwater", "check_other_habitat", "check_potential_protected_age",
                       "check_potential_protected_age_90", "check_potential_protected_age_100",
-                      "check_potential_protected_peatland", "check_natural_state_mire", "check_riparian_buffer"):
+                      "check_potential_protected_peatland", "check_parent_peatland_watercourse",
+                      "check_natural_state_mire", "check_riparian_buffer"):
             self.assertEqual(next(layer.getFeatures())[field], "UNKNOWN")
             index = layer.fields().indexFromName(field)
             self.assertEqual(layer.attributeAlias(index), tr(language, field))
@@ -91,6 +93,10 @@ class ResultFieldOrganizationTests(unittest.TestCase):
         self.assertEqual(form_fields, names)
 
     def test_bilingual_groups_aliases_order_and_values_survive_geopackage_reopen(self):
+        self.assertEqual(tr("en", "check_parent_peatland_watercourse"),
+                         "Parent-stand peatland screen with watercource impact")
+        self.assertEqual(tr("fi", "check_parent_peatland_watercourse"),
+                         "Turvemaakuvion vesistövaikutusten seulonta")
         for language in ("fi", "en"):
             with self.subTest(language=language), tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as folder:
                 layer = create_classified_result_layer([classified_row()], language)

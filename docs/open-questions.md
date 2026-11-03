@@ -5,6 +5,10 @@ item when it is resolved and update the affected documentation at that time.
 
 ## To do
 
+- Review and unify analysis names, Finnish/English UI labels and output
+  attribute names across the plugin, manuals, GeoPackage and Excel. Agree a
+  consistent naming scheme and account for compatibility when renaming stored
+  fields or identifiers.
 - Fix the XSD parser so saved properties belong only to the selected feature
   type, rather than every XML element in the schema.
 - Investigate the reported minute-long setup stall and identify whether the

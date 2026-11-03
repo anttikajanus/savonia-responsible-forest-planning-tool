@@ -33,20 +33,23 @@ class ClassificationTests(unittest.TestCase):
                     ("potential_protected_age_90", "potential_protected_age_90", 3),
                     ("potential_protected_age", "potential_protected_age", 4),
                     ("potential_protected_peatland", "potential_protected_peatland", 3),
+                    ("parent_peatland_watercourse", "parent_peatland_watercourse", 2),
                     ("natural_state_mire", "natural_state_mire", 1))
         states = self.available_states()
         tier_criteria = {
             "all_out": {"protected", "section10"},
             "bau": {"protected", "section10", "natural_state_mire"},
-            "light": {"protected", "section10", "potential_protected_age_100", "natural_state_mire"},
+            "light": {"protected", "section10", "potential_protected_age_100",
+                      "natural_state_mire", "parent_peatland_watercourse"},
             "balance": {"protected", "section10", "programme", "groundwater", "riparian_buffer",
-                        "potential_protected_age_90", "potential_protected_peatland", "natural_state_mire"},
+                        "potential_protected_age_90", "potential_protected_peatland", "natural_state_mire",
+                        "parent_peatland_watercourse"},
             "protection": {"protected", "section10", "programme", "groundwater", "riparian_buffer",
                            "other_habitat", "potential_protected_age", "potential_protected_peatland",
-                           "natural_state_mire"},
+                           "natural_state_mire", "parent_peatland_watercourse"},
             "superprotection": {"protected", "section10", "programme", "groundwater", "riparian_buffer",
                                 "other_habitat", "potential_protected_age", "potential_protected_peatland",
-                                "natural_state_mire"},
+                                "natural_state_mire", "parent_peatland_watercourse"},
         }
         for enabled in itertools.product((False, True), repeat=len(triggers)):
             # Threshold booleans from one age value must be ordered: reaching
@@ -88,6 +91,7 @@ class ClassificationTests(unittest.TestCase):
                         "potential_protected_age": False, "potential_protected_age_90": False,
                         "potential_protected_age_100": False,
                         "potential_protected_peatland": False,
+                        "parent_peatland_watercourse": False,
                         "natural_state_mire": False,
                     }, states)
                     for index, tier in enumerate(self.tiers):
@@ -142,6 +146,7 @@ class ClassificationTests(unittest.TestCase):
         classes, rules = classify_tiers({
             "potential_protected_age": False, "potential_protected_age_90": False,
             "potential_protected_age_100": False, "potential_protected_peatland": False,
+            "parent_peatland_watercourse": False,
             "natural_state_mire": False,
         }, missing)
         self.assertEqual([classes[tier] for tier in self.tiers], [
@@ -223,8 +228,10 @@ class ClassificationTests(unittest.TestCase):
                             "area_ha": 1, "values": {"soiltype": 10 if check == "MATCH" else 60},
                         }])
                     self.assertEqual(row["check_potential_protected_peatland"], check)
-                    for tier in self.tiers[:3]:
+                    for tier in self.tiers[:2]:
                         self.assertEqual(row["classes"][tier], "ECONOMIC")
+                    self.assertEqual(row["classes"]["light"],
+                                     "UNKNOWN" if check == "UNKNOWN" else "ECONOMIC")
                     expected = {"MATCH": "SENSITIVE", "NO_MATCH": "ECONOMIC", "UNKNOWN": "UNKNOWN"}[check]
                     for tier in self.tiers[3:]:
                         self.assertEqual(row["classes"][tier],
@@ -244,6 +251,50 @@ class ClassificationTests(unittest.TestCase):
                     self.assertEqual(row["classes"][tier], "SENSITIVE")
                     self.assertEqual(row["rules"][tier]["criteria"], [criterion])
                     self.assertEqual(row["rules"][tier]["source_ids"], ["parent"])
+
+    def test_parent_peatland_watercourse_screen_affects_light_through_superprotection(self):
+        for drainage in (7, 8, 9):
+            for piece_number in (1, 2):
+                with self.subTest(drainage=drainage, piece_number=piece_number):
+                    row = assemble_classified_piece("parent", {
+                        "MEANAGE": 40, "SOILTYPE": "60", "DRAINAGESTATE": drainage,
+                    }, 0.5, {}, self.available_states())
+                    self.assertEqual(row["check_parent_peatland_watercourse"], "MATCH")
+                    for tier in ("all_out", "bau"):
+                        self.assertEqual(row["classes"][tier], "ECONOMIC")
+                        self.assertNotIn("parent_peatland_watercourse", row["rules"][tier]["criteria"])
+                    for tier in ("light", "balance", "protection", "superprotection"):
+                        self.assertEqual(row["classes"][tier], "SENSITIVE")
+                        self.assertIn("parent_peatland_watercourse", row["rules"][tier]["criteria"])
+                        self.assertEqual(row["rules"][tier]["source_ids"], ["parent"])
+
+    def test_parent_peatland_watercourse_screen_rejects_nonmatching_and_unknown_values(self):
+        states = self.available_states()
+        for attributes in (
+                {"SOILTYPE": 61, "DRAINAGESTATE": 7},
+                {"SOILTYPE": 60, "DRAINAGESTATE": 6},
+                {"SOILTYPE": 10, "DRAINAGESTATE": 8},
+                {"SOILTYPE": 60, "DRAINAGESTATE": 1}):
+            with self.subTest(attributes=attributes):
+                row = assemble_classified_piece("parent", {"MEANAGE": 40, **attributes}, 1, {}, states)
+                self.assertEqual(row["check_parent_peatland_watercourse"], "NO_MATCH")
+                for tier in ("all_out", "bau", "light", "balance", "protection"):
+                    self.assertNotIn("parent_peatland_watercourse", row["rules"][tier]["criteria"])
+
+        for attributes in (
+                {"SOILTYPE": 60, "DRAINAGESTATE": None},
+                {"SOILTYPE": None, "DRAINAGESTATE": 7},
+                {"SOILTYPE": 60, "DRAINAGESTATE": 12},
+                {"SOILTYPE": 999, "DRAINAGESTATE": 7}):
+            with self.subTest(attributes=attributes):
+                row = assemble_classified_piece("parent", {"MEANAGE": 40, **attributes}, 1, {}, states)
+                self.assertEqual(row["check_parent_peatland_watercourse"], "UNKNOWN")
+
+        positive = assemble_classified_piece("parent", {
+            "MEANAGE": 40, "SOILTYPE": 60, "DRAINAGESTATE": None,
+        }, 1, {"section10": True}, states)
+        self.assertEqual(positive["check_parent_peatland_watercourse"], "UNKNOWN")
+        self.assertEqual(set(positive["classes"].values()), {"SENSITIVE"})
 
     def test_stand_natural_state_mire_codes_and_unknowns(self):
         states = self.available_states()

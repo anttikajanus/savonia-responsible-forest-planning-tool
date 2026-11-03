@@ -66,6 +66,7 @@ lists use these codes; several reasons can apply to one piece.
 | `potential_protected_age_90` | Parent stand matches the 90-year age-based potential-protection screen; applies to Balance. |
 | `potential_protected_age_100` | Parent stand matches the 100-year age-based potential-protection screen; applies to Light. |
 | `potential_protected_peatland` | Parent stand matches the peatland potential-protection screen; see [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers). |
+| `parent_peatland_watercourse` | Match to the parent-stand peatland watercourse screen; see [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers). |
 | `natural_state_mire` | Parent stand has recognized `DRAINAGESTATE` code 6; applies to BAU through Superprotection and inherits to every piece of that stand. |
 | `remaining_analyzed_forest` | Superprotection's rule for analyzed forest with no more specific sensitivity match and available required evidence. This is a policy reason and has no matched source-feature identifier. |
 
@@ -83,6 +84,7 @@ Ordinary source-check attributes complement the structured reasons:
 | `check_potential_protected_age_90` | Parent-stand age screen at 90 years; its localized label includes the threshold. |
 | `check_potential_protected_age_100` | Parent-stand age screen at 100 years; its localized label includes the threshold. |
 | `check_potential_protected_peatland` | Parent-stand peatland screen; see [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers). |
+| `check_parent_peatland_watercourse` | Result of the `parent_peatland_watercourse` criterion. |
 | `check_natural_state_mire` | Parent-stand natural-state mire screen; code 6 matches, recognized codes 1, 2, 3, 7, 8 and 9 do not, and invalid values are unknown. |
 
 Each stores `MATCH`, `NO_MATCH` or `UNKNOWN`, with localized presentation.
@@ -259,7 +261,7 @@ in workbook calculation notes:
 
 | Run metadata member | Meaning |
 | --- | --- |
-| `classification_semantics` | Criterion definitions. `potential_protected_age`, `potential_protected_age_90` and `potential_protected_age_100` record source `forest_centre_stand`, field `MEANAGE`, unit `years`, inclusive rules `MEANAGE >= 80`, `>= 90` and `>= 100`, and tiers Protection/Superprotection, Balance, and Light respectively. Each covers every parent-stand piece and records missing/invalid-value policy and potential rather than legal interpretation. `potential_protected_peatland` records the same source, field `SOILTYPE`, integral codes 60–69 inclusive, tiers `balance`, `protection` and `superprotection`. `natural_state_mire` records source `forest_centre_stand`, field `DRAINAGESTATE`, code-6 match rule, tiers `bau`, `light`, `balance`, `protection` and `superprotection`, parent-stand scope, unknown-value policy and planning interpretation. Accepted values and unknown handling follow the [classification input contract](source-layer-requirements.md#accepted-classification-values). Workbook calculation notes carry the same semantics. |
+| `classification_semantics` | Definitions keyed by criterion reason code. Stand analyses record `source_id`, `field` or `fields`, `rule`, `tiers`, `scope`, `unknown` and `interpretation`, with `unit` where applicable. Riparian definitions record water sources, affected tiers and the overlap threshold. Matching rules and tier membership follow [CL-02](../specs/classification.md#cl-02-six-cumulative-tiers); accepted inputs follow the [source contract](source-layer-requirements.md#accepted-classification-values). |
 | `indicator_semantics` | Indicator formulas, source groupings, units, weighting, rounding, completeness rules and interpretation of the supplied sawlog price and calculated sawlog value. Exact methods are defined in [indicator calculations](indicator-calculations.md). |
 | `data_attribution` | Credits keyed by analysis source ID. Each record contains `dataset`, `attribution`, `license`, `license_url`, `terms_url` and `modifications`. Original provider/dataset names are retained in both languages; modification text follows the run language. The same record is serialized into GeoPackage run metadata and workbook notes. Exact source lines and terms belong to the [packaged notices](../../qgis_plugin/savonia_responsible_forest_planning_tool/THIRD_PARTY_NOTICES). |
 

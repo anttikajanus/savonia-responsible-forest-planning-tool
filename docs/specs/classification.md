@@ -18,34 +18,37 @@ These are functional planning rules for the personal prototype. [Geometry/classi
 | --- | --- |
 | All out | Recognized active protected areas and mapped Section 10 habitats |
 | BAU | Same criteria as All out, plus parent-stand natural-state mire when `DRAINAGESTATE == 6`; retained as a separate tier |
-| Light | All out/BAU criteria plus potential protection when parent-stand `MEANAGE >= 100` years and parent-stand natural-state mire when `DRAINAGESTATE == 6` |
+| Light | All out/BAU criteria plus potential protection when parent-stand `MEANAGE >= 100` years, parent-stand natural-state mire when `DRAINAGESTATE == 6`, and parent-stand peatland/watercourse screen |
 | Balance | Light criteria plus nature conservation programme areas, groundwater areas, Ranta10 riparian buffers, parent-stand peatland screen (`SOILTYPE` 60–69), potential protection when `MEANAGE >= 90` years, and parent-stand natural-state mire when `DRAINAGESTATE == 6` |
 | Protection | Balance criteria plus other valuable habitats, potential protection when `MEANAGE >= 80` years, and parent-stand natural-state mire when `DRAINAGESTATE == 6` |
 | Superprotection | Protection criteria plus all remaining analyzed forest when required evidence is available |
 
 The [accepted input mapping](../architecture/source-layer-requirements.md#accepted-classification-values) distinguishes Section 10 from other valuable habitat. Programme areas and established protected areas remain distinct evidence, with programme identifiers/context and their observed protected-area overlap retained. All returned groundwater footprints count without class/subtype filtering. The riparian criterion uses the three required Ranta10 water products; buffer construction and union behavior are defined in the [geometry contract](../architecture/calculations.md#area-and-geometry). These are planning rules, not statements about legal restrictions.
 
-Mean age of at least 100 years triggers potential protection throughout every
-result piece from that stand in Light. Mean age of at least 90 years triggers
-it in Balance; at least 80 years triggers it in Protection and Superprotection.
-These inclusive checks are reported separately at 80, 90 and 100 years, each
-with its own result attribute. The stand soil-code analysis remains a separate
-criterion: codes 60–69 inclusive trigger potential protection throughout every
-piece in Balance, Protection and Superprotection. Recognized stand
-`DRAINAGESTATE` code 6 triggers natural-state mire sensitivity in BAU through
-Superprotection; recognized codes 1, 2, 3, 7, 8 and 9 do not match. The stand
-drainage check is distinct from the grid natural-mire area indicator. The three
-age checks, soil-code check and drainage check are independent of each other,
-grid age/soil/drainage indicators and active protected-area status. They add
-no geometric boundary or external potential-site source. Accepted value
-formats and invalid-value handling are defined by the [source contract](../architecture/source-layer-requirements.md#accepted-classification-values).
+The stand age analysis uses inclusive mean-age cutoffs of 100 years for Light,
+90 for Balance, and 80 for Protection and Superprotection. Each cutoff has its
+own result attribute.
+
+The stand peatland screen matches integral parent-stand `SOILTYPE` codes
+60–69 inclusive.
+
+The parent-stand peatland watercourse screen matches only when
+`SOILTYPE == 60` and `DRAINAGESTATE` is 7, 8 or 9. Both conditions are required.
+
+The stand natural-state mire screen matches recognized `DRAINAGESTATE` code 6.
+Recognized codes 1, 2, 3, 7, 8 and 9 do not match this analysis.
+
+Each stand analysis applies to every piece from its parent stand without
+adding a geometric boundary. Grid indicators and active protected-area status
+are evaluated independently. Accepted value formats and invalid-value handling
+are defined by the [source contract](../architecture/source-layer-requirements.md#accepted-classification-values).
 
 ## CL-03 Classes and evidence policy
 
 - Classify each tier as sensitive, economic or unknown. Keep stored class codes language-neutral and translate their display labels. The exact codes and output fields are defined in the [output schema](../architecture/output-schema.md#class-codes).
 - A recognized positive trigger makes a piece sensitive. With no trigger, a piece is economic only when required evidence for that tier is available. Unavailable dependencies leave an unmatched piece unknown; Superprotection's catch-all must not erase that uncertainty.
 - `UNKNOWN` is a data-quality state, not a third forest type. The pure classification policy supports unknown dependencies, while the current application stops on required-source, request, geometry or interpretation failures as specified in [WF-07](workflow.md#wf-07-failure-cancellation-and-observability).
-- Missing or invalid individual stand ages, soil codes or drainage codes make their respective checks unknown. With no other positive trigger, BAU through Superprotection are unknown when the natural-state mire check is unknown; Light is also unknown if its age check is unknown; Balance is unknown if its age or soil check is unknown; Protection and Superprotection are unknown if their age or soil check is unknown. The Superprotection catch-all cannot override missing applicable stand evidence. The [source contract](../architecture/source-layer-requirements.md#accepted-classification-values) owns accepted stand values; a missing required field stops the run at schema validation, while an invalid individual value can produce an unknown result.
+- Missing or invalid stand inputs make their affected checks unknown. With no positive trigger, an unknown check included in a tier makes its classification unknown; the Superprotection catch-all cannot override that uncertainty. The [source contract](../architecture/source-layer-requirements.md#accepted-classification-values) owns accepted stand values. A missing required field stops the run at schema validation, while an invalid individual value can produce an unknown result.
 
 For an unmatched result to be classified as economic, the pure policy requires:
 
@@ -53,7 +56,7 @@ For an unmatched result to be classified as economic, the pure policy requires:
 | --- | --- |
 | All out | Protected + Habitat |
 | BAU | Protected + Habitat + valid stand drainage value |
-| Light | Protected + Habitat + valid stand age and drainage values |
+| Light | Protected + Habitat + valid stand age, soil and drainage values |
 | Balance | Protected + Habitat + Programme + Groundwater + Ranta10 water + valid stand age, soil and drainage values |
 | Protection, Superprotection | Protected + Habitat + Programme + Groundwater + Ranta10 water + valid stand age, soil and drainage values |
 
@@ -61,7 +64,7 @@ The current workflow checks every configured source before classification; see
 [WF-03](workflow.md#wf-03-source-readiness-and-retrieval) and
 [WF-07](workflow.md#wf-07-failure-cancellation-and-observability).
 - Preserve matched rule IDs and source IDs per tier, original stand identity, Section 10 promotion and available programme context. An economic result means no included trigger was found under the available evidence; it does not establish that no constraint exists on the ground.
-- Expose independent checks for applicable source criteria, including protected areas, Section 10, programme areas, groundwater, riparian buffer, other valuable habitat, the three stand-age screens (80, 90 and 100 years), the stand soil screen, and the stand natural-state mire check. Each check is MATCH, NO_MATCH or UNKNOWN; unavailable evidence is not a no-match. Riparian matches retain only contributing water-source references for the result piece. Stored field names/codes and reason provenance are defined in the [output schema](../architecture/output-schema.md#classification-fields-and-values). Superprotection's remaining-forest policy stays in tier provenance rather than becoming another source check.
+- Expose independent checks for applicable source criteria, including protected areas, Section 10, programme areas, groundwater, riparian buffer, other valuable habitat, the three stand-age screens (80, 90 and 100 years), the stand soil screen, the parent-stand peatland/watercourse screen, and the stand natural-state mire check. Each check is MATCH, NO_MATCH or UNKNOWN; unavailable evidence is not a no-match. Riparian matches retain only contributing water-source references for the result piece. Stored field names/codes and reason provenance are defined in the [output schema](../architecture/output-schema.md#classification-fields-and-values). Superprotection's remaining-forest policy stays in tier provenance rather than becoming another source check.
 
 Check display labels for the three age criteria include their threshold in
 years. Preserve the exact age rules and their interpretation in run metadata
@@ -92,8 +95,8 @@ price integration.
 [ADR-0018](../architecture/adr/0018-fixed-prototype-analysis-parameters.md)
 records this scope decision.
 
-Other SYKE forest-sensitive-water criteria, peat/mire sensitivity criteria beyond the adopted stand screen, recreation areas, external potential-protected-site datasets and MY plan areas are out of scope. The adopted Ranta10 buffer criterion is a planning assumption, not a legal setback or site-specific assessment; see [CL-02](#cl-02-six-cumulative-tiers) for its current scope. Do not treat it as adoption of other water-protection sources or rules.
+Other SYKE forest-sensitive-water criteria, peat/mire sensitivity criteria beyond the adopted stand screens, recreation areas, external potential-protected-site datasets and MY plan areas are out of scope. The adopted Ranta10 buffer criterion is a planning assumption, not a legal setback or site-specific assessment; see [CL-02](#cl-02-six-cumulative-tiers) for its current scope. Do not treat it as adoption of other water-protection sources or rules.
 
-Grid peatland and natural-mire **indicators** are included within analyzed forest and do not themselves add sensitivity criteria; the adopted stand soil-code screen is separate. Programme membership does not establish current legal protection, and Section 10 stand promotion is a conservative prototype assumption. No mapped habitat does not prove habitat absence.
+Grid peatland and natural-mire **indicators** are included within analyzed forest and do not themselves add sensitivity criteria; the adopted stand soil-code screens contribute to tier classification. Programme membership does not establish current legal protection, and Section 10 stand promotion is a conservative prototype assumption. No mapped habitat does not prove habitat absence.
 
 The plugin prepares spatial evidence and descriptive inputs. It does not determine legal harvesting rights, approve a forestry prescription, model scenario harvest/economic/carbon/biodiversity/water/recreation effects, or replace field assessment and owner/public decision making. Deferred sources and policy questions remain in [architecture](../architecture/deferred-sources.md).

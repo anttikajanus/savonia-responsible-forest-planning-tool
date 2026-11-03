@@ -195,6 +195,14 @@ def prepare_publication(inputs, retrieved, classified, run_id):
                 "unknown": "missing, nonnumeric, boolean, nonfinite, fractional or unrecognized soil code",
                 "interpretation": "potential protection based on stand soil code; not legal protection",
             },
+            "parent_peatland_watercourse": {
+                "source_id": "forest_centre_stand", "fields": ["SOILTYPE", "DRAINAGESTATE"],
+                "rule": "SOILTYPE == 60 and DRAINAGESTATE in (7, 8, 9)",
+                "tiers": ["light", "balance", "protection", "superprotection"],
+                "scope": "all pieces of the parent stand",
+                "unknown": "missing, nonnumeric, boolean, nonfinite, fractional or unrecognized soil/drainage code",
+                "interpretation": "parent-stand peatland screen with watercourse impact; planning evidence, not legal protection",
+            },
             "natural_state_mire": {
                 "source_id": "forest_centre_stand", "field": "DRAINAGESTATE", "unit": "drainage code",
                 "rule": "DRAINAGESTATE == 6",

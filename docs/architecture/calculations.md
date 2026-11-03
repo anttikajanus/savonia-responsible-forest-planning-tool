@@ -85,6 +85,7 @@ the [output schema](output-schema.md#classification-fields-and-values).
 | Groundwater area | — | — | — | ✓ | ✓ | ✓ |
 | Ranta10 riparian buffer | — | — | — | ✓ | ✓ | ✓ |
 | Parent-stand peatland screen | — | — | — | ✓ | ✓ | ✓ |
+| Parent-stand peatland screen with watercource impact | — | — | ✓ | ✓ | ✓ | ✓ |
 | Parent-stand natural-state mire screen | — | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Other valuable habitat | — | — | — | — | ✓ | ✓ |
 | Parent-stand age screen at 100 years | — | — | ✓ | — | — | — |
@@ -157,6 +158,12 @@ Provider value acceptance is owned by the
 Stand criteria inherit the parent stand's interpretation; see
 [CL-01](../specs/classification.md#cl-01-reporting-domain-and-geometry) for
 their spatial effect.
+
+### Stand peatland screen with watercource impact
+
+This analysis consumes the parent stand's `SOILTYPE` and `DRAINAGESTATE` from
+`forest_centre_stand`. Its matching rule and tier membership are defined in
+[CL-02](../specs/classification.md#cl-02-six-cumulative-tiers).
 
 The [input contract](source-layer-requirements.md#accepted-classification-values)
 owns accepted statuses, categories, habitat codes and programme identifiers.

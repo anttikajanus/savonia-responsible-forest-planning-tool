@@ -133,5 +133,6 @@ Unless explicitly marked partial, deferred or retired, stories describe implemen
 | ID | User story | Acceptance |
 | --- | --- | --- |
 | US-081 | As a planner, I want recognized stand drainage code 6 to affect BAU through Superprotection and remain distinct from grid natural-mire area, so stand-level natural-state mire evidence is visible without changing All out or the inventory indicator. | [CL-02](classification.md#cl-02-six-cumulative-tiers), [CL-03](classification.md#cl-03-classes-and-evidence-policy), [IO-05](indicators-and-outputs.md#io-05-files-and-publication) |
+| US-083 | As a planner, I want peatland watercourse evidence included in sensitivity classification, so I can inspect the parent stand's soil and drainage evidence alongside the other analyses. | [CL-02](classification.md#cl-02-six-cumulative-tiers), [CL-03](classification.md#cl-03-classes-and-evidence-policy), [IO-05](indicators-and-outputs.md#io-05-files-and-publication) |
 Technical design, module boundaries and verification belong in
 [architecture](../architecture/README.md).
