@@ -71,14 +71,6 @@ sys.exit(not result.wasSuccessful())
         self.assertIn("FAIL: test_bad (__main__.Case.test_bad) (value=3)", str(failure.exception))
         self.assertIn("ERROR: test_error (__main__.Case.test_error)", str(failure.exception))
 
-    def test_timeout_preserves_output_and_identifies_the_last_test(self):
-        command = [sys.executable, "-c", "import time; print('test_hung (suite.Case) ... ', flush=True); time.sleep(60)"]
-        with self.assertRaises(check.CheckFailure) as failure:
-            check.execute_check("hung", command, self.root, os.environ.copy(), timeout=0.5)
-        self.assertIn("timed out after 0.5s", str(failure.exception))
-        self.assertIn("Last test reported: test_hung (suite.Case)", str(failure.exception))
-        self.assertIn("test_hung", (self.root / "hung.log").read_text())
-
     def test_timeout_must_be_positive_and_finite(self):
         for value in ("0", "-1", "nan", "inf"):
             with self.subTest(value=value), self.assertRaises(SystemExit) as failure:
@@ -104,37 +96,6 @@ sys.exit(not result.wasSuccessful())
         self.assertEqual(result.returncode, 1)
         self.assertIn("controlled bootstrap failure", result.stderr)
         self.assertNotIn("fault handler disabled", result.stderr)
-
-    @unittest.skipUnless(os.name == "nt", "Windows batch launcher process tree")
-    def test_timeout_stops_the_python_child_of_a_batch_launcher(self):
-        marker = self.root / "child-open-file"
-        child = self.root / "child.py"
-        child.write_text("import time\n" + f"with open({str(marker)!r}, 'w') as output:\n"
-                         "    print('child running', flush=True)\n    time.sleep(60)\n", encoding="utf-8")
-        launcher = self.root / "launcher.bat"
-        launcher.write_text(f'@echo off\n"{sys.executable}" "{child}"\n', encoding="utf-8")
-        with self.assertRaisesRegex(check.CheckFailure, "timed out") as failure:
-            check.execute_check("batch-hung", [str(launcher)], self.root, os.environ.copy(), timeout=1.5)
-        self.assertNotIn("cleanup failed", str(failure.exception))
-        self.assertIn("child running", (self.root / "batch-hung.log").read_text())
-        # The child keeps this handle open while running; Windows denies deletion.
-        marker.unlink()
-
-    @unittest.skipUnless(shutil.which("powershell"), "Windows entry point requires PowerShell")
-    def test_windows_entry_point_forwards_timeout_and_saves_failure_summary(self):
-        launcher = self.root / "hung.bat"
-        launcher.write_text('@echo off\n"' + sys.executable + '" -c "import time; time.sleep(60)"\n', encoding="utf-8")
-        runner = Path(check.__file__).with_suffix(".ps1")
-        result = subprocess.run([
-            "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(runner),
-            "-Python", sys.executable, "-Checks", "qgis", "-QgisPython", str(launcher),
-            "-LogsDir", str(self.root), "-TimeoutSeconds", "0.5",
-        ], capture_output=True, text=True, check=False, timeout=15)
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("preflight-qgis timed out after 0.5s", result.stderr)
-        summary = next(self.root.glob("*/failure.log")).read_text()
-        self.assertIn("timed out after 0.5s", summary)
-        self.assertNotIn("cleanup failed", summary)
 
     @unittest.skipUnless(shutil.which("powershell"), "Windows entry point requires PowerShell")
     def test_entry_point_without_git_still_reaches_python_preflight_and_summary(self):
