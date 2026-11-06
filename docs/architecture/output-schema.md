@@ -157,8 +157,8 @@ describes trunk cross-sectional area per hectare and has a separate field below.
 
 | Field | Display label | Meaning of stored value |
 | --- | --- | --- |
-| `peatland_area_ha` | Hila turvemaiden pinta-ala / Grid peatland area (ha) | Hectares classified as peat soil within the result piece; null if soil coverage is incomplete. |
-| `natural_mire_area_ha` | Hila lähteen luonnontilaisten soiden pinta-ala / Grid source-classified natural mire area (ha) | Hectares classified as natural mire in the grid drainage data; null if drainage coverage is incomplete. |
+| `peatland_area_ha` | Hila havaittu turvemaiden pinta-ala / Grid observed peatland area (ha) | Observed hectares classified as peat soil within the result piece; null if soil coverage is incomplete. Tier/class workbook summaries show observed matching hectares as a lower bound when coverage is incomplete. |
+| `natural_mire_area_ha` | Hila lähteen havaittu luonnontilaisten soiden pinta-ala / Grid observed source-classified natural mire area (ha) | Observed hectares classified as natural mire in the grid drainage data; null if drainage coverage is incomplete. Tier/class workbook summaries show observed matching hectares as a lower bound when coverage is incomplete. |
 
 These categories describe the source classification at its source date, rather
 than certification of present ecological condition. They are descriptive

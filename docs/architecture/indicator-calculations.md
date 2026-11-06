@@ -127,8 +127,12 @@ Recognized nonmatching codes contribute known zero. Soil and drainage have
 independent coverage; neither classification overrides the other.
 
 Complete classification coverage permits matching-hectare totals, including a
-known zero. Any unknown hectares leave the requested total null/blank with
-partial/unknown status; observed matching hectares remain a **lower bound**.
+known zero. On result polygons, any unknown hectares leave the requested total
+null; partial/unknown status and observed matching hectares remain in coverage.
+Tier/class workbook summaries always publish the observed matching hectares as
+a **lower bound**, including when coverage is partial or unavailable. They do
+not impute unknown hectares. Empty groups therefore have a zero observed lower
+bound. Coverage status and unknown area remain the completeness signal.
 A 64 m² match contributes 0.0064 ha; a 0.5 m² match contributes 0.00005 ha.
 These source-date classifications do not certify ecological condition. The
 grid indicators are separate from the adopted parent-stand `SOILTYPE` sensitivity
@@ -150,8 +154,10 @@ Combine full-precision sufficient statistics separately per tier/class:
   of group growth and volume.
 - Age share: 100 × summed band hectares / summed valid-age hectares, rounded
   after division. Age coverage uses full group reporting area.
-- Peat/mire total: summed matching hectares only when the entire group reporting
-  area has known classification; otherwise disclose lower bound and unknown area.
+- Peat/mire summary: publish summed observed matching hectares as a lower bound
+  even when the group reporting area has unknown classification; retain status,
+  valid/unknown hectares and matching-area statistics in coverage. Per-result
+  polygon totals remain null when classification coverage is incomplete.
 - Sawlog value: sum exact known euro amounts when the entire group has known
   sawlog stock; otherwise keep the total null and disclose the known subtotal.
 - Area: summed actual result-piece hectares regardless of metric coverage.
@@ -166,5 +172,8 @@ second over 80, shares are **20%, 0%, 80%**, with exact age coverage 62.5%,
 presented as **63%**.
 
 The [coverage schema](output-schema.md#metric-coverage) records these sufficient
-statistics in both outputs. Availability belongs in statuses and notes rather
-than appended to attribute names.
+statistics in both outputs. Within a tier, the three class groups partition the
+same result geometry, so their valid area, unknown area and matching area sum to
+the same coverage totals across tiers. Individual class coverage may differ
+between tiers because their polygons intersect different grid cells. Availability
+belongs in statuses and notes rather than appended to attribute names.

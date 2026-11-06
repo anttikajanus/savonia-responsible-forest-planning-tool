@@ -205,7 +205,11 @@ def summarize_indicator_rows(rows):
                                     "coverage_percent": whole_percent(percent) if percent is not None else None})
             indicators[metric] = whole_percent(_percentage(numerator, valid_area)) if valid_area else None
         elif metric in AREA_METRICS:
-            indicators[metric] = numerator if coverage[metric]["status"] == "AVAILABLE" else None
+            # Tier/class summaries expose the observed matching area as a lower
+            # bound even when classification coverage is incomplete. The
+            # coverage status and unknown hectares remain the completeness
+            # signal; empty groups therefore have an observed lower bound of 0.
+            indicators[metric] = numerator
         else:
             indicators[metric] = numerator / valid_area if valid_area else None
     price_parts = [row["indicator_coverage"].get("stumpage_price_eur_m3", {}) for row in rows]
