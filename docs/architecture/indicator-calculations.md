@@ -131,8 +131,9 @@ known zero. On result polygons, any unknown hectares leave the requested total
 null; partial/unknown status and observed matching hectares remain in coverage.
 Tier/class workbook summaries always publish the observed matching hectares as
 a **lower bound**, including when coverage is partial or unavailable. They do
-not impute unknown hectares. Empty groups therefore have a zero observed lower
-bound. Coverage status and unknown area remain the completeness signal.
+not impute unknown hectares. An empty group has no summary value and remains
+blank; a nonempty group with complete coverage and no matching hectares has a
+known zero. Coverage status and unknown area remain the completeness signal.
 A 64 m² match contributes 0.0064 ha; a 0.5 m² match contributes 0.00005 ha.
 These source-date classifications do not certify ecological condition. The
 grid indicators are separate from the adopted parent-stand `SOILTYPE` sensitivity
@@ -157,12 +158,14 @@ Combine full-precision sufficient statistics separately per tier/class:
 - Peat/mire summary: publish summed observed matching hectares as a lower bound
   even when the group reporting area has unknown classification; retain status,
   valid/unknown hectares and matching-area statistics in coverage. Per-result
-  polygon totals remain null when classification coverage is incomplete.
+  polygon totals remain null when classification coverage is incomplete. Empty
+  tier/class groups have null totals; known zero applies only to nonempty groups
+  with complete coverage and no matches.
 - Sawlog value: sum exact known euro amounts when the entire group has known
   sawlog stock; otherwise keep the total null and disclose the known subtotal.
 - Area: summed actual result-piece hectares regardless of metric coverage.
   Feature count counts pieces. Empty groups have zero area/count and null
-  density/age values.
+  density, age, peatland-area, and natural-mire-area values.
 
 Two 1 ha pieces with grid-valid areas 0.25 ha at 100 and 1 ha at 300 give
 **260 m³/ha**, with 1.25 valid ha and 0.75 unknown ha. Stand values 100 and 300

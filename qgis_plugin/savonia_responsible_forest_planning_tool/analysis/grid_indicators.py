@@ -208,8 +208,9 @@ def summarize_indicator_rows(rows):
             # Tier/class summaries expose the observed matching area as a lower
             # bound even when classification coverage is incomplete. The
             # coverage status and unknown hectares remain the completeness
-            # signal; empty groups therefore have an observed lower bound of 0.
-            indicators[metric] = numerator
+            # signal. With no result features there is no group value, so leave
+            # it unavailable rather than presenting an artificial zero.
+            indicators[metric] = numerator if rows else None
         else:
             indicators[metric] = numerator / valid_area if valid_area else None
     price_parts = [row["indicator_coverage"].get("stumpage_price_eur_m3", {}) for row in rows]
