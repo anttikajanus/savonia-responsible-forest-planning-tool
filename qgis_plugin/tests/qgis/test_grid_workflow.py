@@ -185,8 +185,8 @@ class GridWorkflowTest(WorkflowFixtureMixin, unittest.TestCase):
                 for metric, expected in (("grid_total_volume_m3_ha", 260), ("total_volume_m3_ha", 200),
                                          ("share_under_20", 20), ("share_20_80", 0), ("share_over_80", 80)):
                     self.assertEqual(metrics[tr(language, "metric_" + metric)], expected)
-                self.assertIsNone(metrics[tr(language, "metric_peatland_area_ha")])
-                self.assertIsNone(metrics[tr(language, "metric_natural_mire_area_ha")])
+                self.assertEqual(metrics[tr(language, "metric_peatland_area_ha")], 0.25)
+                self.assertEqual(metrics[tr(language, "metric_natural_mire_area_ha")], 0.25)
                 coverage_rows = sheets[tr(language, "sheet_metric_coverage")]
                 age = next(row for row in coverage_rows[1:] if row[:3] == [tr(language, "tier_all_out"), tr(language, "class_economic"), "share_under_20"])
                 self.assertEqual((age[6], age[7], age[9], age[11]), (1.25, 0.75, 0.25, 63))

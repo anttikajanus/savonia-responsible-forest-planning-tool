@@ -177,7 +177,7 @@ class GridPublicationTests(unittest.TestCase):
                 self.assertEqual(value("grid_total_volume_m3_ha"), 260)
                 self.assertEqual(value("total_volume_m3_ha"), 200)
                 self.assertEqual([value(metric) for metric in ("share_under_20", "share_20_80", "share_over_80")], [20, 0, 80])
-                self.assertIsNone(value("peatland_area_ha"))
+                self.assertEqual(value("peatland_area_ha"), 1.25)
                 self.assertNotIn("birch_volume_m3_ha", publication["run_metadata"][0]["indicator_semantics"])
                 self.assertIsNone(value("stumpage_price_eur_m3"))
                 coverage = workbook[tr(language, "sheet_metric_coverage")]
