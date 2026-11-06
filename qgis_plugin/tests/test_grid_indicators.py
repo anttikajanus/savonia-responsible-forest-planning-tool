@@ -170,7 +170,7 @@ class GridIndicatorsTest(unittest.TestCase):
         self.assertEqual(summary["feature_count"], 2)
         self.assertEqual(summary["indicator_coverage"]["grid_total_volume_m3_ha"]["unknown_area_ha"], 0.75)
         self.assertEqual(summary["indicator_coverage"]["share_under_20"]["coverage_percent"], 63)
-        self.assertIsNone(summary["peatland_area_ha"])
+        self.assertEqual(summary["peatland_area_ha"], 0.25)
         self.assertEqual(summary["indicator_coverage"]["peatland_area_ha"]["matching_area_ha"], 0.25)
         flat_rows = [{"class": "ECONOMIC", "area_ha": row["area_ha"],
                       **row["indicators"], "indicator_coverage": row["indicator_coverage"]} for row in rows]
